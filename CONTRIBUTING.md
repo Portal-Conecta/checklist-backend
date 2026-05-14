@@ -8,7 +8,7 @@ Em caso de dúvida, consulte a Scrum Master antes de realizar qualquer ação.
 
 ## Regras Gerais
 
-- **Nunca** faça commit direto nas branches main ou dev;
+- **Nunca** faça commit direto nas branches main ou dev**;**
 - Todo código entra via Pull Request, nunca diretamente;
 - PRs precisam de pelo menos 1 aprovação antes do merge.
 
@@ -37,9 +37,9 @@ dev → feature/sua-branch → (PR aprovado) → dev → (fim de sprint) → mai
 Use o padrão abaixo, sempre em letras minúsculas com hífen:
 
 ```
-feature/RF001-autenticacao-email
-feature/RF011-mapa-sala-aprendiz
-hotfix/correcao-validacao-lo
+feature/42-autenticacao-email
+feature/11-mapa-sala-aprendiz
+hotfix/correcao-validacao-login
 release/sprint-01
 ```
 

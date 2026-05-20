@@ -27,10 +27,10 @@ class ChecklistTemplateRepositoryTest {
     @Test
     @DisplayName("Deve persistir e recuperar um ChecklistTemplate com Embedded e JSONB com sucesso")
     void devePersistirERecuperarChecklistTemplate() {
-        ClassList turma = new ClassList("turma-123", "aluno", "representante");
+        ClassList turma = new ClassList(UUID.randomUUID(), "aluno", "representante");
 
         UserToken userTokenJson = new UserToken(
-                "user-1",
+                UUID.randomUUID(),
                 "João Silva",
                 "joao@exemplo.com",
                 "aluno",
@@ -46,6 +46,7 @@ class ChecklistTemplateRepositoryTest {
                 .description("Verificação de rotina")
                 .version(1)
                 .active(true)
+                .status(Status.DRAFT)
                 .roomReference(roomReference)
                 .schemaJson(userTokenJson)
                 .build();

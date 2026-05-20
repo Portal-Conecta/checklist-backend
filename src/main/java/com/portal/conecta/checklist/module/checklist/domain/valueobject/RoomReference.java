@@ -3,8 +3,7 @@ package com.portal.conecta.checklist.module.checklist.domain.valueobject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
-import org.hibernate.validator.constraints.UUID;
-
+import java.util.UUID;
 @Embeddable
 @Getter
 public class RoomReference {

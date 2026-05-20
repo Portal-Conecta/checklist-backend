@@ -114,6 +114,24 @@ HUB_API_URL=http://localhost:8081
 docker compose up -d
 ```
 
+Check the container status:
+
+```bash
+docker compose ps
+```
+
+Stop the local database:
+
+```bash
+docker compose down
+```
+
+Remove the local database volume:
+
+```bash
+docker compose down -v
+```
+
 ### Run the API
 
 Linux/macOS:
@@ -132,6 +150,12 @@ If Maven Wrapper is not available:
 
 ```bash
 mvn spring-boot:run
+```
+
+Using a specific profile:
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
 ## API Documentation

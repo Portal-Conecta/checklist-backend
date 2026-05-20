@@ -64,8 +64,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>net.ttddyy.observation</groupId>
-			<artifactId>datasource-micrometer-spring-boot</artifactId>
+    		<groupId>net.ttddyy.observation</groupId>
+    		<artifactId>datasource-micrometer-spring-boot</artifactId>
+    		<version>1.0.3</version> <!-- ou a versão compatível com seu Spring Boot -->
 		</dependency>
 
 		<dependency>

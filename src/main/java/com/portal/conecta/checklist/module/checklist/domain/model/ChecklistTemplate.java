@@ -34,6 +34,11 @@ public class ChecklistTemplate {
     @Column(name = "version",nullable = false)
     private int version;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
+    private Status status = Status.DRAFT;
+
     @Column(name = "active",nullable = false)
     private boolean active;
 

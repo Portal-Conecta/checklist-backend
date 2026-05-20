@@ -1,6 +1,8 @@
 package com.portal.conecta.checklist.module.checklist.presentation.dto;
 
-public record ClassList(String id,
+import java.util.UUID;
+
+public record ClassList(UUID id,
                         String relacao,
                         String papelNaTurma){
 }

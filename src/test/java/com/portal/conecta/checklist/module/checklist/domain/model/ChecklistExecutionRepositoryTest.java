@@ -14,6 +14,8 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,9 +55,14 @@ class ChecklistExecutionRepositoryTest {
                 .build();
 
         execution.addIssue(ChecklistIssue.builder()
+                .assignedUserReference(new UserReference(userId))
                 .itemKey("projetor_funcionando")
+                .itemTitleSnapshot("Projetor funcionando")
+                .title("Projetor com defeito")
                 .description("Projetor nao liga")
-                .resolved(false)
+                .status(com.portal.conecta.checklist.module.issues.domain.model.Status.OPEN)
+                .priority(com.portal.conecta.checklist.module.issues.domain.model.Priority.HIGH)
+                .dueAt(Instant.now().plus(3, ChronoUnit.DAYS))
                 .build());
 
         ChecklistExecution executionSalva = entityManager.persistAndFlush(execution);
@@ -77,8 +84,13 @@ class ChecklistExecutionRepositoryTest {
         assertThat(executionBuscada.getAnswersJson().get("observacao")).isEqualTo("Sala em bom estado");
 
         assertThat(executionBuscada.getIssues()).hasSize(1);
+        assertThat(executionBuscada.getIssues().get(0).getAssignedUserReference().getUserId()).isEqualTo(userId);
         assertThat(executionBuscada.getIssues().get(0).getItemKey()).isEqualTo("projetor_funcionando");
-        assertThat(executionBuscada.getIssues().get(0).isResolved()).isFalse();
+        assertThat(executionBuscada.getIssues().get(0).getStatus())
+                .isEqualTo(com.portal.conecta.checklist.module.issues.domain.model.Status.OPEN);
+        assertThat(executionBuscada.getIssues().get(0).getPriority())
+                .isEqualTo(com.portal.conecta.checklist.module.issues.domain.model.Priority.HIGH);
+        assertThat(executionBuscada.getIssues().get(0).getResolvedAt()).isNull();
     }
 
     private ChecklistTemplate criarTemplate(UUID roomId, UUID classId, UUID userId) {

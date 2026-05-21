@@ -1,9 +1,7 @@
 package com.portal.conecta.checklist.module.checklist.infrastructure.persistense;
 
-import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 
-import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -46,7 +44,7 @@ public interface ChecklistTemplateRepository extends JpaRepository<ChecklistTemp
             HAVING COUNT(id) > 1
             
             """, nativeQuery = true)
-    Long countActivAndSubmittedTemplatesByIdRoomId(@Param("roomid")UUID roomId);
+    Long countActivAndSubmittedTemplatesByIdRoomId(@Param("roomId")UUID roomId);
 
     @Query(value = """
         SELECT *

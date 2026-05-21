@@ -10,6 +10,8 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +58,23 @@ public class ChecklistExecution {
     @OneToMany(mappedBy = "checklistExecution", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ChecklistIssue> issues = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "checklist_type", nullable = false, length = 30)
+    private ChecklistType checklistType;
+
+    @Column(name = "started_at", nullable = false)
+    private LocalDateTime startedAt;
+
+    @Column(name = "submitted_at")
+    private LocalDateTime submittedAt;
+
+
+
+    @Column(name = "period", nullable = false, length = 20)
+    private Period period;
+
+
 
     public void addIssue(ChecklistIssue issue) {
         issues.add(issue);

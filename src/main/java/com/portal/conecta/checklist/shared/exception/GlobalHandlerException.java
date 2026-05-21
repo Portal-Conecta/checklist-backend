@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.shared.exception;
 
+import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
 import jakarta.persistence.EntityNotFoundException;
-import org.apache.coyote.Response;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -50,6 +50,11 @@ public class GlobalHandlerException {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), null);
     }
 
+
+    @ExceptionHandler(HubIntegrationException.class)
+    public ResponseEntity<ErrorResponseDTO> handleHubIntegration(HubIntegrationException ex) {
+        return buildResponse(HttpStatus.BAD_GATEWAY, ex.getMessage(), null);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDTO> handleGenericException(Exception ex) {

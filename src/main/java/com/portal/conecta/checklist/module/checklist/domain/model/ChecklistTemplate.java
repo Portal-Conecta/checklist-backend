@@ -22,8 +22,8 @@ public class ChecklistTemplate {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Embedded
-    private RoomReference roomReference;
+    @Column(name = "room_id", nullable = false)
+    private UUID roomId;
 
     @Column(name = "title", nullable = false , length = 150)
     private String title;

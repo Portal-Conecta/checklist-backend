@@ -46,9 +46,9 @@ class ChecklistExecutionRepositoryTest {
 
         ChecklistExecution execution = ChecklistExecution.builder()
                 .checklistTemplate(template)
-                .roomReference(new RoomReference(roomId))
-                .classReference(new ClassReference(classId))
-                .userReference(new UserReference(userId))
+                .roomId(new RoomReference(roomId).getRoomid())
+                .classId(new ClassReference(classId).getClassId())
+                .userId(new UserReference(userId).getUserId())
                 .status(Status.SUBMITTED)
                 .answersJson(answersJson)
                 .complianceScore(new BigDecimal("87.50"))
@@ -72,9 +72,9 @@ class ChecklistExecutionRepositoryTest {
 
         assertThat(executionBuscada).isNotNull();
         assertThat(executionBuscada.getChecklistTemplate().getId()).isEqualTo(template.getId());
-        assertThat(executionBuscada.getRoomReference().getRoomid()).isEqualTo(roomId);
-        assertThat(executionBuscada.getClassReference().getClassId()).isEqualTo(classId);
-        assertThat(executionBuscada.getUserReference().getUserId()).isEqualTo(userId);
+        assertThat(executionBuscada.getRoomId()).isEqualTo(roomId);
+        assertThat(executionBuscada.getClassId()).isEqualTo(classId);
+        assertThat(executionBuscada.getUserId()).isEqualTo(userId);
         assertThat(executionBuscada.getStatus()).isEqualTo(Status.SUBMITTED);
         assertThat(executionBuscada.getComplianceScore()).isEqualByComparingTo("87.50");
 
@@ -93,7 +93,7 @@ class ChecklistExecutionRepositoryTest {
         assertThat(executionBuscada.getIssues().get(0).getResolvedAt()).isNull();
     }
 
-    private ChecklistTemplate criarTemplate(UUID roomId, UUID classId, UUID userId) {
+    private ChecklistTemplate criarTemplate(UUID roomReference, UUID classId, UUID userId) {
         ClassList turma = new ClassList(classId, "aluno", "representante");
 
         UserToken userTokenJson = new UserToken(
@@ -112,7 +112,7 @@ class ChecklistExecutionRepositoryTest {
                 .version(1)
                 .status(Status.DRAFT)
                 .active(true)
-                .roomReference(new RoomReference(roomId))
+                .roomId(new RoomReference(roomReference).getRoomid())
                 .schemaJson(userTokenJson)
                 .build();
 

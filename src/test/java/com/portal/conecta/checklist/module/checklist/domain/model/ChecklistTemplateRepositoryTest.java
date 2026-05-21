@@ -47,7 +47,7 @@ class ChecklistTemplateRepositoryTest {
                 .version(1)
                 .active(true)
                 .status(Status.DRAFT)
-                .roomReference(roomReference)
+                .roomId(roomReference.getRoomid())
                 .schemaJson(userTokenJson)
                 .build();
 
@@ -58,7 +58,7 @@ class ChecklistTemplateRepositoryTest {
 
         assertThat(templateBuscado).isNotNull();
         assertThat(templateBuscado.getTitle()).isEqualTo("Checklist de Entrada");
-        assertThat(templateBuscado.getRoomReference().getRoomid()).isEqualTo(roomReference.getRoomid());
+        assertThat(templateBuscado.getRoomId()).isEqualTo(roomReference.getRoomid());
 
         assertThat(templateBuscado.getSchemaJson()).isNotNull();
         assertThat(templateBuscado.getSchemaJson().name()).isEqualTo("João Silva");

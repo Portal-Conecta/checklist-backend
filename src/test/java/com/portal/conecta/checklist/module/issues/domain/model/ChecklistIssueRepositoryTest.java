@@ -109,9 +109,9 @@ class ChecklistIssueRepositoryTest {
 
         ChecklistExecution execution = ChecklistExecution.builder()
                 .checklistTemplate(template)
-                .roomReference(new RoomReference(roomId))
-                .classReference(new ClassReference(classId))
-                .userReference(new UserReference(userId))
+                .roomId(new RoomReference(roomId).getRoomid())
+                .classId(new ClassReference(classId).getClassId())
+                .userId(new UserReference(userId).getUserId())
                 .status(com.portal.conecta.checklist.module.checklist.domain.model.Status.SUBMITTED)
                 .answersJson(answersJson)
                 .complianceScore(new BigDecimal("80.00"))
@@ -139,7 +139,7 @@ class ChecklistIssueRepositoryTest {
                 .version(1)
                 .status(com.portal.conecta.checklist.module.checklist.domain.model.Status.DRAFT)
                 .active(true)
-                .roomReference(new RoomReference(roomId))
+                .roomId(new RoomReference(roomId).getRoomid())
                 .schemaJson(userTokenJson)
                 .build();
 

@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.shared.security;
 
+import com.portal.conecta.checklist.shared.security.solid.PortalUserPrincipal;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

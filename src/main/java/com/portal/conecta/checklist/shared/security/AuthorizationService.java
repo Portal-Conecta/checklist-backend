@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.shared.security;
 
+import com.portal.conecta.checklist.shared.security.solid.PortalUserPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 

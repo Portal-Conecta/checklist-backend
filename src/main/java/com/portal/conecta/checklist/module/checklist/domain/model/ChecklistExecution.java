@@ -68,7 +68,8 @@ public class ChecklistExecution {
 
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
-    @Enumerated(EnumType.STRING)
+
+
 
     @Column(name = "period", nullable = false, length = 20)
     private Period period;

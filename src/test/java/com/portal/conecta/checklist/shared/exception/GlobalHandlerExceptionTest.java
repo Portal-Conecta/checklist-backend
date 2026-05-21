@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.shared.exception;
 
+import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -98,6 +99,20 @@ class GlobalHandlerExceptionTest {
         assertNotNull(response.getBody());
         assertEquals(404, response.getBody().status());
         assertEquals("Checklist not found", response.getBody().message());
+        assertNull(response.getBody().errors());
+        assertNotNull(response.getBody().localDateTime());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 502 Bad Gateway quando houver falha na integração com o Hub")
+    void deveRetornarBadGatewayQuandoHubIntegrationExceptionLancada() {
+        ResponseEntity<ErrorResponseDTO> response =
+                handler.handleHubIntegration(new HubIntegrationException("Erro na integração com o Hub [500]: HubRoomClient#findById"));
+
+        assertEquals(HttpStatus.BAD_GATEWAY, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(502, response.getBody().status());
+        assertNotNull(response.getBody().message());
         assertNull(response.getBody().errors());
         assertNotNull(response.getBody().localDateTime());
     }

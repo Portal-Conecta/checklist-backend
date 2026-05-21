@@ -34,14 +34,14 @@ public class ChecklistExecution {
     @JoinColumn(name = "checklist_template_id", nullable = false)
     private ChecklistTemplate checklistTemplate;
 
-    @Embedded
-    private RoomReference roomReference;
+    @Column(name = "room_id", nullable = false)
+    private UUID roomId;
 
-    @Embedded
-    private ClassReference classReference;
+    @Column(name = "class_id", nullable = false)
+    private UUID classId;
 
-    @Embedded
-    private UserReference userReference;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)

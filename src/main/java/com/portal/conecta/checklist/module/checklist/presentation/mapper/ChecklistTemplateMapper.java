@@ -31,7 +31,7 @@ public class ChecklistTemplateMapper {
         return ChecklistTemplate.builder()
                 .roomId(request.roomId())
                 .title(request.title())
-                .description(request.description())
+                .description(normalizeDescription(request.description()))
                 .version(1)
                 .status(ChecklistTemplateStatus.DRAFT)
                 .active(false)
@@ -72,5 +72,9 @@ public class ChecklistTemplateMapper {
         }
 
         return objectMapper.convertValue(schemaJson, ChecklistSchemaDTO.class);
+    }
+
+    private String normalizeDescription(String description) {
+        return description == null ? "" : description;
     }
 }

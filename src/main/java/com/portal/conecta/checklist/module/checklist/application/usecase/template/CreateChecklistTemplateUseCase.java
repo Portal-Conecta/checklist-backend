@@ -1,8 +1,5 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.template;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.client.hub.HubRoomClient;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
@@ -17,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -27,8 +23,7 @@ public class CreateChecklistTemplateUseCase {
     private final ChecklistTemplateRepository templateRepository;
     private final HubRoomClient hubRoomClient;
     private final CurrentUserProvider currentUserProvider;
-    private final ObjectMapper objectMapper;
-    private  final ChecklistTemplateMapper templateMapper;
+    private final ChecklistTemplateMapper templateMapper;
 
     @Transactional
     public ChecklistTemplate execute(ChecklistTemplateCreateRequest request) {
@@ -44,16 +39,7 @@ public class CreateChecklistTemplateUseCase {
 
         validateStableKeys(request.schemaJson());
 
-        var template =
-                ChecklistTemplate.builder()
-                .roomId(request.roomId())
-                .title(request.title())
-                .description(normalizeDescription(request.description()))
-                .version(1)
-                .status(ChecklistTemplateStatus.DRAFT)
-                .active(false)
-                .schemaJson(toJsonMap(request.schemaJson()))
-                .build();
+        var template = templateMapper.toEntity(request);
 
         return templateRepository.save(template);
     }
@@ -77,11 +63,4 @@ public class CreateChecklistTemplateUseCase {
         });
     }
 
-    private String normalizeDescription(String description) {
-        return description == null ? "" : description;
-    }
-
-    private Map<String, Object> toJsonMap(ChecklistSchemaDTO schema) {
-        return objectMapper.convertValue(schema, new TypeReference<Map<String, Object>>() {});
-    }
 }

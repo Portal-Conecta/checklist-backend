@@ -37,6 +37,16 @@ public class ChecklistTemplateMapper {
         );
     }
 
+    public List<ChecklistTemplateResponseDTO> toResponseList(List<ChecklistTemplate> templates) {
+        if (templates == null) {
+            return List.of();
+        }
+
+        return templates.stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     public ChecklistSchemaDTO toSchemaDTO(Map<String, Object> schemaJson) {
         if (schemaJson == null || schemaJson.isEmpty()) {
             return new ChecklistSchemaDTO(List.of());

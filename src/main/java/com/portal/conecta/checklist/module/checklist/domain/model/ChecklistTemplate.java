@@ -53,7 +53,11 @@ public class ChecklistTemplate {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @PreUpdate
+    public void markUpdatedAt() {
+        this.updatedAt = Instant.now();
+    }
 }

@@ -1,8 +1,8 @@
 package com.portal.conecta.checklist.module.checklist.domain.model;
 
-import com.portal.conecta.checklist.module.checklist.domain.valueobject.ClassReference;
-import com.portal.conecta.checklist.module.checklist.domain.valueobject.RoomReference;
-import com.portal.conecta.checklist.module.checklist.domain.valueobject.UserReference;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
 import com.portal.conecta.checklist.module.issues.domain.model.ChecklistIssue;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,7 +10,6 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,19 +33,19 @@ public class ChecklistExecution {
     @JoinColumn(name = "checklist_template_id", nullable = false)
     private ChecklistTemplate checklistTemplate;
 
-    @Embedded
-    private RoomReference roomReference;
+    @Column(name = "room_id", nullable = false)
+    private UUID roomId;
 
-    @Embedded
-    private ClassReference classReference;
+    @Column(name = "class_id", nullable = false)
+    private UUID classId;
 
-    @Embedded
-    private UserReference userReference;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     @Builder.Default
-    private Status status = Status.DRAFT;
+    private ChecklistExecutionStatus status = ChecklistExecutionStatus.DRAFT;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "answers_json", columnDefinition = "jsonb", nullable = false)
@@ -69,12 +68,9 @@ public class ChecklistExecution {
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
 
-
-
+    @Enumerated(EnumType.STRING)
     @Column(name = "period", nullable = false, length = 20)
     private Period period;
-
-
 
     public void addIssue(ChecklistIssue issue) {
         issues.add(issue);

@@ -1,12 +1,12 @@
 package com.portal.conecta.checklist.module.checklist.domain.model;
 
-import com.portal.conecta.checklist.module.checklist.domain.valueobject.RoomReference;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.UserToken;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -22,30 +22,27 @@ public class ChecklistTemplate {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Embedded
-    private RoomReference roomReference;
+    @Column(name = "room_id", nullable = false)
+    private UUID roomId;
 
-    @Column(name = "title", nullable = false , length = 150)
+    @Column(name = "title", nullable = false, length = 150)
     private String title;
 
     @Column(name = "description", nullable = false, length = 250)
     private String description;
 
-    @Column(name = "version",nullable = false)
+    @Column(name = "version", nullable = false)
     private int version;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     @Builder.Default
-    private Status status = Status.DRAFT;
+    private ChecklistTemplateStatus status = ChecklistTemplateStatus.DRAFT;
 
-    @Column(name = "active",nullable = false)
+    @Column(name = "active", nullable = false)
     private boolean active;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "schema_json", columnDefinition = "jsonb", nullable = false)
-    private UserToken schemaJson;
-
-
-
+    private Map<String, Object> schemaJson;
 }

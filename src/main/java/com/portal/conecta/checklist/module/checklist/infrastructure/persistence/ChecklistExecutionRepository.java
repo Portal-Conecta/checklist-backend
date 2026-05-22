@@ -18,17 +18,21 @@ public interface ChecklistExecutionRepository extends JpaRepository<ChecklistExe
                 select 1
                 from checklist_execution ce
                 where ce.class_id = :classId
+                  and ce.room_id = :roomId
+                  and ce.period = :period
+                  and ce.checklist_type = :checklistType
                   and ce.started_at >= :startOfDay
                   and ce.started_at < :endOfDay
-                  and ce.checklist_type = :checklistType
                   and ce.status <> 'CANCELED'
             )
             """, nativeQuery = true)
     boolean existsDuplicateChecklist(
             @Param("classId") UUID classId,
+            @Param("roomId") UUID roomId,
+            @Param("period") String period,
+            @Param("checklistType") String checklistType,
             @Param("startOfDay") LocalDateTime startOfDay,
-            @Param("endOfDay") LocalDateTime endOfDay,
-            @Param("checklistType") String checklistType
+            @Param("endOfDay") LocalDateTime endOfDay
     );
 
     @Query(value = """

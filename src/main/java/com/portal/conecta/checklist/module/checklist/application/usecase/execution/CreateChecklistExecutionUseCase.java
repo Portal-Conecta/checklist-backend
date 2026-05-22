@@ -1,0 +1,65 @@
+package com.portal.conecta.checklist.module.checklist.application.usecase.execution;
+
+
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
+import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
+import com.portal.conecta.checklist.shared.context.CurrentUserContext;
+import com.portal.conecta.checklist.shared.context.CurrentUserProvider;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.jdbc.autoconfigure.JdbcProperties;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+
+@Service
+@RequiredArgsConstructor
+public class CreateChecklistExecutionUseCase {
+
+    private final ChecklistExecutionRepository repository;
+    private final ChecklistTemplateRepository templateRepository;
+    private final ChecklistExecutionMapper executionMapper;
+    private final CurrentUserProvider currentUserProvider;
+
+    @Transactional
+    public ChecklistExecution execute(ChecklistExecutionDraftCreateDTO request) {
+        ChecklistTemplate template = templateRepository.findById(request.templateId())
+                .orElseThrow(() -> new EntityNotFoundException("Template nao encontrado."));
+
+        if (!template.isActive() || template.getStatus() != ChecklistTemplateStatus.ACTIVE) {
+            throw new IllegalStateException("Template nao esta ativo.");
+        }
+
+        if (!template.getRoomId().equals(request.roomId())) {
+            throw new IllegalArgumentException("Template nao pertence a sala informada.");
+        }
+
+        var now = LocalDateTime.now();
+        var startOfDay = now.toLocalDate().atStartOfDay();
+        var endOfDay = startOfDay.plusDays(1);
+
+        boolean duplicated = repository.existsDuplicateChecklist(
+                request.classId(),
+                request.roomId(),
+                request.period().name(),
+                request.checklistType().name(),
+                startOfDay,
+                endOfDay
+        );
+
+        if (duplicated) {
+            throw new IllegalArgumentException("Ja existe checklist para esta turma, sala, periodo, dia e tipo.");
+        }
+
+        CurrentUserContext currentUser = currentUserProvider.getCurrentUser();
+        ChecklistExecution  execution = executionMapper.toDraftEntity(request, template, currentUser.id(), now);
+
+        return repository.save(execution);
+    }
+}

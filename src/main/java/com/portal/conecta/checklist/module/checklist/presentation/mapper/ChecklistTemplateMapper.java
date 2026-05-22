@@ -53,8 +53,8 @@ public class ChecklistTemplateMapper {
                 template.getStatus(),
                 template.isActive(),
                 toSchemaDTO(template.getSchemaJson()),
-                null,
-                null
+                template.getCreatedAt(),
+                template.getUpdatedAt()
         );
     }
 

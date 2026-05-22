@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.module.checklist.infrastructure.persistense;
+package com.portal.conecta.checklist.module.checklist.infrastructure.persistence;
 
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import org.junit.jupiter.api.DisplayName;
@@ -45,10 +45,10 @@ class ChecklistTemplateRepositoryTest {
     }
 
     @Test
-    @DisplayName("deve declarar query para contar templates submetidos por sala")
-    void deveDeclararQueryParaContarTemplatesSubmetidosPorSala() throws NoSuchMethodException {
+    @DisplayName("deve declarar query para contar templates ativos por sala")
+    void deveDeclararQueryParaContarTemplatesAtivosPorSala() throws NoSuchMethodException {
         Method method = ChecklistTemplateRepository.class.getMethod(
-                "countSubmittedActiveTemplatesByRoomId",
+                "countActiveTemplatesByRoomId",
                 UUID.class
         );
 
@@ -58,7 +58,8 @@ class ChecklistTemplateRepositoryTest {
                 () -> assertEquals(Long.class, method.getReturnType()),
                 () -> assertTrue(query.contains("from checklist_template")),
                 () -> assertTrue(query.contains("room_id = :roomid")),
-                () -> assertTrue(query.contains("status = 'submitted'"))
+                () -> assertTrue(query.contains("active = true")),
+                () -> assertTrue(query.contains("status = 'active'"))
         );
     }
 
@@ -66,7 +67,7 @@ class ChecklistTemplateRepositoryTest {
     @DisplayName("deve declarar query para buscar template ativo mais recente")
     void deveDeclararQueryParaBuscarTemplateAtivoMaisRecente() throws NoSuchMethodException {
         Method method = ChecklistTemplateRepository.class.getMethod(
-                "findLastestTemplateByRoomId",
+                "findLatestActiveTemplateByRoomId",
                 UUID.class
         );
 
@@ -79,17 +80,17 @@ class ChecklistTemplateRepositoryTest {
                 () -> assertTrue(query.contains("from checklist_template")),
                 () -> assertTrue(query.contains("room_id = :roomid")),
                 () -> assertTrue(query.contains("active = true")),
-                () -> assertTrue(query.contains("status = 'submitted'")),
+                () -> assertTrue(query.contains("status = 'active'")),
                 () -> assertTrue(query.contains("order by version desc")),
                 () -> assertTrue(query.contains("limit 1"))
         );
     }
 
     @Test
-    @DisplayName("deve declarar query para contar mais de um template ativo e submetido")
-    void deveDeclararQueryParaContarMaisDeUmTemplateAtivoESubmetido() throws NoSuchMethodException {
+    @DisplayName("deve declarar query para contar conflitos de templates ativos")
+    void deveDeclararQueryParaContarConflitosDeTemplatesAtivos() throws NoSuchMethodException {
         Method method = ChecklistTemplateRepository.class.getMethod(
-                "countActivAndSubmittedTemplatesByIdRoomId",
+                "countActiveTemplateConflictsByRoomId",
                 UUID.class
         );
 
@@ -101,7 +102,7 @@ class ChecklistTemplateRepositoryTest {
                 () -> assertTrue(query.contains("from checklist_template")),
                 () -> assertTrue(query.contains("room_id = :roomid")),
                 () -> assertTrue(query.contains("active = true")),
-                () -> assertTrue(query.contains("status = 'submitted'")),
+                () -> assertTrue(query.contains("status = 'active'")),
                 () -> assertTrue(query.contains("group by room_id")),
                 () -> assertTrue(query.contains("having count(id) > 1"))
         );

@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.module.checklist.infrastructure.persistense;
+package com.portal.conecta.checklist.module.checklist.infrastructure.persistence;
 
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import org.springframework.data.jpa.repository.JpaRepository;

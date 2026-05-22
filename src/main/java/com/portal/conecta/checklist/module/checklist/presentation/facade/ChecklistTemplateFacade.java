@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.module.checklist.presentation.facade;
 
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.ActivateChecklistTemplateUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.template.CreateChecklistTemplateUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.template.FindChecklistTemplateByIdUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.template.ListChecklistTemplatesUseCase;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ChecklistTemplateFacade {
 
+    private final ActivateChecklistTemplateUseCase activateChecklistTemplateUseCase;
     private final CreateChecklistTemplateUseCase createChecklistTemplateUseCase;
     private final FindChecklistTemplateByIdUseCase findChecklistTemplateByIdUseCase;
     private final ListChecklistTemplatesUseCase listChecklistTemplatesUseCase;
@@ -23,6 +25,11 @@ public class ChecklistTemplateFacade {
 
     public ChecklistTemplateResponseDTO createTemplate(ChecklistTemplateCreateRequest request) {
         var template = createChecklistTemplateUseCase.execute(request);
+        return checklistTemplateMapper.toResponse(template);
+    }
+
+    public ChecklistTemplateResponseDTO activateTemplate(UUID templateId) {
+        var template = activateChecklistTemplateUseCase.execute(templateId);
         return checklistTemplateMapper.toResponse(template);
     }
 

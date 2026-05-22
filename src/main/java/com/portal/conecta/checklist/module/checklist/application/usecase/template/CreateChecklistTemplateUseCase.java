@@ -1,12 +1,12 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.template;
 
+import com.portal.conecta.checklist.module.checklist.application.mapper.ChecklistTemplateCommandMapper;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.client.hub.HubRoomClient;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistItemDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistSchemaDTO;
-import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistTemplateMapper;
 import com.portal.conecta.checklist.shared.context.CurrentUserProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class CreateChecklistTemplateUseCase {
     private final ChecklistTemplateRepository templateRepository;
     private final HubRoomClient hubRoomClient;
     private final CurrentUserProvider currentUserProvider;
-    private final ChecklistTemplateMapper templateMapper;
+    private final ChecklistTemplateCommandMapper templateMapper;
 
     @Transactional
     public ChecklistTemplate execute(ChecklistTemplateCreateRequest request) {

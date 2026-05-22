@@ -2,6 +2,8 @@ package com.portal.conecta.checklist.module.issues.domain.model;
 
 import com.portal.conecta.checklist.module.checklist.domain.valueobject.UserReference;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.module.issues.domain.enums.IssuePriority;
+import com.portal.conecta.checklist.module.issues.domain.enums.IssueStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,10 +34,10 @@ public class ChecklistIssue {
     @Column(name = "item_key", nullable = false, length = 150)
     private String itemKey;
 
-    @Column(name = "item_title_snapshot",nullable = false,length = 150)
-    private  String itemTitleSnapshot;
+    @Column(name = "item_title_snapshot", nullable = false, length = 150)
+    private String itemTitleSnapshot;
 
-    @Column(name = "title",nullable = false,length = 100)
+    @Column(name = "title", nullable = false, length = 100)
     private String title;
 
     @Column(name = "description", nullable = false, length = 500)
@@ -44,21 +46,21 @@ public class ChecklistIssue {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     @Builder.Default
-    private Status status = Status.OPEN;
+    private IssueStatus status = IssueStatus.OPEN;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "priority", nullable = false, length = 20)
     @Builder.Default
-    private Priority priority = Priority.MEDIUM;
+    private IssuePriority priority = IssuePriority.MEDIUM;
 
-    @Column(name = "due_at",nullable = false)
+    @Column(name = "due_at", nullable = false)
     private Instant dueAt;
 
     @Column(name = "resolved_at")
     private Instant resolvedAt;
 
     public void resolve() {
-        this.status = Status.RESOLVED;
+        this.status = IssueStatus.RESOLVED;
         this.resolvedAt = Instant.now();
     }
 }

@@ -66,16 +66,16 @@ public interface ChecklistExecutionRepository extends JpaRepository<ChecklistExe
     );
 
     @Query(value = """
-    select exists (
-        select 1
-        from checklist_execution ce
-        cross join lateral jsonb_array_elements(ce.answers_json -> 'items') as item(value)
-        where ce.id = :executionId
-          and (item.value ->> 'conforme')::boolean = false
-          and nullif(btrim(coalesce(item.value ->> 'justificativa', '')), '') is null
-    )
-    """, nativeQuery = true)
-    boolean hasNonConformingItemWithoutJustification(
+        SELECT 
+            elem->>'itemKey' AS itemKey,
+            elem->>'observation' AS observation
+        FROM checklist_execution ce,
+        LATERAL jsonb_array_elements(ce.answers_json -> 'answers') AS elem
+        WHERE ce.id = :executionId
+          AND ce.status = 'SUBMITTED'
+          AND elem->>'value' = 'NON_COMPLIANT'
+        """, nativeQuery = true)
+    List<Object[]> findNonCompliantItemsToCreateIssues(
             @Param("executionId") UUID executionId
     );
     @Query(value = """

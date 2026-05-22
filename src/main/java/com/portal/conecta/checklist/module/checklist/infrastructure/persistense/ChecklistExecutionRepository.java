@@ -78,6 +78,21 @@ public interface ChecklistExecutionRepository extends JpaRepository<ChecklistExe
     boolean hasNonConformingItemWithoutJustification(
             @Param("executionId") UUID executionId
     );
+    @Query(value = """
+            SELECT EXISTS(
+            SELECT 1 FROM checklist_execution 
+            WHERE class_id = :classId
+            AND room_id = :roomId
+            AND period = :period
+            AND checklist_type = :checklist_type
+            AND DATE(started_at) = CURRENT_DATE
+            AND status IN ('DRAFT','SUBMITTED')
+            )
+            """, nativeQuery = true)
+    boolean hasArrivalToday(@Param("classId")UUID classId,
+                            @Param("roomId")UUID roomId,
+                            @Param("period")Period period);
+
 
 
 

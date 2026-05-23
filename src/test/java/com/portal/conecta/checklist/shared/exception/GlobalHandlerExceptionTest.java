@@ -8,6 +8,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -98,6 +99,20 @@ class GlobalHandlerExceptionTest {
         assertNotNull(response.getBody());
         assertEquals(404, response.getBody().status());
         assertEquals("Checklist not found", response.getBody().message());
+        assertNull(response.getBody().errors());
+        assertNotNull(response.getBody().localDateTime());
+    }
+
+    @Test
+    @DisplayName("should return forbidden when user has no permission")
+    void shouldReturnForbiddenWhenUserHasNoPermission() {
+        ResponseEntity<ErrorResponseDTO> response =
+                handler.handleAccessDenied(new AccessDeniedException("Access denied"));
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(403, response.getBody().status());
+        assertEquals("Access denied", response.getBody().message());
         assertNull(response.getBody().errors());
         assertNotNull(response.getBody().localDateTime());
     }

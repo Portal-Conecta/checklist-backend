@@ -10,6 +10,7 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.Che
 import com.portal.conecta.checklist.shared.context.CurrentUserProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +31,7 @@ public class CreateChecklistTemplateUseCase {
         var currentUser = currentUserProvider.getCurrentUser();
 
         if (!currentUser.canManageChecklistTemplates()) {
-            throw new IllegalArgumentException("Usuario nao tem permissao para criar templates de checklist.");
+            throw new AccessDeniedException("Usuario nao tem permissao para criar templates de checklist.");
         }
 
         if (!hubRoomClient.existsById(request.roomId())) {

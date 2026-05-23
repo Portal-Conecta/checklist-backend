@@ -1,11 +1,13 @@
 package com.portal.conecta.checklist.shared.context;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
 @Component
+@Profile("mock")
 public class MockCurrentUserProvider implements CurrentUserProvider {
 
     private final UUID id;

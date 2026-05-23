@@ -2,6 +2,7 @@ package com.portal.conecta.checklist.module.checklist.domain.model;
 
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ConformityAnswerValue;
 import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
 import com.portal.conecta.checklist.module.issues.domain.model.ChecklistIssue;
 import jakarta.persistence.*;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,5 +77,38 @@ public class ChecklistExecution {
     public void addIssue(ChecklistIssue issue) {
         issues.add(issue);
         issue.setChecklistExecution(this);
+    }
+    public void calculateComplianceScore() {
+        if (this.answersJson == null || !this.answersJson.containsKey("answers")) {
+            this.complianceScore = BigDecimal.ZERO;
+            return;
+        }
+
+        Object answersObj = this.answersJson.get("answers");
+
+        if (!(answersObj instanceof List<?> answersList) || answersList.isEmpty()) {
+            this.complianceScore = BigDecimal.ZERO;
+            return;
+        }
+
+        long totalRespondidos = answersList.size();
+        long totalConformes = 0;
+
+        for (Object item : answersList) {
+            if (item instanceof Map<?, ?> answerMap) {
+                Object value = answerMap.get("value");
+
+                if ("COMPLIANT".equals(value)) {
+                    totalConformes++;
+                }
+            }
+        }
+
+        if (totalRespondidos > 0) {
+            double score = ((double) totalConformes / totalRespondidos) * 100.0;
+            this.complianceScore = BigDecimal.valueOf(score).setScale(0, RoundingMode.HALF_UP);
+        } else {
+            this.complianceScore = BigDecimal.ZERO;
+        }
     }
 }

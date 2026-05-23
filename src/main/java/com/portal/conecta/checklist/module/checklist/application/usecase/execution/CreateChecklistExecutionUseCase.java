@@ -63,3 +63,4 @@ public class CreateChecklistExecutionUseCase {
         return repository.save(execution);
     }
 }
+

@@ -108,6 +108,10 @@ JWT_SECRET=change-me
 HUB_API_URL=http://localhost:8081
 ```
 
+You can also create a local `.env` file at the project root. The application loads this file before Spring Boot starts, and values already defined in the operating system or command line keep priority.
+
+Use `.env.example` as the local template. The real `.env` file is ignored by Git.
+
 ### Run PostgreSQL
 
 ```bash
@@ -204,6 +208,44 @@ Authentication is centralized in the Hub. Checklist API must validate the platfo
 When Checklist API needs Hub data, it should call Hub through HTTP contracts, preferably from the infrastructure layer using OpenFeign.
 
 The Checklist service must not directly access Hub database tables.
+
+### Hub Token Authentication
+
+Protected endpoints expect the Hub token in the request header:
+
+```text
+Authorization: Bearer <hub-token>
+```
+
+The Checklist API does not receive `userId` in request bodies or paths to identify the actor. The authenticated user is always resolved from the Hub token.
+
+Expected token claims:
+
+```json
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "nome": "Joao Silva",
+  "email": "joao@exemplo.com",
+  "role": "REPRESENTANTE",
+  "turmas": [
+    {
+      "id": "22222222-2222-2222-2222-222222222222",
+      "relacao": "aluno",
+      "papelNaTurma": "representante"
+    }
+  ],
+  "iat": 1710000000,
+  "exp": 1710003600
+}
+```
+
+Current persistence uses UUIDs for users and classes, so `id` and `turmas[].id` must be UUID strings. If the Hub decides to emit textual ids such as `user-123` or `turma-1`, the Checklist persistence model should be changed before integration.
+
+Initial authorization rules implemented:
+
+- A class representative can create checklist executions only for their own class.
+- A linked teacher can create checklist executions for linked classes.
+- `PERFIL_SENAI` and `PERFIL_WEG` can manage templates, view dashboards, and edit completed checklists.
 
 ## Database Ownership
 

@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.shared.security;
 
+import com.portal.conecta.checklist.shared.hub.HubApiProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -13,10 +14,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties(HubJwtProperties.class)
+@EnableConfigurationProperties({
+        HubJwtProperties.class,
+        HubApiProperties.class,
+        ChecklistSecurityProperties.class
+})
 public class SecurityConfig {
 
     private final HubJwtAuthenticationFilter hubJwtAuthenticationFilter;
+    private final ChecklistSecurityProperties securityProperties;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -38,11 +44,15 @@ public class SecurityConfig {
                             response.getWriter().write("{\"message\":\"Acesso negado.\"}");
                         })
                 )
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll()
-                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(authorize -> {
+                    authorize.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll();
+
+                    if (securityProperties.swaggerPublic()) {
+                        authorize.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll();
+                    }
+
+                    authorize.anyRequest().authenticated();
+                })
                 .addFilterBefore(hubJwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

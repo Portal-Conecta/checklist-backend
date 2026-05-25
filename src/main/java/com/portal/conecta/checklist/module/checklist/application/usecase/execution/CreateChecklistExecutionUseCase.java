@@ -12,7 +12,7 @@ import com.portal.conecta.checklist.shared.context.CurrentUserContext;
 import com.portal.conecta.checklist.shared.context.CurrentUserProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.jdbc.autoconfigure.JdbcProperties;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +40,12 @@ public class CreateChecklistExecutionUseCase {
             throw new IllegalArgumentException("Template nao pertence a sala informada.");
         }
 
+        CurrentUserContext currentUser = currentUserProvider.getCurrentUser();
+
+        if (!currentUser.canCreateChecklistExecutionForClass(request.classId())) {
+            throw new AccessDeniedException("Usuario nao tem permissao para criar checklist para a turma informada.");
+        }
+
         var now = LocalDateTime.now();
         var startOfDay = now.toLocalDate().atStartOfDay();
         var endOfDay = startOfDay.plusDays(1);
@@ -57,8 +63,7 @@ public class CreateChecklistExecutionUseCase {
             throw new IllegalArgumentException("Ja existe checklist para esta turma, sala, periodo, dia e tipo.");
         }
 
-        CurrentUserContext currentUser = currentUserProvider.getCurrentUser();
-        ChecklistExecution  execution = executionMapper.toDraftEntity(request, template, currentUser.id(), now);
+        ChecklistExecution execution = executionMapper.toDraftEntity(request, template, currentUser.userId(), now);
 
         return repository.save(execution);
     }

@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.module.checklist.infrastructure.client.hub;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -9,6 +10,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
+@Profile({"mock", "test"})
 public class MockHubRoomClient implements HubRoomClient {
 
     public static final UUID DEFAULT_ROOM_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");

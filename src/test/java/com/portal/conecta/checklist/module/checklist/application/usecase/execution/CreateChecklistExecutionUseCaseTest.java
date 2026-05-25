@@ -9,13 +9,16 @@ import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
+import com.portal.conecta.checklist.shared.context.CurrentUserClassLink;
 import com.portal.conecta.checklist.shared.context.CurrentUserContext;
 import com.portal.conecta.checklist.shared.context.CurrentUserProvider;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -50,7 +53,7 @@ class CreateChecklistExecutionUseCaseTest {
         UUID userId = UUID.randomUUID();
         ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, classId);
         ChecklistTemplate template = activeTemplate(templateId, roomId);
-        CurrentUserContext currentUser = new CurrentUserContext(userId, "Representante", "rep@exemplo.com", "REPRESENTANTE");
+        CurrentUserContext currentUser = representative(userId, classId);
         ChecklistExecution draft = ChecklistExecution.builder().id(UUID.randomUUID()).build();
         ChecklistExecution saved = ChecklistExecution.builder().id(UUID.randomUUID()).build();
 
@@ -83,6 +86,7 @@ class CreateChecklistExecutionUseCaseTest {
         ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, classId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
+        when(currentUserProvider.getCurrentUser()).thenReturn(representative(UUID.randomUUID(), classId));
         when(executionRepository.existsDuplicateChecklist(
                 eq(classId),
                 eq(roomId),
@@ -94,7 +98,7 @@ class CreateChecklistExecutionUseCaseTest {
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(request));
 
-        verify(currentUserProvider, never()).getCurrentUser();
+        verify(currentUserProvider).getCurrentUser();
         verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any());
         verify(executionRepository, never()).save(any());
     }
@@ -147,6 +151,25 @@ class CreateChecklistExecutionUseCaseTest {
         verify(executionRepository, never()).save(any());
     }
 
+    @Test
+    @DisplayName("deve rejeitar quando usuario nao representa a turma informada")
+    void deveRejeitarQuandoUsuarioNaoRepresentaATurmaInformada() {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID requestedClassId = UUID.randomUUID();
+        UUID anotherClassId = UUID.randomUUID();
+        ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, requestedClassId);
+
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
+        when(currentUserProvider.getCurrentUser()).thenReturn(representative(UUID.randomUUID(), anotherClassId));
+
+        assertThrows(AccessDeniedException.class, () -> useCase.execute(request));
+
+        verify(executionRepository, never()).existsDuplicateChecklist(any(), any(), any(), any(), any(), any());
+        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any());
+        verify(executionRepository, never()).save(any());
+    }
+
     private ChecklistExecutionDraftCreateDTO request(UUID templateId, UUID roomId, UUID classId) {
         return new ChecklistExecutionDraftCreateDTO(
                 templateId,
@@ -164,5 +187,13 @@ class CreateChecklistExecutionUseCaseTest {
                 .status(ChecklistTemplateStatus.ACTIVE)
                 .active(true)
                 .build();
+    }
+
+    private CurrentUserContext representative(UUID userId, UUID classId) {
+        return new CurrentUserContext(
+                userId,
+                "REPRESENTATIVE",
+                List.of(new CurrentUserClassLink(classId, "REPRESENTATIVE"))
+        );
     }
 }

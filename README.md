@@ -63,25 +63,23 @@ Contains cross-cutting code used by the service, such as security configuration,
 
 ## Access Rules
 
-The service follows the official Hub access profiles:
+The service follows the Hub token contract. Global user access comes from `userType`, and class-specific access is read from `classes[].role`:
 
-- `APRENDIZ`
-- `REPRESENTANTE`
-- `DOCENTE`
-- `PERFIL_SENAI`
-- `PERFIL_WEG`
-- `ADMINISTRADOR`
+- `STUDENT`
+- `REPRESENTATIVE`
+- `TEACHER`
+- `SENAI`
+- `WEG`
+- `ADMIN`
 
 Initial Checklist rules:
 
-- `REPRESENTANTE` can view and create checklists for their own class.
-- `DOCENTE` can view and create checklists for linked classes.
-- `PERFIL_SENAI` can view dashboards and edit completed checklists within SENAI scope.
-- `PERFIL_WEG` can view dashboards and edit completed checklists within WEG scope.
-- `APRENDIZ` has no Checklist access.
-- `ADMINISTRADOR` has Hub administration permissions, but operational Checklist access still requires confirmation.
-
-Legacy roles such as `GESTOR`, `INSTRUTOR`, `PROFESSOR`, `ALUNO`, and `ADMIN` must not be used in new Checklist rules.
+- `REPRESENTATIVE` can view and create checklists for their own class.
+- `TEACHER` can view and create checklists for linked classes.
+- `SENAI` can view dashboards and edit completed checklists within SENAI scope.
+- `WEG` can view dashboards and edit completed checklists within WEG scope.
+- `STUDENT` without representative class role has no operational Checklist access.
+- `ADMIN` has Hub administration permissions, but no operational Checklist access by default.
 
 ## Local Setup
 
@@ -104,9 +102,15 @@ DB_PORT=5432
 DB_NAME=checklist_db
 DB_USER=checklist_user
 DB_PASSWORD=checklist_password
-JWT_SECRET=change-me
+JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
 HUB_API_URL=http://localhost:8081
 ```
+
+`JWT_SECRET` must use the same Base64-encoded HS256 secret configured in the Hub.
+
+You can also create a local `.env` file at the project root. The application loads this file before Spring Boot starts, and values already defined in the operating system or command line keep priority.
+
+Use `.env.example` as the local template. The real `.env` file is ignored by Git.
 
 ### Run PostgreSQL
 
@@ -205,6 +209,44 @@ When Checklist API needs Hub data, it should call Hub through HTTP contracts, pr
 
 The Checklist service must not directly access Hub database tables.
 
+### Hub Token Authentication
+
+Protected endpoints expect the Hub token in the request header:
+
+```text
+Authorization: Bearer <hub-token>
+```
+
+The Checklist API does not receive `userId` in request bodies or paths to identify the actor. The authenticated user is always resolved from the Hub token.
+
+Expected token claims:
+
+```json
+{
+  "jti": "abc-xyz-789",
+  "sub": "11111111-1111-1111-1111-111111111111",
+  "userType": "REPRESENTATIVE",
+  "classes": [
+    {
+      "classId": "22222222-2222-2222-2222-222222222222",
+      "role": "REPRESENTATIVE"
+    }
+  ],
+  "iat": 1710000000,
+  "exp": 1710003600
+}
+```
+
+Current persistence uses UUIDs for users and classes, so `sub` and `classes[].classId` must be UUID strings. The Checklist API validates the token locally with the shared Base64 HS256 secret and then applies module authorization rules from the authenticated context.
+
+The current Hub token generator does not emit `permissionVersion`. If the Hub later adds that claim or an authorization-check endpoint, that flow should be introduced as a new integration decision instead of being assumed by this service.
+
+Initial authorization rules implemented:
+
+- A class representative can create checklist executions only for their own class.
+- A linked teacher can create checklist executions for linked classes.
+- `SENAI` and `WEG` can manage templates, view dashboards, and edit completed checklists.
+
 ## Database Ownership
 
 Checklist API owns only Checklist data, such as:
@@ -237,7 +279,7 @@ Central entities such as users, classes, courses, rooms, and global roles belong
 
 ## Pending Decisions
 
-- Whether `PERFIL_SENAI` and `PERFIL_WEG` can create checklists.
+- Whether `SENAI` and `WEG` can create checklist executions.
 - Who can create, edit, activate, and disable checklist templates.
 - How SENAI and WEG scopes will be resolved.
 - Whether issues will have a full workflow in the MVP.

@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.shared.exception;
 
+import com.portal.conecta.checklist.shared.hub.HubIntegrationException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,6 +9,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -98,6 +100,34 @@ class GlobalHandlerExceptionTest {
         assertNotNull(response.getBody());
         assertEquals(404, response.getBody().status());
         assertEquals("Checklist not found", response.getBody().message());
+        assertNull(response.getBody().errors());
+        assertNotNull(response.getBody().localDateTime());
+    }
+
+    @Test
+    @DisplayName("should return forbidden when user has no permission")
+    void shouldReturnForbiddenWhenUserHasNoPermission() {
+        ResponseEntity<ErrorResponseDTO> response =
+                handler.handleAccessDenied(new AccessDeniedException("Access denied"));
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(403, response.getBody().status());
+        assertEquals("Access denied", response.getBody().message());
+        assertNull(response.getBody().errors());
+        assertNotNull(response.getBody().localDateTime());
+    }
+
+    @Test
+    @DisplayName("should return service unavailable when Hub integration fails")
+    void shouldReturnServiceUnavailableWhenHubIntegrationFails() {
+        ResponseEntity<ErrorResponseDTO> response =
+                handler.handleHubIntegration(new HubIntegrationException("Hub unavailable"));
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(503, response.getBody().status());
+        assertEquals("Hub unavailable", response.getBody().message());
         assertNull(response.getBody().errors());
         assertNotNull(response.getBody().localDateTime());
     }

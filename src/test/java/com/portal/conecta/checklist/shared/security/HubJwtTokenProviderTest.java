@@ -28,12 +28,13 @@ class HubJwtTokenProviderTest {
         UUID userId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
         String token = token(Map.of(
-                "jti", "abc-xyz-789",
-                "sub", userId.toString(),
+                "id", userId.toString(),
+                "nome", "Joao Silva",
+                "email", "joao@exemplo.com",
                 "role", "aluno",
-                "permissionVersion", 4,
                 "turmas", List.of(Map.of(
                         "id", classId.toString(),
+                        "relacao", "aluno",
                         "papelNaTurma", "representante"
                 ))
         ), Instant.now().plusSeconds(3600));
@@ -46,22 +47,18 @@ class HubJwtTokenProviderTest {
         HubUserPrincipal principal = (HubUserPrincipal) authentication.getPrincipal();
 
         assertThat(principal.id()).isEqualTo(userId);
-        assertThat(principal.tokenId()).isEqualTo("abc-xyz-789");
-        assertThat(principal.name()).isNull();
-        assertThat(principal.email()).isNull();
+        assertThat(principal.name()).isEqualTo("Joao Silva");
+        assertThat(principal.email()).isEqualTo("joao@exemplo.com");
         assertThat(principal.profile()).isEqualTo("aluno");
-        assertThat(principal.permissionVersion()).isEqualTo(4);
         assertThat(principal.classes()).hasSize(1);
-        assertThat(principal.classes().getFirst().id()).isEqualTo(classId.toString());
+        assertThat(principal.classes().getFirst().id()).isEqualTo(classId);
     }
 
     @Test
     void shouldRejectExpiredToken() {
         String token = token(Map.of(
-                "sub", UUID.randomUUID().toString(),
-                "jti", "expired-token",
-                "role", "aluno",
-                "permissionVersion", 1
+                "id", UUID.randomUUID().toString(),
+                "role", "aluno"
         ), Instant.now().minusSeconds(1));
 
         assertThatThrownBy(() -> tokenProvider.getAuthentication(token))
@@ -77,11 +74,26 @@ class HubJwtTokenProviderTest {
     }
 
     @Test
-    void shouldRejectTokenWithoutPermissionVersion() {
+    void shouldRejectTokenWithoutRole() {
         String token = token(Map.of(
-                "jti", "token-without-version",
-                "sub", UUID.randomUUID().toString(),
-                "role", "aluno"
+                "id", UUID.randomUUID().toString()
+        ), Instant.now().plusSeconds(3600));
+
+        assertThatThrownBy(() -> tokenProvider.getAuthentication(token))
+                .isInstanceOf(BadCredentialsException.class);
+    }
+
+    @Test
+    void shouldRejectTokenWithInvalidClassId() {
+        String token = token(Map.of(
+                "id", UUID.randomUUID().toString(),
+                "nome", "Joao Silva",
+                "email", "joao@exemplo.com",
+                "role", "aluno",
+                "turmas", List.of(Map.of(
+                        "id", "turma-1",
+                        "papelNaTurma", "representante"
+                ))
         ), Instant.now().plusSeconds(3600));
 
         assertThatThrownBy(() -> tokenProvider.getAuthentication(token))
@@ -90,18 +102,11 @@ class HubJwtTokenProviderTest {
 
     private String token(Map<String, Object> claims, Instant expiration) {
         SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
-        Object subject = claims.get("sub");
 
-        var builder = Jwts.builder()
+        return Jwts.builder()
                 .claims(claims)
                 .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(expiration));
-
-        if (subject != null) {
-            builder.subject(subject.toString());
-        }
-
-        return builder
+                .expiration(Date.from(expiration))
                 .signWith(key)
                 .compact();
     }

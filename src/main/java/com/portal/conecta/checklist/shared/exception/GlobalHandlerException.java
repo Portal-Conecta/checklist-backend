@@ -1,7 +1,6 @@
 package com.portal.conecta.checklist.shared.exception;
 
 import com.portal.conecta.checklist.shared.hub.HubIntegrationException;
-import com.portal.conecta.checklist.shared.security.StalePermissionVersionException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -64,11 +63,6 @@ public class GlobalHandlerException {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponseDTO> handleAccessDenied(AccessDeniedException ex) {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), null);
-    }
-
-    @ExceptionHandler(StalePermissionVersionException.class)
-    public ResponseEntity<ErrorResponseDTO> handleStalePermissionVersion(StalePermissionVersionException ex) {
-        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), null);
     }
 
     @ExceptionHandler(HubIntegrationException.class)

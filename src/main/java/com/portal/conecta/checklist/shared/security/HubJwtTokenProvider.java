@@ -30,13 +30,11 @@ public class HubJwtTokenProvider {
         Claims claims = parseClaims(token);
 
         HubUserPrincipal principal = new HubUserPrincipal(
-                requiredSubjectUuid(claims),
-                requiredString(claims, "jti"),
-                claimAsString(claims, "nome"),
-                claimAsString(claims, "email"),
+                requiredUuid(claims, "id"),
+                requiredString(claims, "nome"),
+                requiredString(claims, "email"),
                 requiredString(claims, "role"),
-                requiredInteger(claims, "permissionVersion"),
-                extractClassLinks(claims.get("turmas", List.class))
+                extractClassLinks(claims.get("turmas"))
         );
 
         return new UsernamePasswordAuthenticationToken(
@@ -58,37 +56,47 @@ public class HubJwtTokenProvider {
         }
     }
 
-    private List<CurrentUserClassLink> extractClassLinks(List<?> rawClassLinks) {
+    private List<CurrentUserClassLink> extractClassLinks(Object rawClassLinks) {
         if (rawClassLinks == null) {
             return List.of();
         }
 
+        if (!(rawClassLinks instanceof List<?> rawClassLinkList)) {
+            throw new BadCredentialsException("Claim turmas deve ser uma lista.");
+        }
+
         List<CurrentUserClassLink> classLinks = new ArrayList<>();
 
-        for (Object rawClassLink : rawClassLinks) {
-            if (rawClassLink instanceof Map<?, ?> classLink) {
-                classLinks.add(new CurrentUserClassLink(
-                        objectAsString(classLink.get("id")),
-                        objectAsString(classLink.get("relacao")),
-                        objectAsString(classLink.get("papelNaTurma"))
-                ));
+        for (Object rawClassLink : rawClassLinkList) {
+            if (!(rawClassLink instanceof Map<?, ?> classLink)) {
+                throw new BadCredentialsException("Itens de turmas devem ser objetos.");
             }
+
+            classLinks.add(new CurrentUserClassLink(
+                    requiredUuid(classLink.get("id"), "turmas[].id"),
+                    objectAsString(classLink.get("relacao")),
+                    objectAsString(classLink.get("papelNaTurma"))
+            ));
         }
 
         return classLinks;
     }
 
-    private UUID requiredSubjectUuid(Claims claims) {
-        String value = claims.getSubject();
+    private UUID requiredUuid(Claims claims, String claimName) {
+        return requiredUuid(claims.get(claimName), claimName);
+    }
+
+    private UUID requiredUuid(Object rawValue, String claimName) {
+        String value = objectAsString(rawValue);
 
         if (value == null || value.isBlank()) {
-            throw new BadCredentialsException("Token do Hub sem claim obrigatoria: sub");
+            throw new BadCredentialsException("Token do Hub sem claim obrigatoria: " + claimName);
         }
 
         try {
             return UUID.fromString(value);
         } catch (IllegalArgumentException exception) {
-            throw new BadCredentialsException("Claim obrigatoria deve ser UUID: sub", exception);
+            throw new BadCredentialsException("Claim obrigatoria deve ser UUID: " + claimName, exception);
         }
     }
 
@@ -100,24 +108,6 @@ public class HubJwtTokenProvider {
         }
 
         return value;
-    }
-
-    private int requiredInteger(Claims claims, String claimName) {
-        Object value = claims.get(claimName);
-
-        if (value instanceof Number number) {
-            return number.intValue();
-        }
-
-        if (value instanceof String text && !text.isBlank()) {
-            try {
-                return Integer.parseInt(text);
-            } catch (NumberFormatException exception) {
-                throw new BadCredentialsException("Claim obrigatoria deve ser numerica: " + claimName, exception);
-            }
-        }
-
-        throw new BadCredentialsException("Token do Hub sem claim obrigatoria: " + claimName);
     }
 
     private String claimAsString(Claims claims, String claimName) {

@@ -1,13 +1,15 @@
 package com.portal.conecta.checklist.shared.context;
 
+import java.util.UUID;
+
 public record CurrentUserClassLink(
-        String id,
+        UUID id,
         String relacao,
         String papelNaTurma
 ) {
 
-    public boolean matchesClass(String classId) {
-        return id != null && id.equalsIgnoreCase(classId);
+    public boolean matchesClass(UUID classId) {
+        return id != null && id.equals(classId);
     }
 
     public boolean hasRelation(String expectedRelation) {

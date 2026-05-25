@@ -23,7 +23,6 @@ public class SecurityCurrentUserProvider implements CurrentUserProvider {
                 principal.name(),
                 principal.email(),
                 principal.profile(),
-                principal.permissionVersion(),
                 principal.classes()
         );
     }

@@ -9,20 +9,19 @@ public record CurrentUserContext(
         String name,
         String email,
         String profile,
-        int permissionVersion,
         List<CurrentUserClassLink> classes
 ) {
 
     public CurrentUserContext(UUID id, String name, String email, String profile) {
-        this(id, name, email, profile, 1, List.of());
+        this(id, name, email, profile, List.of());
     }
 
     public CurrentUserContext(UUID id, String name, String email, String profile, List<CurrentUserClassLink> classes) {
-        this(id, name, email, profile, 1, classes);
-    }
-
-    public CurrentUserContext {
-        classes = classes == null ? List.of() : List.copyOf(classes);
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.profile = profile;
+        this.classes = classes == null ? List.of() : List.copyOf(classes);
     }
 
     public boolean canAccessChecklistModule() {
@@ -47,10 +46,8 @@ public record CurrentUserContext(
             return false;
         }
 
-        String expectedClassId = classId.toString();
-
         return classes.stream().anyMatch(classLink ->
-                classLink.matchesClass(expectedClassId)
+                classLink.matchesClass(classId)
                         && (
                         isClassRepresentative(classLink)
                                 || isLinkedTeacher(classLink)

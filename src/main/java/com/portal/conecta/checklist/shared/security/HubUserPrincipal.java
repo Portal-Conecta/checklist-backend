@@ -7,11 +7,9 @@ import java.util.UUID;
 
 public record HubUserPrincipal(
         UUID id,
-        String tokenId,
         String name,
         String email,
         String profile,
-        int permissionVersion,
         List<CurrentUserClassLink> classes
 ) {
 

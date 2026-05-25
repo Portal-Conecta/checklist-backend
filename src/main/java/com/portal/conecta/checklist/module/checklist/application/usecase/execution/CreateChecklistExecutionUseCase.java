@@ -10,7 +10,6 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.request.Ch
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import com.portal.conecta.checklist.shared.context.CurrentUserContext;
 import com.portal.conecta.checklist.shared.context.CurrentUserProvider;
-import com.portal.conecta.checklist.shared.security.HubPermissionVersionValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -27,7 +26,6 @@ public class CreateChecklistExecutionUseCase {
     private final ChecklistTemplateRepository templateRepository;
     private final ChecklistExecutionMapper executionMapper;
     private final CurrentUserProvider currentUserProvider;
-    private final HubPermissionVersionValidator permissionVersionValidator;
 
     @Transactional
     public ChecklistExecution execute(ChecklistExecutionDraftCreateDTO request) {
@@ -47,8 +45,6 @@ public class CreateChecklistExecutionUseCase {
         if (!currentUser.canCreateChecklistExecutionForClass(request.classId())) {
             throw new AccessDeniedException("Usuario nao tem permissao para criar checklist para a turma informada.");
         }
-
-        permissionVersionValidator.validate(currentUser);
 
         var now = LocalDateTime.now();
         var startOfDay = now.toLocalDate().atStartOfDay();

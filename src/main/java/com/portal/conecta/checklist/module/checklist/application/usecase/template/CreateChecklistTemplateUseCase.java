@@ -8,7 +8,6 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.request.Ch
 import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistItemDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistSchemaDTO;
 import com.portal.conecta.checklist.shared.context.CurrentUserProvider;
-import com.portal.conecta.checklist.shared.security.HubPermissionVersionValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -26,7 +25,6 @@ public class CreateChecklistTemplateUseCase {
     private final HubRoomClient hubRoomClient;
     private final CurrentUserProvider currentUserProvider;
     private final ChecklistTemplateCommandMapper templateMapper;
-    private final HubPermissionVersionValidator permissionVersionValidator;
 
     @Transactional
     public ChecklistTemplate execute(ChecklistTemplateCreateRequest request) {
@@ -35,8 +33,6 @@ public class CreateChecklistTemplateUseCase {
         if (!currentUser.canManageChecklistTemplates()) {
             throw new AccessDeniedException("Usuario nao tem permissao para criar templates de checklist.");
         }
-
-        permissionVersionValidator.validate(currentUser);
 
         if (!hubRoomClient.existsById(request.roomId())) {
             throw new EntityNotFoundException("Sala nao encontrada no Hub.");

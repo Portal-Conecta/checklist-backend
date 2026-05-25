@@ -18,7 +18,7 @@ class CurrentUserContextTest {
                 "Joao Silva",
                 "joao@exemplo.com",
                 "aluno",
-                List.of(new CurrentUserClassLink(classId.toString(), null, "representante"))
+                List.of(new CurrentUserClassLink(classId, null, "representante"))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
@@ -33,7 +33,7 @@ class CurrentUserContextTest {
                 "Joao Silva",
                 "joao@exemplo.com",
                 "aluno",
-                List.of(new CurrentUserClassLink(classId.toString(), "aluno", "aluno"))
+                List.of(new CurrentUserClassLink(classId, "aluno", "aluno"))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isFalse();

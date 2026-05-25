@@ -63,22 +63,23 @@ Contains cross-cutting code used by the service, such as security configuration,
 
 ## Access Rules
 
-The service follows the Hub token contract. Global profiles may arrive in lower or upper case, and class-specific access is read from `turmas[].papelNaTurma`:
+The service follows the Hub token contract. Global user access comes from `userType`, and class-specific access is read from `classes[].role`:
 
-- `aluno`
-- `docente`
-- `perfil_senai`
-- `perfil_weg`
-- `administrador`
+- `STUDENT`
+- `REPRESENTATIVE`
+- `TEACHER`
+- `SENAI`
+- `WEG`
+- `ADMIN`
 
 Initial Checklist rules:
 
-- `aluno` with `papelNaTurma=representante` can view and create checklists for their own class.
-- `docente` can view and create checklists for linked classes.
-- `perfil_senai` can view dashboards and edit completed checklists within SENAI scope.
-- `perfil_weg` can view dashboards and edit completed checklists within WEG scope.
-- `aluno` without representative class role has no operational Checklist access.
-- `administrador` has Hub administration permissions, but no operational Checklist access by default.
+- `REPRESENTATIVE` can view and create checklists for their own class.
+- `TEACHER` can view and create checklists for linked classes.
+- `SENAI` can view dashboards and edit completed checklists within SENAI scope.
+- `WEG` can view dashboards and edit completed checklists within WEG scope.
+- `STUDENT` without representative class role has no operational Checklist access.
+- `ADMIN` has Hub administration permissions, but no operational Checklist access by default.
 
 ## Local Setup
 
@@ -101,9 +102,11 @@ DB_PORT=5432
 DB_NAME=checklist_db
 DB_USER=checklist_user
 DB_PASSWORD=checklist_password
-JWT_SECRET=change-this-secret-to-a-long-random-value-with-at-least-32-chars
+JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
 HUB_API_URL=http://localhost:8081
 ```
+
+`JWT_SECRET` must use the same Base64-encoded HS256 secret configured in the Hub.
 
 You can also create a local `.env` file at the project root. The application loads this file before Spring Boot starts, and values already defined in the operating system or command line keep priority.
 
@@ -220,15 +223,13 @@ Expected token claims:
 
 ```json
 {
-  "id": "11111111-1111-1111-1111-111111111111",
-  "nome": "Joao Silva",
-  "email": "joao@exemplo.com",
-  "role": "aluno",
-  "turmas": [
+  "jti": "abc-xyz-789",
+  "sub": "11111111-1111-1111-1111-111111111111",
+  "userType": "REPRESENTATIVE",
+  "classes": [
     {
-      "id": "22222222-2222-2222-2222-222222222222",
-      "relacao": "aluno",
-      "papelNaTurma": "representante"
+      "classId": "22222222-2222-2222-2222-222222222222",
+      "role": "REPRESENTATIVE"
     }
   ],
   "iat": 1710000000,
@@ -236,15 +237,15 @@ Expected token claims:
 }
 ```
 
-Current persistence uses UUIDs for users and classes, so `id` and `turmas[].id` must be UUID strings. The Checklist API validates the token locally with the shared HS256 secret and then applies module authorization rules from the authenticated context.
+Current persistence uses UUIDs for users and classes, so `sub` and `classes[].classId` must be UUID strings. The Checklist API validates the token locally with the shared Base64 HS256 secret and then applies module authorization rules from the authenticated context.
 
-The current Hub contract does not include `jti`, `sub`, or `permissionVersion`. If the Hub later adds a permission-version or authorization-check endpoint, that flow should be introduced as a new integration decision instead of being assumed by this service.
+The current Hub token generator does not emit `permissionVersion`. If the Hub later adds that claim or an authorization-check endpoint, that flow should be introduced as a new integration decision instead of being assumed by this service.
 
 Initial authorization rules implemented:
 
 - A class representative can create checklist executions only for their own class.
 - A linked teacher can create checklist executions for linked classes.
-- `perfil_senai` and `perfil_weg` can manage templates, view dashboards, and edit completed checklists.
+- `SENAI` and `WEG` can manage templates, view dashboards, and edit completed checklists.
 
 ## Database Ownership
 
@@ -278,7 +279,7 @@ Central entities such as users, classes, courses, rooms, and global roles belong
 
 ## Pending Decisions
 
-- Whether `perfil_senai` and `perfil_weg` can create checklist executions.
+- Whether `SENAI` and `WEG` can create checklist executions.
 - Who can create, edit, activate, and disable checklist templates.
 - How SENAI and WEG scopes will be resolved.
 - Whether issues will have a full workflow in the MVP.

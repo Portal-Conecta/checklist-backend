@@ -50,10 +50,10 @@ class FindChecklistTemplateByIdUseCaseTest {
     }
 
     private CurrentUserContext apprentice() {
-        return new CurrentUserContext(UUID.randomUUID(), "Aprendiz", "aprendiz@exemplo.com", "APRENDIZ");
+        return new CurrentUserContext(UUID.randomUUID(), "STUDENT");
     }
 
     private CurrentUserContext senai() {
-        return new CurrentUserContext(UUID.randomUUID(), "Senai", "senai@exemplo.com", "PERFIL_SENAI");
+        return new CurrentUserContext(UUID.randomUUID(), "SENAI");
     }
 }

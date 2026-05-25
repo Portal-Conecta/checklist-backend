@@ -19,10 +19,8 @@ public class SecurityCurrentUserProvider implements CurrentUserProvider {
         }
 
         return new CurrentUserContext(
-                principal.id(),
-                principal.name(),
-                principal.email(),
-                principal.profile(),
+                principal.userId(),
+                principal.userType(),
                 principal.classes()
         );
     }

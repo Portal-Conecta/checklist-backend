@@ -5,22 +5,18 @@ import java.util.Locale;
 import java.util.UUID;
 
 public record CurrentUserContext(
-        UUID id,
-        String name,
-        String email,
-        String profile,
+        UUID userId,
+        String userType,
         List<CurrentUserClassLink> classes
 ) {
 
-    public CurrentUserContext(UUID id, String name, String email, String profile) {
-        this(id, name, email, profile, List.of());
+    public CurrentUserContext(UUID userId, String userType) {
+        this(userId, userType, List.of());
     }
 
-    public CurrentUserContext(UUID id, String name, String email, String profile, List<CurrentUserClassLink> classes) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
-        this.profile = profile;
+    public CurrentUserContext(UUID userId, String userType, List<CurrentUserClassLink> classes) {
+        this.userId = userId;
+        this.userType = userType;
         this.classes = classes == null ? List.of() : List.copyOf(classes);
     }
 
@@ -30,7 +26,7 @@ public record CurrentUserContext(
     }
 
     public boolean canManageChecklistTemplates() {
-        return hasProfile("PERFIL_SENAI") || hasProfile("PERFIL_WEG");
+        return hasAnyUserType("SENAI", "WEG");
     }
 
     public boolean canViewDashboard() {
@@ -56,23 +52,23 @@ public record CurrentUserContext(
     }
 
     private boolean isClassRepresentative(CurrentUserClassLink classLink) {
-        return classLink.hasClassRole("representante")
-                && (
-                classLink.hasRelation("aluno")
-                        || hasProfile("ALUNO")
-                        || hasProfile("REPRESENTANTE")
-        );
+        return classLink.hasClassRole("REPRESENTATIVE");
     }
 
     private boolean isLinkedTeacher(CurrentUserClassLink classLink) {
-        return hasProfile("DOCENTE")
-                || classLink.hasRelation("docente")
-                || classLink.hasClassRole("docente")
-                || classLink.hasClassRole("professor");
+        return classLink.hasClassRole("TEACHER");
     }
 
-    private boolean hasProfile(String expectedProfile) {
-        return normalize(profile).equals(normalize(expectedProfile));
+    private boolean hasAnyUserType(String... expectedUserTypes) {
+        String normalizedUserType = normalize(userType);
+
+        for (String expectedUserType : expectedUserTypes) {
+            if (normalizedUserType.equals(normalize(expectedUserType))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private String normalize(String value) {

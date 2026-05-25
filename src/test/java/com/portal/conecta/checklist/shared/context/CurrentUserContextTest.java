@@ -15,10 +15,8 @@ class CurrentUserContextTest {
         UUID classId = UUID.randomUUID();
         CurrentUserContext user = new CurrentUserContext(
                 userId,
-                "Joao Silva",
-                "joao@exemplo.com",
-                "aluno",
-                List.of(new CurrentUserClassLink(classId, null, "representante"))
+                "REPRESENTATIVE",
+                List.of(new CurrentUserClassLink(classId, "REPRESENTATIVE"))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
@@ -30,10 +28,8 @@ class CurrentUserContextTest {
         UUID classId = UUID.randomUUID();
         CurrentUserContext user = new CurrentUserContext(
                 UUID.randomUUID(),
-                "Joao Silva",
-                "joao@exemplo.com",
-                "aluno",
-                List.of(new CurrentUserClassLink(classId, "aluno", "aluno"))
+                "STUDENT",
+                List.of(new CurrentUserClassLink(classId, "STUDENT"))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isFalse();
@@ -41,9 +37,22 @@ class CurrentUserContextTest {
     }
 
     @Test
+    void teacherCanCreateChecklistForLinkedClassOnly() {
+        UUID classId = UUID.randomUUID();
+        CurrentUserContext user = new CurrentUserContext(
+                UUID.randomUUID(),
+                "TEACHER",
+                List.of(new CurrentUserClassLink(classId, "TEACHER"))
+        );
+
+        assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canCreateChecklistExecutionForClass(UUID.randomUUID())).isFalse();
+    }
+
+    @Test
     void senaiAndWegProfilesCanManageTemplatesAndDashboards() {
-        CurrentUserContext senai = new CurrentUserContext(UUID.randomUUID(), "Senai", "senai@exemplo.com", "perfil_senai");
-        CurrentUserContext weg = new CurrentUserContext(UUID.randomUUID(), "Weg", "weg@exemplo.com", "perfil_weg");
+        CurrentUserContext senai = new CurrentUserContext(UUID.randomUUID(), "SENAI");
+        CurrentUserContext weg = new CurrentUserContext(UUID.randomUUID(), "WEG");
 
         assertThat(senai.canManageChecklistTemplates()).isTrue();
         assertThat(senai.canViewDashboard()).isTrue();

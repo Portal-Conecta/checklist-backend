@@ -192,10 +192,8 @@ class CreateChecklistExecutionUseCaseTest {
     private CurrentUserContext representative(UUID userId, UUID classId) {
         return new CurrentUserContext(
                 userId,
-                "Representante",
-                "rep@exemplo.com",
-                "aluno",
-                List.of(new CurrentUserClassLink(classId, null, "representante"))
+                "REPRESENTATIVE",
+                List.of(new CurrentUserClassLink(classId, "REPRESENTATIVE"))
         );
     }
 }

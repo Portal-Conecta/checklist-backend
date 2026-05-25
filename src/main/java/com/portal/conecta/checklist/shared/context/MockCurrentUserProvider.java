@@ -12,24 +12,18 @@ import java.util.UUID;
 public class MockCurrentUserProvider implements CurrentUserProvider {
 
     private final UUID id;
-    private final String name;
-    private final String email;
-    private final String profile;
+    private final String userType;
 
     public MockCurrentUserProvider(
             @Value("${checklist.mock.current-user.id:44444444-4444-4444-4444-444444444444}") String id,
-            @Value("${checklist.mock.current-user.name:Coordenador SENAI}") String name,
-            @Value("${checklist.mock.current-user.email:coordenador.senai@exemplo.com}") String email,
-            @Value("${checklist.mock.current-user.profile:PERFIL_SENAI}") String profile
+            @Value("${checklist.mock.current-user.type:SENAI}") String userType
     ) {
         this.id = UUID.fromString(id);
-        this.name = name;
-        this.email = email;
-        this.profile = profile;
+        this.userType = userType;
     }
 
     @Override
     public CurrentUserContext getCurrentUser() {
-        return new CurrentUserContext(id, name, email, profile, List.of());
+        return new CurrentUserContext(id, userType, List.of());
     }
 }

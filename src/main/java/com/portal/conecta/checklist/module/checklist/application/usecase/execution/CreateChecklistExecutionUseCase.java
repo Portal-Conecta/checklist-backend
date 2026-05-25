@@ -63,7 +63,7 @@ public class CreateChecklistExecutionUseCase {
             throw new IllegalArgumentException("Ja existe checklist para esta turma, sala, periodo, dia e tipo.");
         }
 
-        ChecklistExecution execution = executionMapper.toDraftEntity(request, template, currentUser.id(), now);
+        ChecklistExecution execution = executionMapper.toDraftEntity(request, template, currentUser.userId(), now);
 
         return repository.save(execution);
     }

@@ -6,10 +6,8 @@ import java.util.List;
 import java.util.UUID;
 
 public record HubUserPrincipal(
-        UUID id,
-        String name,
-        String email,
-        String profile,
+        UUID userId,
+        String userType,
         List<CurrentUserClassLink> classes
 ) {
 

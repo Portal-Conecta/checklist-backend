@@ -4,6 +4,7 @@ import com.portal.conecta.checklist.module.checklist.application.facade.Checklis
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,5 +43,21 @@ class ChecklistExecutionControllerTest {
         assertEquals(HttpStatus.CREATED, result.getStatusCode());
         assertSame(response, result.getBody());
         verify(facade).createDTO(request);
+    }
+
+    @Test
+    @DisplayName("deve retornar ok ao enviar checklist")
+    void deveRetornarOkAoEnviarChecklist() {
+        UUID executionId = UUID.randomUUID();
+        ChecklistExecutionSubmitDTO request = mock(ChecklistExecutionSubmitDTO.class);
+        ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
+
+        when(facade.submit(executionId, request)).thenReturn(response);
+
+        ResponseEntity<ChecklistExecutionResponseDTO> result = controller.submit(executionId, request);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(response, result.getBody());
+        verify(facade).submit(executionId, request);
     }
 }

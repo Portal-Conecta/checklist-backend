@@ -17,8 +17,8 @@ class CurrentUserContextTest {
                 userId,
                 "Joao Silva",
                 "joao@exemplo.com",
-                "REPRESENTANTE",
-                List.of(new CurrentUserClassLink(classId.toString(), "aluno", "representante"))
+                "aluno",
+                List.of(new CurrentUserClassLink(classId.toString(), null, "representante"))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
@@ -32,17 +32,18 @@ class CurrentUserContextTest {
                 UUID.randomUUID(),
                 "Joao Silva",
                 "joao@exemplo.com",
-                "APRENDIZ",
+                "aluno",
                 List.of(new CurrentUserClassLink(classId.toString(), "aluno", "aluno"))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(user.canAccessChecklistModule()).isFalse();
     }
 
     @Test
     void senaiAndWegProfilesCanManageTemplatesAndDashboards() {
-        CurrentUserContext senai = new CurrentUserContext(UUID.randomUUID(), "Senai", "senai@exemplo.com", "PERFIL_SENAI");
-        CurrentUserContext weg = new CurrentUserContext(UUID.randomUUID(), "Weg", "weg@exemplo.com", "PERFIL_WEG");
+        CurrentUserContext senai = new CurrentUserContext(UUID.randomUUID(), "Senai", "senai@exemplo.com", "perfil_senai");
+        CurrentUserContext weg = new CurrentUserContext(UUID.randomUUID(), "Weg", "weg@exemplo.com", "perfil_weg");
 
         assertThat(senai.canManageChecklistTemplates()).isTrue();
         assertThat(senai.canViewDashboard()).isTrue();

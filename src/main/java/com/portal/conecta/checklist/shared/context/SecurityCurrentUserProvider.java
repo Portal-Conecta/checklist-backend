@@ -7,7 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("!mock")
+@Profile("!mock & !test")
 public class SecurityCurrentUserProvider implements CurrentUserProvider {
 
     @Override
@@ -23,6 +23,7 @@ public class SecurityCurrentUserProvider implements CurrentUserProvider {
                 principal.name(),
                 principal.email(),
                 principal.profile(),
+                principal.permissionVersion(),
                 principal.classes()
         );
     }

@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.shared.context;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 public record CurrentUserContext(
@@ -8,11 +9,16 @@ public record CurrentUserContext(
         String name,
         String email,
         String profile,
+        int permissionVersion,
         List<CurrentUserClassLink> classes
 ) {
 
     public CurrentUserContext(UUID id, String name, String email, String profile) {
-        this(id, name, email, profile, List.of());
+        this(id, name, email, profile, 1, List.of());
+    }
+
+    public CurrentUserContext(UUID id, String name, String email, String profile, List<CurrentUserClassLink> classes) {
+        this(id, name, email, profile, 1, classes);
     }
 
     public CurrentUserContext {
@@ -20,15 +26,16 @@ public record CurrentUserContext(
     }
 
     public boolean canAccessChecklistModule() {
-        return !"APRENDIZ".equals(profile);
+        return canManageChecklistTemplates()
+                || classes.stream().anyMatch(classLink -> isClassRepresentative(classLink) || isLinkedTeacher(classLink));
     }
 
     public boolean canManageChecklistTemplates() {
-        return "PERFIL_SENAI".equals(profile) || "PERFIL_WEG".equals(profile);
+        return hasProfile("PERFIL_SENAI") || hasProfile("PERFIL_WEG");
     }
 
     public boolean canViewDashboard() {
-        return "PERFIL_SENAI".equals(profile) || "PERFIL_WEG".equals(profile);
+        return canManageChecklistTemplates();
     }
 
     public boolean canEditCompletedChecklist() {
@@ -52,13 +59,32 @@ public record CurrentUserContext(
     }
 
     private boolean isClassRepresentative(CurrentUserClassLink classLink) {
-        return classLink.hasRelation("aluno")
-                && classLink.hasClassRole("representante");
+        return classLink.hasClassRole("representante")
+                && (
+                classLink.hasRelation("aluno")
+                        || hasProfile("ALUNO")
+                        || hasProfile("REPRESENTANTE")
+        );
     }
 
     private boolean isLinkedTeacher(CurrentUserClassLink classLink) {
-        return classLink.hasRelation("docente")
+        return hasProfile("DOCENTE")
+                || classLink.hasRelation("docente")
                 || classLink.hasClassRole("docente")
                 || classLink.hasClassRole("professor");
+    }
+
+    private boolean hasProfile(String expectedProfile) {
+        return normalize(profile).equals(normalize(expectedProfile));
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value.trim()
+                .replace('-', '_')
+                .toUpperCase(Locale.ROOT);
     }
 }

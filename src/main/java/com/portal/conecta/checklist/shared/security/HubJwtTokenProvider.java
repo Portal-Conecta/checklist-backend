@@ -30,10 +30,12 @@ public class HubJwtTokenProvider {
         Claims claims = parseClaims(token);
 
         HubUserPrincipal principal = new HubUserPrincipal(
-                requiredUuid(claims, "id"),
+                requiredSubjectUuid(claims),
+                requiredString(claims, "jti"),
                 claimAsString(claims, "nome"),
                 claimAsString(claims, "email"),
                 requiredString(claims, "role"),
+                requiredInteger(claims, "permissionVersion"),
                 extractClassLinks(claims.get("turmas", List.class))
         );
 
@@ -76,13 +78,17 @@ public class HubJwtTokenProvider {
         return classLinks;
     }
 
-    private UUID requiredUuid(Claims claims, String claimName) {
-        String value = requiredString(claims, claimName);
+    private UUID requiredSubjectUuid(Claims claims) {
+        String value = claims.getSubject();
+
+        if (value == null || value.isBlank()) {
+            throw new BadCredentialsException("Token do Hub sem claim obrigatoria: sub");
+        }
 
         try {
             return UUID.fromString(value);
         } catch (IllegalArgumentException exception) {
-            throw new BadCredentialsException("Claim obrigatoria deve ser UUID: " + claimName, exception);
+            throw new BadCredentialsException("Claim obrigatoria deve ser UUID: sub", exception);
         }
     }
 
@@ -94,6 +100,24 @@ public class HubJwtTokenProvider {
         }
 
         return value;
+    }
+
+    private int requiredInteger(Claims claims, String claimName) {
+        Object value = claims.get(claimName);
+
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+
+        if (value instanceof String text && !text.isBlank()) {
+            try {
+                return Integer.parseInt(text);
+            } catch (NumberFormatException exception) {
+                throw new BadCredentialsException("Claim obrigatoria deve ser numerica: " + claimName, exception);
+            }
+        }
+
+        throw new BadCredentialsException("Token do Hub sem claim obrigatoria: " + claimName);
     }
 
     private String claimAsString(Claims claims, String claimName) {

@@ -1,5 +1,7 @@
 package com.portal.conecta.checklist.shared.exception;
 
+import com.portal.conecta.checklist.shared.hub.HubIntegrationException;
+import com.portal.conecta.checklist.shared.security.StalePermissionVersionException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -113,6 +115,34 @@ class GlobalHandlerExceptionTest {
         assertNotNull(response.getBody());
         assertEquals(403, response.getBody().status());
         assertEquals("Access denied", response.getBody().message());
+        assertNull(response.getBody().errors());
+        assertNotNull(response.getBody().localDateTime());
+    }
+
+    @Test
+    @DisplayName("should return unauthorized when permission version is stale")
+    void shouldReturnUnauthorizedWhenPermissionVersionIsStale() {
+        ResponseEntity<ErrorResponseDTO> response =
+                handler.handleStalePermissionVersion(new StalePermissionVersionException("Refresh the access token"));
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(401, response.getBody().status());
+        assertEquals("Refresh the access token", response.getBody().message());
+        assertNull(response.getBody().errors());
+        assertNotNull(response.getBody().localDateTime());
+    }
+
+    @Test
+    @DisplayName("should return service unavailable when Hub integration fails")
+    void shouldReturnServiceUnavailableWhenHubIntegrationFails() {
+        ResponseEntity<ErrorResponseDTO> response =
+                handler.handleHubIntegration(new HubIntegrationException("Hub unavailable"));
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(503, response.getBody().status());
+        assertEquals("Hub unavailable", response.getBody().message());
         assertNull(response.getBody().errors());
         assertNotNull(response.getBody().localDateTime());
     }

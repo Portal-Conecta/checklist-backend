@@ -12,6 +12,8 @@ import com.portal.conecta.checklist.module.checklist.presentation.mapper.Checkli
 import com.portal.conecta.checklist.shared.context.CurrentUserClassLink;
 import com.portal.conecta.checklist.shared.context.CurrentUserContext;
 import com.portal.conecta.checklist.shared.context.CurrentUserProvider;
+import com.portal.conecta.checklist.shared.security.HubPermissionVersionValidator;
+import com.portal.conecta.checklist.shared.security.StalePermissionVersionException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 
 class CreateChecklistExecutionUseCaseTest {
 
@@ -37,11 +40,13 @@ class CreateChecklistExecutionUseCaseTest {
     private final ChecklistTemplateRepository templateRepository = mock(ChecklistTemplateRepository.class);
     private final ChecklistExecutionMapper executionMapper = mock(ChecklistExecutionMapper.class);
     private final CurrentUserProvider currentUserProvider = mock(CurrentUserProvider.class);
+    private final HubPermissionVersionValidator permissionVersionValidator = mock(HubPermissionVersionValidator.class);
     private final CreateChecklistExecutionUseCase useCase = new CreateChecklistExecutionUseCase(
             executionRepository,
             templateRepository,
             executionMapper,
-            currentUserProvider
+            currentUserProvider,
+            permissionVersionValidator
     );
 
     @Test
@@ -73,6 +78,7 @@ class CreateChecklistExecutionUseCaseTest {
         ChecklistExecution result = useCase.execute(request);
 
         assertSame(saved, result);
+        verify(permissionVersionValidator).validate(currentUser);
         verify(executionMapper).toDraftEntity(eq(request), eq(template), eq(userId), any(LocalDateTime.class));
         verify(executionRepository).save(draft);
     }
@@ -99,6 +105,7 @@ class CreateChecklistExecutionUseCaseTest {
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(request));
 
         verify(currentUserProvider).getCurrentUser();
+        verify(permissionVersionValidator).validate(any(CurrentUserContext.class));
         verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any());
         verify(executionRepository, never()).save(any());
     }
@@ -165,6 +172,29 @@ class CreateChecklistExecutionUseCaseTest {
 
         assertThrows(AccessDeniedException.class, () -> useCase.execute(request));
 
+        verify(permissionVersionValidator, never()).validate(any());
+        verify(executionRepository, never()).existsDuplicateChecklist(any(), any(), any(), any(), any(), any());
+        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any());
+        verify(executionRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("deve rejeitar quando versao de permissao do token esta desatualizada")
+    void deveRejeitarQuandoVersaoDePermissaoDoTokenEstaDesatualizada() {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        CurrentUserContext currentUser = representative(UUID.randomUUID(), classId);
+        ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, classId);
+
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
+        when(currentUserProvider.getCurrentUser()).thenReturn(currentUser);
+        doThrow(new StalePermissionVersionException("stale"))
+                .when(permissionVersionValidator)
+                .validate(currentUser);
+
+        assertThrows(StalePermissionVersionException.class, () -> useCase.execute(request));
+
         verify(executionRepository, never()).existsDuplicateChecklist(any(), any(), any(), any(), any(), any());
         verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any());
         verify(executionRepository, never()).save(any());
@@ -194,8 +224,8 @@ class CreateChecklistExecutionUseCaseTest {
                 userId,
                 "Representante",
                 "rep@exemplo.com",
-                "REPRESENTANTE",
-                List.of(new CurrentUserClassLink(classId.toString(), "aluno", "representante"))
+                "aluno",
+                List.of(new CurrentUserClassLink(classId.toString(), null, "representante"))
         );
     }
 }

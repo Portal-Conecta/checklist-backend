@@ -63,25 +63,22 @@ Contains cross-cutting code used by the service, such as security configuration,
 
 ## Access Rules
 
-The service follows the official Hub access profiles:
+The service follows the Hub token contract. Global profiles may arrive in lower or upper case, and class-specific access is read from `turmas[].papelNaTurma`:
 
-- `APRENDIZ`
-- `REPRESENTANTE`
-- `DOCENTE`
-- `PERFIL_SENAI`
-- `PERFIL_WEG`
-- `ADMINISTRADOR`
+- `aluno`
+- `docente`
+- `perfil_senai`
+- `perfil_weg`
+- `administrador`
 
 Initial Checklist rules:
 
-- `REPRESENTANTE` can view and create checklists for their own class.
-- `DOCENTE` can view and create checklists for linked classes.
-- `PERFIL_SENAI` can view dashboards and edit completed checklists within SENAI scope.
-- `PERFIL_WEG` can view dashboards and edit completed checklists within WEG scope.
-- `APRENDIZ` has no Checklist access.
-- `ADMINISTRADOR` has Hub administration permissions, but operational Checklist access still requires confirmation.
-
-Legacy roles such as `GESTOR`, `INSTRUTOR`, `PROFESSOR`, `ALUNO`, and `ADMIN` must not be used in new Checklist rules.
+- `aluno` with `papelNaTurma=representante` can view and create checklists for their own class.
+- `docente` can view and create checklists for linked classes.
+- `perfil_senai` can view dashboards and edit completed checklists within SENAI scope.
+- `perfil_weg` can view dashboards and edit completed checklists within WEG scope.
+- `aluno` without representative class role has no operational Checklist access.
+- `administrador` has Hub administration permissions, but no operational Checklist access by default.
 
 ## Local Setup
 
@@ -104,7 +101,7 @@ DB_PORT=5432
 DB_NAME=checklist_db
 DB_USER=checklist_user
 DB_PASSWORD=checklist_password
-JWT_SECRET=change-me
+JWT_SECRET=change-this-secret-to-a-long-random-value-with-at-least-32-chars
 HUB_API_URL=http://localhost:8081
 ```
 
@@ -223,29 +220,28 @@ Expected token claims:
 
 ```json
 {
-  "id": "11111111-1111-1111-1111-111111111111",
-  "nome": "Joao Silva",
-  "email": "joao@exemplo.com",
-  "role": "REPRESENTANTE",
+  "jti": "abc-xyz-789",
+  "sub": "11111111-1111-1111-1111-111111111111",
+  "role": "aluno",
   "turmas": [
     {
       "id": "22222222-2222-2222-2222-222222222222",
-      "relacao": "aluno",
       "papelNaTurma": "representante"
     }
   ],
+  "permissionVersion": 4,
   "iat": 1710000000,
   "exp": 1710003600
 }
 ```
 
-Current persistence uses UUIDs for users and classes, so `id` and `turmas[].id` must be UUID strings. If the Hub decides to emit textual ids such as `user-123` or `turma-1`, the Checklist persistence model should be changed before integration.
+Current persistence uses UUIDs for users and classes, so `sub` and `turmas[].id` must be UUID strings. The Checklist API validates `permissionVersion` with the Hub before sensitive actions and returns `401` when the token carries an outdated version.
 
 Initial authorization rules implemented:
 
 - A class representative can create checklist executions only for their own class.
 - A linked teacher can create checklist executions for linked classes.
-- `PERFIL_SENAI` and `PERFIL_WEG` can manage templates, view dashboards, and edit completed checklists.
+- `perfil_senai` and `perfil_weg` can manage templates, view dashboards, and edit completed checklists.
 
 ## Database Ownership
 
@@ -279,7 +275,7 @@ Central entities such as users, classes, courses, rooms, and global roles belong
 
 ## Pending Decisions
 
-- Whether `PERFIL_SENAI` and `PERFIL_WEG` can create checklists.
+- Whether `perfil_senai` and `perfil_weg` can create checklist executions.
 - Who can create, edit, activate, and disable checklist templates.
 - How SENAI and WEG scopes will be resolved.
 - Whether issues will have a full workflow in the MVP.

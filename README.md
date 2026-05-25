@@ -220,22 +220,25 @@ Expected token claims:
 
 ```json
 {
-  "jti": "abc-xyz-789",
-  "sub": "11111111-1111-1111-1111-111111111111",
+  "id": "11111111-1111-1111-1111-111111111111",
+  "nome": "Joao Silva",
+  "email": "joao@exemplo.com",
   "role": "aluno",
   "turmas": [
     {
       "id": "22222222-2222-2222-2222-222222222222",
+      "relacao": "aluno",
       "papelNaTurma": "representante"
     }
   ],
-  "permissionVersion": 4,
   "iat": 1710000000,
   "exp": 1710003600
 }
 ```
 
-Current persistence uses UUIDs for users and classes, so `sub` and `turmas[].id` must be UUID strings. The Checklist API validates `permissionVersion` with the Hub before sensitive actions and returns `401` when the token carries an outdated version.
+Current persistence uses UUIDs for users and classes, so `id` and `turmas[].id` must be UUID strings. The Checklist API validates the token locally with the shared HS256 secret and then applies module authorization rules from the authenticated context.
+
+The current Hub contract does not include `jti`, `sub`, or `permissionVersion`. If the Hub later adds a permission-version or authorization-check endpoint, that flow should be introduced as a new integration decision instead of being assumed by this service.
 
 Initial authorization rules implemented:
 

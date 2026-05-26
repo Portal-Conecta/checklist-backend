@@ -15,7 +15,7 @@ public class MockHubRoomProvider implements HubRoomProvider {
     private final Set<UUID> ids;
 
     public MockHubRoomProvider(HubMockProperties props){
-        this.ids = props.classIds().stream()
+        this.ids = props.roomIds().stream()
                 .map(UUID::fromString)
                 .collect(Collectors.toSet());
     }

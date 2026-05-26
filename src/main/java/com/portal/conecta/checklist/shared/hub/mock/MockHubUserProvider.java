@@ -16,7 +16,7 @@ public class MockHubUserProvider implements HubUserProvider {
     private final Set<UUID> ids;
 
     public MockHubUserProvider(HubMockProperties props){
-        this.ids = props.classIds().stream()
+        this.ids = props.userIds().stream()
                 .map(UUID::fromString)
                 .collect(Collectors.toSet());
     }

@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.shared.hub;
+package com.portal.conecta.checklist.shared.hub.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.shared.hub.mock.room;
 
 import com.portal.conecta.checklist.shared.hub.properties.HubMockProperties;
-import com.portal.conecta.checklist.shared.hub.provider.HubRoomProvider;
+import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 

@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.shared.hub;
+package com.portal.conecta.checklist.shared.hub.exception;
 
 public class HubIntegrationException extends RuntimeException {
 

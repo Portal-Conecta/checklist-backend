@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.shared.hub.provider;
+package com.portal.conecta.checklist.shared.hub.provider.room;
 
 import java.util.UUID;
 

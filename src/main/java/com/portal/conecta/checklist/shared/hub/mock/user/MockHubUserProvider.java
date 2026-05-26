@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.shared.hub.mock.user;
 
 import com.portal.conecta.checklist.shared.hub.properties.HubMockProperties;
-import com.portal.conecta.checklist.shared.hub.provider.HubUserProvider;
+import com.portal.conecta.checklist.shared.hub.provider.user.HubUserProvider;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 

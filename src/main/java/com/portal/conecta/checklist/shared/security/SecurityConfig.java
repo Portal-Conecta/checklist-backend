@@ -1,6 +1,6 @@
 package com.portal.conecta.checklist.shared.security;
 
-import com.portal.conecta.checklist.shared.hub.HubApiProperties;
+import com.portal.conecta.checklist.shared.hub.properties.HubApiProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;

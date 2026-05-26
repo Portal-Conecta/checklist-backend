@@ -53,6 +53,7 @@ public class SubmitChecklistExecutionUseCase {
                 execution.getChecklistTemplate().getSchemaJson(),
                 ChecklistSchemaDTO.class
         );
+
         Map<String, ChecklistItemDTO> itemsByKey = itemsByKey(schema);
         Map<String, ChecklistAnswerRequestDTO> answersByItemKey = answersByItemKey(request.answers());
 

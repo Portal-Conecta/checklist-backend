@@ -9,9 +9,10 @@ import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
-import com.portal.conecta.checklist.shared.context.CurrentUserClassLink;
-import com.portal.conecta.checklist.shared.context.CurrentUserContext;
-import com.portal.conecta.checklist.shared.context.CurrentUserProvider;
+import com.portal.conecta.checklist.shared.context.ContextClass;
+import com.portal.conecta.checklist.shared.context.RequestContext;
+import com.portal.conecta.checklist.shared.context.RequestContextProvider;
+import com.portal.conecta.checklist.shared.context.TypeUser;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,12 +37,12 @@ class CreateChecklistExecutionUseCaseTest {
     private final ChecklistExecutionRepository executionRepository = mock(ChecklistExecutionRepository.class);
     private final ChecklistTemplateRepository templateRepository = mock(ChecklistTemplateRepository.class);
     private final ChecklistExecutionMapper executionMapper = mock(ChecklistExecutionMapper.class);
-    private final CurrentUserProvider currentUserProvider = mock(CurrentUserProvider.class);
+    private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
     private final CreateChecklistExecutionUseCase useCase = new CreateChecklistExecutionUseCase(
             executionRepository,
             templateRepository,
             executionMapper,
-            currentUserProvider
+            contextProvider
     );
 
     @Test
@@ -53,7 +54,7 @@ class CreateChecklistExecutionUseCaseTest {
         UUID userId = UUID.randomUUID();
         ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, classId);
         ChecklistTemplate template = activeTemplate(templateId, roomId);
-        CurrentUserContext currentUser = representative(userId, classId);
+        RequestContext currentUser = representative(userId, classId);
         ChecklistExecution draft = ChecklistExecution.builder().id(UUID.randomUUID()).build();
         ChecklistExecution saved = ChecklistExecution.builder().id(UUID.randomUUID()).build();
 
@@ -66,7 +67,7 @@ class CreateChecklistExecutionUseCaseTest {
                 any(LocalDateTime.class),
                 any(LocalDateTime.class)
         )).thenReturn(false);
-        when(currentUserProvider.getCurrentUser()).thenReturn(currentUser);
+        when(contextProvider.getRequestContext()).thenReturn(currentUser);
         when(executionMapper.toDraftEntity(eq(request), eq(template), eq(userId), any(LocalDateTime.class))).thenReturn(draft);
         when(executionRepository.save(draft)).thenReturn(saved);
 
@@ -86,7 +87,7 @@ class CreateChecklistExecutionUseCaseTest {
         ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, classId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
-        when(currentUserProvider.getCurrentUser()).thenReturn(representative(UUID.randomUUID(), classId));
+        when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID(), classId));
         when(executionRepository.existsDuplicateChecklist(
                 eq(classId),
                 eq(roomId),
@@ -98,7 +99,7 @@ class CreateChecklistExecutionUseCaseTest {
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(request));
 
-        verify(currentUserProvider).getCurrentUser();
+        verify(contextProvider).getRequestContext();
         verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any());
         verify(executionRepository, never()).save(any());
     }
@@ -161,7 +162,7 @@ class CreateChecklistExecutionUseCaseTest {
         ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, requestedClassId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
-        when(currentUserProvider.getCurrentUser()).thenReturn(representative(UUID.randomUUID(), anotherClassId));
+        when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID(), anotherClassId));
 
         assertThrows(AccessDeniedException.class, () -> useCase.execute(request));
 
@@ -189,11 +190,11 @@ class CreateChecklistExecutionUseCaseTest {
                 .build();
     }
 
-    private CurrentUserContext representative(UUID userId, UUID classId) {
-        return new CurrentUserContext(
+    private RequestContext representative(UUID userId, UUID classId) {
+        return new RequestContext(
                 userId,
-                "REPRESENTATIVE",
-                List.of(new CurrentUserClassLink(classId, "REPRESENTATIVE"))
+                TypeUser.REPRESENTATIVE,
+                List.of(new ContextClass(classId, "REPRESENTATIVE"))
         );
     }
 }

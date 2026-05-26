@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.module.checklist.infrastructure.client.hub;
 
-import com.portal.conecta.checklist.shared.hub.HubApiProperties;
-import com.portal.conecta.checklist.shared.hub.HubIntegrationException;
+import com.portal.conecta.checklist.shared.hub.properties.HubApiProperties;
+import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;

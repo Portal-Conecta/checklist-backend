@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.shared.security;
+package com.portal.conecta.checklist.shared.security.config;
 
 import io.jsonwebtoken.io.Decoders;
 import org.springframework.boot.context.properties.ConfigurationProperties;

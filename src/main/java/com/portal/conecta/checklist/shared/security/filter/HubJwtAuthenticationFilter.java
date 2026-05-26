@@ -1,5 +1,6 @@
-package com.portal.conecta.checklist.shared.security;
+package com.portal.conecta.checklist.shared.security.filter;
 
+import com.portal.conecta.checklist.shared.security.token.HubJwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

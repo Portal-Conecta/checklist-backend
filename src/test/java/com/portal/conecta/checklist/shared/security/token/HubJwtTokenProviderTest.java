@@ -1,5 +1,7 @@
-package com.portal.conecta.checklist.shared.security;
+package com.portal.conecta.checklist.shared.security.token;
 
+import com.portal.conecta.checklist.shared.context.RequestContext;
+import com.portal.conecta.checklist.shared.security.config.HubJwtProperties;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -38,9 +40,9 @@ class HubJwtTokenProviderTest {
         Authentication authentication = tokenProvider.getAuthentication(token);
 
         assertThat(authentication.isAuthenticated()).isTrue();
-        assertThat(authentication.getPrincipal()).isInstanceOf(HubUserPrincipal.class);
+        assertThat(authentication.getPrincipal()).isInstanceOf(RequestContext.class);
 
-        HubUserPrincipal principal = (HubUserPrincipal) authentication.getPrincipal();
+        RequestContext principal = (RequestContext) authentication.getPrincipal();
 
         assertThat(principal.userId()).isEqualTo(userId);
         assertThat(principal.userType()).isEqualTo("REPRESENTATIVE");

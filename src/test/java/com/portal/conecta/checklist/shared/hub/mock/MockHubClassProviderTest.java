@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.shared.hub.mock;
 
+import com.portal.conecta.checklist.shared.hub.mock.classes.MockHubClassProvider;
 import com.portal.conecta.checklist.shared.hub.properties.HubMockProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

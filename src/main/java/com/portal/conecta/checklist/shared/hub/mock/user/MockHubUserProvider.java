@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.shared.hub.mock;
+package com.portal.conecta.checklist.shared.hub.mock.user;
 
 import com.portal.conecta.checklist.shared.hub.properties.HubMockProperties;
 import com.portal.conecta.checklist.shared.hub.provider.HubUserProvider;

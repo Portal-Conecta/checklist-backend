@@ -2,10 +2,7 @@ package com.portal.conecta.checklist.shared.context;
 
 import java.util.UUID;
 
-public record CurrentUserClassLink(
-        UUID classId,
-        String role
-) {
+public record ContextClass(UUID classId, String role) {
 
     public boolean matchesClass(UUID expectedClassId) {
         return classId != null && classId.equals(expectedClassId);

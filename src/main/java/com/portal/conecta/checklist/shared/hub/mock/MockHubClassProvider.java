@@ -21,7 +21,7 @@ public class MockHubClassProvider implements HubClassProvider {
                 .collect(Collectors.toSet());
     }
     @Override
-    public boolean existById(UUID classId){
+    public boolean existsById(UUID classId){
         return ids.contains(classId);
     }
 

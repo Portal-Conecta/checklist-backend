@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 @Component
-@Profile("Mock")
+@Profile("mock")
 public class MockHubRoomProvider implements HubRoomProvider {
 
     private final Set<UUID> ids;
@@ -21,9 +21,8 @@ public class MockHubRoomProvider implements HubRoomProvider {
     }
 
 
-
     @Override
-    public boolean exitsById(UUID roomId) {
+    public boolean existsById(UUID roomId) {
         return ids.contains(roomId);
     }
 }

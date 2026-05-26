@@ -31,13 +31,13 @@ class MockHubClassProviderTest {
     @Test
     @DisplayName("deve retornar true quando a turma existe")
     void deveRetornarTrueQuandoTurmaExiste() {
-        assertTrue(provider.existById(ID_EXISTENTE));
+        assertTrue(provider.existsById(ID_EXISTENTE));
     }
 
     @Test
     @DisplayName("deve retornar false quando a turma não existe")
     void deveRetornarFalseQuandoTurmaNaoExiste() {
-        assertFalse(provider.existById(ID_INEXISTENTE));
+        assertFalse(provider.existsById(ID_INEXISTENTE));
     }
 
     @Test
@@ -46,6 +46,6 @@ class MockHubClassProviderTest {
         HubMockProperties props = new HubMockProperties(List.of(), List.of(), List.of());
         MockHubClassProvider providerVazio = new MockHubClassProvider(props);
 
-        assertFalse(providerVazio.existById(ID_EXISTENTE));
+        assertFalse(providerVazio.existsById(ID_EXISTENTE));
     }
 }

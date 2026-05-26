@@ -4,5 +4,5 @@ import java.util.UUID;
 
 public interface HubClassProvider {
 
-    boolean existById(UUID classId);
+    boolean existsById(UUID classId);
 }

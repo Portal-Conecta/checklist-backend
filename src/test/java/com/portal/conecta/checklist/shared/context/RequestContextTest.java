@@ -7,16 +7,16 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CurrentUserContextTest {
+class RequestContextTest {
 
     @Test
     void representativeCanCreateChecklistForOwnClassOnly() {
         UUID userId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
-        CurrentUserContext user = new CurrentUserContext(
+        RequestContext user = new RequestContext(
                 userId,
-                "REPRESENTATIVE",
-                List.of(new CurrentUserClassLink(classId, "REPRESENTATIVE"))
+                TypeUser.REPRESENTATIVE,
+                List.of(new ContextClass(classId, "REPRESENTATIVE"))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
@@ -26,10 +26,10 @@ class CurrentUserContextTest {
     @Test
     void regularStudentCannotCreateChecklistExecution() {
         UUID classId = UUID.randomUUID();
-        CurrentUserContext user = new CurrentUserContext(
+        RequestContext user = new RequestContext(
                 UUID.randomUUID(),
-                "STUDENT",
-                List.of(new CurrentUserClassLink(classId, "STUDENT"))
+                TypeUser.STUDENT,
+                List.of(new ContextClass(classId, "STUDENT"))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isFalse();
@@ -39,10 +39,10 @@ class CurrentUserContextTest {
     @Test
     void teacherCanCreateChecklistForLinkedClassOnly() {
         UUID classId = UUID.randomUUID();
-        CurrentUserContext user = new CurrentUserContext(
+        RequestContext user = new RequestContext(
                 UUID.randomUUID(),
-                "TEACHER",
-                List.of(new CurrentUserClassLink(classId, "TEACHER"))
+                TypeUser.TEACHER,
+                List.of(new ContextClass(classId, "TEACHER"))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
@@ -51,8 +51,8 @@ class CurrentUserContextTest {
 
     @Test
     void senaiAndWegProfilesCanManageTemplatesAndDashboards() {
-        CurrentUserContext senai = new CurrentUserContext(UUID.randomUUID(), "SENAI");
-        CurrentUserContext weg = new CurrentUserContext(UUID.randomUUID(), "WEG");
+        RequestContext senai = new RequestContext(UUID.randomUUID(), TypeUser.SENAI);
+        RequestContext weg = new RequestContext(UUID.randomUUID(), TypeUser.WEG);
 
         assertThat(senai.canManageChecklistTemplates()).isTrue();
         assertThat(senai.canViewDashboard()).isTrue();

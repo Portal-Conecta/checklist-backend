@@ -1,8 +1,9 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.template;
 
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
-import com.portal.conecta.checklist.shared.context.CurrentUserContext;
-import com.portal.conecta.checklist.shared.context.CurrentUserProvider;
+import com.portal.conecta.checklist.shared.context.RequestContext;
+import com.portal.conecta.checklist.shared.context.RequestContextProvider;
+import com.portal.conecta.checklist.shared.context.TypeUser;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -18,15 +19,15 @@ import static org.mockito.Mockito.when;
 class ListChecklistTemplatesUseCaseTest {
 
     private final ChecklistTemplateRepository templateRepository = mock(ChecklistTemplateRepository.class);
-    private final CurrentUserProvider currentUserProvider = mock(CurrentUserProvider.class);
+    private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
     private final ListChecklistTemplatesUseCase useCase = new ListChecklistTemplatesUseCase(
             templateRepository,
-            currentUserProvider
+            contextProvider
     );
 
     @Test
     void shouldRejectApprenticeAccess() {
-        when(currentUserProvider.getCurrentUser()).thenReturn(apprentice());
+        when(contextProvider.getRequestContext()).thenReturn(apprentice());
 
         assertThrows(AccessDeniedException.class, useCase::execute);
 
@@ -35,7 +36,7 @@ class ListChecklistTemplatesUseCaseTest {
 
     @Test
     void shouldAllowNonApprenticeAccess() {
-        when(currentUserProvider.getCurrentUser()).thenReturn(senai());
+        when(contextProvider.getRequestContext()).thenReturn(senai());
         when(templateRepository.findAll()).thenReturn(List.of());
 
         useCase.execute();
@@ -43,11 +44,11 @@ class ListChecklistTemplatesUseCaseTest {
         verify(templateRepository).findAll();
     }
 
-    private CurrentUserContext apprentice() {
-        return new CurrentUserContext(UUID.randomUUID(), "STUDENT");
+    private RequestContext apprentice() {
+        return new RequestContext(UUID.randomUUID(), TypeUser.STUDENT);
     }
 
-    private CurrentUserContext senai() {
-        return new CurrentUserContext(UUID.randomUUID(), "SENAI");
+    private RequestContext senai() {
+        return new RequestContext(UUID.randomUUID(), TypeUser.SENAI);
     }
 }

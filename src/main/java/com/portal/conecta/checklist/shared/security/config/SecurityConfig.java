@@ -1,7 +1,9 @@
-package com.portal.conecta.checklist.shared.security;
+package com.portal.conecta.checklist.shared.security.config;
 
 import com.portal.conecta.checklist.shared.hub.properties.HubApiProperties;
+import com.portal.conecta.checklist.shared.security.filter.HubJwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,13 +18,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 @EnableConfigurationProperties({
         HubJwtProperties.class,
-        HubApiProperties.class,
-        ChecklistSecurityProperties.class
+        HubApiProperties.class
 })
 public class SecurityConfig {
 
     private final HubJwtAuthenticationFilter hubJwtAuthenticationFilter;
-    private final ChecklistSecurityProperties securityProperties;
+
+    @Value("${checklist.security.swagger-public:false}")
+    private boolean swaggerPublic;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -47,7 +50,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> {
                     authorize.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll();
 
-                    if (securityProperties.swaggerPublic()) {
+                    if (swaggerPublic) {
                         authorize.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll();
                     }
 

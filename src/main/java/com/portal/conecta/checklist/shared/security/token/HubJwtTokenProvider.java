@@ -1,6 +1,9 @@
-package com.portal.conecta.checklist.shared.security;
+package com.portal.conecta.checklist.shared.security.token;
 
-import com.portal.conecta.checklist.shared.context.CurrentUserClassLink;
+import com.portal.conecta.checklist.shared.context.ContextClass;
+import com.portal.conecta.checklist.shared.context.RequestContext;
+import com.portal.conecta.checklist.shared.context.TypeUser;
+import com.portal.conecta.checklist.shared.security.config.HubJwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -21,14 +24,6 @@ import java.util.UUID;
 @Component
 public class HubJwtTokenProvider {
 
-    private static final Set<String> HUB_USER_TYPES = Set.of(
-            "STUDENT",
-            "REPRESENTATIVE",
-            "TEACHER",
-            "SENAI",
-            "WEG",
-            "ADMIN"
-    );
     private static final Set<String> HUB_CLASS_ROLES = Set.of(
             "STUDENT",
             "TEACHER",
@@ -44,16 +39,16 @@ public class HubJwtTokenProvider {
     public Authentication getAuthentication(String token) {
         Claims claims = parseClaims(token);
 
-        HubUserPrincipal principal = new HubUserPrincipal(
+        RequestContext principal = new RequestContext(
                 requiredSubjectUuid(claims),
-                requiredAllowedString(claims.get("userType"), "userType", HUB_USER_TYPES),
+                requiredTypeUser(claims.get("userType")),
                 extractClassLinks(claims.get("classes"))
         );
 
         return new UsernamePasswordAuthenticationToken(
                 principal,
                 token,
-                List.of(new SimpleGrantedAuthority("ROLE_" + principal.userType()))
+                List.of(new SimpleGrantedAuthority("ROLE_" + principal.userType().name()))
         );
     }
 
@@ -69,7 +64,7 @@ public class HubJwtTokenProvider {
         }
     }
 
-    private List<CurrentUserClassLink> extractClassLinks(Object rawClassLinks) {
+    private List<ContextClass> extractClassLinks(Object rawClassLinks) {
         if (rawClassLinks == null) {
             return List.of();
         }
@@ -78,14 +73,14 @@ public class HubJwtTokenProvider {
             throw new BadCredentialsException("Claim classes deve ser uma lista.");
         }
 
-        List<CurrentUserClassLink> classLinks = new ArrayList<>();
+        List<ContextClass> classLinks = new ArrayList<>();
 
         for (Object rawClassLink : rawClassLinkList) {
             if (!(rawClassLink instanceof Map<?, ?> classLink)) {
                 throw new BadCredentialsException("Itens de classes devem ser objetos.");
             }
 
-            classLinks.add(new CurrentUserClassLink(
+            classLinks.add(new ContextClass(
                     requiredUuid(classLink.get("classId"), "classes[].classId"),
                     requiredAllowedString(classLink.get("role"), "classes[].role", HUB_CLASS_ROLES)
             ));
@@ -96,6 +91,16 @@ public class HubJwtTokenProvider {
 
     private UUID requiredSubjectUuid(Claims claims) {
         return requiredUuid(claims.getSubject(), "sub");
+    }
+
+    private TypeUser requiredTypeUser(Object rawValue) {
+        String value = requiredString(rawValue, "userType");
+
+        try {
+            return TypeUser.valueOf(value);
+        } catch (IllegalArgumentException exception) {
+            throw new BadCredentialsException("Claim obrigatoria possui valor invalido: userType");
+        }
     }
 
     private UUID requiredUuid(Object rawValue, String claimName) {

@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.module.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistTemplateResponseDTO;
-import com.portal.conecta.checklist.module.checklist.presentation.facade.ChecklistTemplateFacade;
+import com.portal.conecta.checklist.module.checklist.application.facade.ChecklistTemplateFacade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;

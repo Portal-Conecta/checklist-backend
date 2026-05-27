@@ -9,6 +9,7 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.response.C
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.CancelChecklistExecutionUseCase;
 
 import java.util.UUID;
 
@@ -22,10 +23,12 @@ class ChecklistExecutionFacadeTest {
     private final CreateChecklistExecutionUseCase createChecklistExecutionUseCase = mock(CreateChecklistExecutionUseCase.class);
     private final SubmitChecklistExecutionUseCase submitChecklistExecutionUseCase = mock(SubmitChecklistExecutionUseCase.class);
     private final ChecklistExecutionMapper executionMapper = mock(ChecklistExecutionMapper.class);
+    private final CancelChecklistExecutionUseCase cancelChecklistExecutionUseCase = mock(CancelChecklistExecutionUseCase.class); // ← essa linha estava faltando
     private final ChecklistExecutionFacade facade = new ChecklistExecutionFacade(
             createChecklistExecutionUseCase,
             submitChecklistExecutionUseCase,
-            executionMapper
+            executionMapper,
+            cancelChecklistExecutionUseCase
     );
 
     @Test

@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.module.checklist.presentation.facade;
+package com.portal.conecta.checklist.module.checklist.application.facade;
 
 import com.portal.conecta.checklist.module.checklist.application.usecase.template.ActivateChecklistTemplateUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.template.CreateChecklistTemplateUseCase;

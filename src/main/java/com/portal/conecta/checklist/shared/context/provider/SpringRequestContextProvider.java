@@ -8,7 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("!mock & !test")
+@Profile("!test")
 public class SpringRequestContextProvider implements RequestContextProvider {
 
     @Override

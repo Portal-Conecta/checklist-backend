@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Component
-@Profile({"mock", "test"})
+@Profile("test")
 public class MockRequestContextProvider implements RequestContextProvider {
 
     private final UUID id;

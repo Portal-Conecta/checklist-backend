@@ -2,6 +2,7 @@ package com.portal.conecta.checklist.shared.security.token;
 
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.TypeUser;
+import com.portal.conecta.checklist.shared.hub.provider.user.HubUserProvider;
 import com.portal.conecta.checklist.shared.security.config.HubJwtProperties;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -24,7 +25,7 @@ class HubJwtTokenProviderTest {
 
     private static final String SECRET = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=";
 
-    private final HubJwtTokenProvider tokenProvider = new HubJwtTokenProvider(new HubJwtProperties(SECRET));
+    private final HubJwtTokenProvider tokenProvider = new HubJwtTokenProvider(new HubJwtProperties(SECRET), id -> true);
 
     @Test
     void shouldCreateAuthenticationFromValidHubToken() {
@@ -50,6 +51,37 @@ class HubJwtTokenProviderTest {
         assertThat(principal.classes()).hasSize(1);
         assertThat(principal.classes().getFirst().classId()).isEqualTo(classId);
         assertThat(principal.classes().getFirst().role()).isEqualTo("REPRESENTATIVE");
+    }
+
+    @Test
+    void shouldCreateAuthenticationFromChecklistHubPayload() {
+        UUID userId = UUID.fromString("a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d");
+        UUID teacherClassId = UUID.fromString("8f8e8d8c-8b8a-8f8e-8d8c-8b8a8f8e8d8c");
+        UUID studentClassId = UUID.fromString("1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d");
+        String token = token(Map.of(
+                "userType", "STUDENT",
+                "classes", List.of(
+                        Map.of(
+                                "classId", teacherClassId.toString(),
+                                "role", "TEACHER"
+                        ),
+                        Map.of(
+                                "classId", studentClassId.toString(),
+                                "role", "STUDENT"
+                        )
+                )
+        ), userId, Instant.now().plusSeconds(3600));
+
+        Authentication authentication = tokenProvider.getAuthentication(token);
+
+        RequestContext principal = (RequestContext) authentication.getPrincipal();
+        assertThat(principal.userId()).isEqualTo(userId);
+        assertThat(principal.userType()).isEqualTo(TypeUser.STUDENT);
+        assertThat(principal.classes()).hasSize(2);
+        assertThat(principal.classes().get(0).classId()).isEqualTo(teacherClassId);
+        assertThat(principal.classes().get(0).role()).isEqualTo("TEACHER");
+        assertThat(principal.classes().get(1).classId()).isEqualTo(studentClassId);
+        assertThat(principal.classes().get(1).role()).isEqualTo("STUDENT");
     }
 
     @Test
@@ -115,12 +147,35 @@ class HubJwtTokenProviderTest {
                 .isInstanceOf(BadCredentialsException.class);
     }
 
+    @Test
+    void shouldValidateUserExistenceWhenHubProviderIsAvailable() {
+        UUID userId = UUID.randomUUID();
+        HubUserProvider userProvider = id -> id.equals(userId);
+        HubJwtTokenProvider tokenProvider = new HubJwtTokenProvider(new HubJwtProperties(SECRET), userProvider);
+        String token = token(Map.of("userType", "STUDENT"), userId, Instant.now().plusSeconds(3600));
+
+        Authentication authentication = tokenProvider.getAuthentication(token);
+
+        RequestContext principal = (RequestContext) authentication.getPrincipal();
+        assertThat(principal.userId()).isEqualTo(userId);
+    }
+
+    @Test
+    void shouldRejectTokenWhenUserDoesNotExistInHub() {
+        HubUserProvider userProvider = id -> false;
+        HubJwtTokenProvider tokenProvider = new HubJwtTokenProvider(new HubJwtProperties(SECRET), userProvider);
+        String token = token(Map.of("userType", "STUDENT"), UUID.randomUUID(), Instant.now().plusSeconds(3600));
+
+        assertThatThrownBy(() -> tokenProvider.getAuthentication(token))
+                .isInstanceOf(BadCredentialsException.class);
+    }
+
     private String token(Map<String, Object> claims, UUID subject, Instant expiration) {
         SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET));
 
         var builder = Jwts.builder()
-                .id(UUID.randomUUID().toString())
                 .claims(claims)
+                .id(UUID.randomUUID().toString())
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(expiration));
 

@@ -2,12 +2,12 @@ package com.portal.conecta.checklist.module.checklist.application.usecase.templa
 
 import com.portal.conecta.checklist.module.checklist.application.mapper.ChecklistTemplateCommandMapper;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
-import com.portal.conecta.checklist.module.checklist.infrastructure.client.hub.HubRoomClient;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistItemDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistSchemaDTO;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
+import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -22,7 +22,7 @@ import java.util.Set;
 public class CreateChecklistTemplateUseCase {
 
     private final ChecklistTemplateRepository templateRepository;
-    private final HubRoomClient hubRoomClient;
+    private final HubRoomProvider hubRoomProvider;
     private final RequestContextProvider contextProvider;
     private final ChecklistTemplateCommandMapper templateMapper;
 
@@ -34,7 +34,7 @@ public class CreateChecklistTemplateUseCase {
             throw new AccessDeniedException("Usuario nao tem permissao para criar templates de checklist.");
         }
 
-        if (!hubRoomClient.existsById(request.roomId())) {
+        if (!hubRoomProvider.existsById(request.roomId())) {
             throw new EntityNotFoundException("Sala nao encontrada no Hub.");
         }
 

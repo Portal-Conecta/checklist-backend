@@ -14,8 +14,10 @@ import com.portal.conecta.checklist.module.checklist.presentation.mapper.Checkli
 import com.portal.conecta.checklist.module.issues.domain.enums.IssuePriority;
 import com.portal.conecta.checklist.module.issues.domain.enums.IssueStatus;
 import com.portal.conecta.checklist.module.issues.domain.model.ChecklistIssue;
+import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,11 +41,18 @@ public class SubmitChecklistExecutionUseCase {
     private final ChecklistExecutionRepository executionRepository;
     private final ChecklistExecutionMapper executionMapper;
     private final ObjectMapper objectMapper;
+    private final RequestContextProvider contextProvider;
 
     @Transactional
     public ChecklistExecution execute(UUID executionId, ChecklistExecutionSubmitDTO request) {
         ChecklistExecution execution = executionRepository.findById(executionId)
                 .orElseThrow(() -> new EntityNotFoundException("Execucao de checklist nao encontrada."));
+
+        var currentUser = contextProvider.getRequestContext();
+
+        if (!execution.getUserId().equals(currentUser.userId())) {
+            throw new AccessDeniedException("Usuario nao tem permissao para enviar esta execucao de checklist.");
+        }
 
         if (execution.getStatus() != ChecklistExecutionStatus.DRAFT) {
             throw new IllegalStateException("Somente checklists em rascunho podem ser enviados.");

@@ -6,6 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile("mock")
+@Profile({"mock", "test"})
 @EnableConfigurationProperties(HubMockProperties.class)
 public class HubMockConfig {}

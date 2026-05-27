@@ -10,7 +10,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
-@Profile("mock")
+@Profile({"mock", "test"})
 public class MockHubClassProvider implements HubClassProvider {
 
     private final Set<UUID> ids;

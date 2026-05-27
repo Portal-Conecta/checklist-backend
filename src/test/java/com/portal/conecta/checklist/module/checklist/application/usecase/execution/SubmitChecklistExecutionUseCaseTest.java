@@ -12,7 +12,11 @@ import com.portal.conecta.checklist.module.checklist.presentation.mapper.Checkli
 import com.portal.conecta.checklist.module.issues.domain.enums.IssuePriority;
 import com.portal.conecta.checklist.module.issues.domain.enums.IssueStatus;
 import com.portal.conecta.checklist.module.issues.presentation.mapper.ChecklistIssueMapper;
+import com.portal.conecta.checklist.shared.context.RequestContext;
+import com.portal.conecta.checklist.shared.context.RequestContextProvider;
+import com.portal.conecta.checklist.shared.context.TypeUser;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -31,6 +35,7 @@ import static org.mockito.Mockito.when;
 class SubmitChecklistExecutionUseCaseTest {
 
     private final ChecklistExecutionRepository executionRepository = mock(ChecklistExecutionRepository.class);
+    private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
     private final ChecklistExecutionMapper executionMapper = new ChecklistExecutionMapper(
             objectMapper,
@@ -39,7 +44,8 @@ class SubmitChecklistExecutionUseCaseTest {
     private final SubmitChecklistExecutionUseCase useCase = new SubmitChecklistExecutionUseCase(
             executionRepository,
             executionMapper,
-            objectMapper
+            objectMapper,
+            contextProvider
     );
 
     @Test
@@ -53,6 +59,7 @@ class SubmitChecklistExecutionUseCaseTest {
         ));
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(currentUser(userId));
         when(executionRepository.save(execution)).thenReturn(execution);
 
         ChecklistExecution result = useCase.execute(executionId, request);
@@ -74,12 +81,14 @@ class SubmitChecklistExecutionUseCaseTest {
     void shouldRejectNonCompliantAnswerWithoutObservation() {
         UUID executionId = UUID.randomUUID();
         ChecklistExecution execution = draftExecution(executionId, UUID.randomUUID());
+        UUID userId = execution.getUserId();
         ChecklistExecutionSubmitDTO request = new ChecklistExecutionSubmitDTO(List.of(
                 answer("quadro", ConformityAnswerValue.COMPLIANT, null),
                 answer("iluminacao", ConformityAnswerValue.NON_COMPLIANT, " ")
         ));
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(currentUser(userId));
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(executionId, request));
 
@@ -90,11 +99,13 @@ class SubmitChecklistExecutionUseCaseTest {
     void shouldRejectMissingRequiredAnswer() {
         UUID executionId = UUID.randomUUID();
         ChecklistExecution execution = draftExecution(executionId, UUID.randomUUID());
+        UUID userId = execution.getUserId();
         ChecklistExecutionSubmitDTO request = new ChecklistExecutionSubmitDTO(List.of(
                 answer("quadro", ConformityAnswerValue.COMPLIANT, null)
         ));
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(currentUser(userId));
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(executionId, request));
 
@@ -106,14 +117,33 @@ class SubmitChecklistExecutionUseCaseTest {
         UUID executionId = UUID.randomUUID();
         ChecklistExecution execution = draftExecution(executionId, UUID.randomUUID());
         execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
+        UUID userId = execution.getUserId();
         ChecklistExecutionSubmitDTO request = new ChecklistExecutionSubmitDTO(List.of(
                 answer("quadro", ConformityAnswerValue.COMPLIANT, null),
                 answer("iluminacao", ConformityAnswerValue.COMPLIANT, null)
         ));
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(currentUser(userId));
 
         assertThrows(IllegalStateException.class, () -> useCase.execute(executionId, request));
+
+        verify(executionRepository, never()).save(execution);
+    }
+
+    @Test
+    void shouldRejectSubmittingExecutionFromAnotherUser() {
+        UUID executionId = UUID.randomUUID();
+        ChecklistExecution execution = draftExecution(executionId, UUID.randomUUID());
+        ChecklistExecutionSubmitDTO request = new ChecklistExecutionSubmitDTO(List.of(
+                answer("quadro", ConformityAnswerValue.COMPLIANT, null),
+                answer("iluminacao", ConformityAnswerValue.COMPLIANT, null)
+        ));
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(currentUser(UUID.randomUUID()));
+
+        assertThrows(AccessDeniedException.class, () -> useCase.execute(executionId, request));
 
         verify(executionRepository, never()).save(execution);
     }
@@ -129,6 +159,10 @@ class SubmitChecklistExecutionUseCaseTest {
                         .schemaJson(schemaJson())
                         .build())
                 .build();
+    }
+
+    private RequestContext currentUser(UUID userId) {
+        return new RequestContext(userId, TypeUser.REPRESENTATIVE);
     }
 
     private Map<String, Object> schemaJson() {

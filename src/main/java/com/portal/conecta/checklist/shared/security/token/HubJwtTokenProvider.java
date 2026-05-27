@@ -3,6 +3,7 @@ package com.portal.conecta.checklist.shared.security.token;
 import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.TypeUser;
+import com.portal.conecta.checklist.shared.hub.provider.user.HubUserProvider;
 import com.portal.conecta.checklist.shared.security.config.HubJwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -31,18 +32,26 @@ public class HubJwtTokenProvider {
     );
 
     private final SecretKey secretKey;
+    private final HubUserProvider hubUserProvider;
 
-    public HubJwtTokenProvider(HubJwtProperties properties) {
+    public HubJwtTokenProvider(HubJwtProperties properties, HubUserProvider hubUserProvider) {
         this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(properties.secret()));
+        this.hubUserProvider = hubUserProvider;
     }
 
     public Authentication getAuthentication(String token) {
         Claims claims = parseClaims(token);
+        validateRegisteredClaims(claims);
+
+        UUID userId = requiredSubjectUuid(claims);
+        TypeUser userType = requiredTypeUser(claims.get("userType"));
+        List<ContextClass> classLinks = extractClassLinks(claims.get("classes"));
+        validateUserExists(userId);
 
         RequestContext principal = new RequestContext(
-                requiredSubjectUuid(claims),
-                requiredTypeUser(claims.get("userType")),
-                extractClassLinks(claims.get("classes"))
+                userId,
+                userType,
+                classLinks
         );
 
         return new UsernamePasswordAuthenticationToken(
@@ -61,6 +70,24 @@ public class HubJwtTokenProvider {
                     .getPayload();
         } catch (Exception exception) {
             throw new BadCredentialsException("Token do Hub invalido ou expirado.", exception);
+        }
+    }
+
+    private void validateRegisteredClaims(Claims claims) {
+        requiredUuid(claims.getId(), "jti");
+
+        if (claims.getIssuedAt() == null) {
+            throw new BadCredentialsException("Token do Hub sem claim obrigatoria: iat");
+        }
+
+        if (claims.getExpiration() == null) {
+            throw new BadCredentialsException("Token do Hub sem claim obrigatoria: exp");
+        }
+    }
+
+    private void validateUserExists(UUID userId) {
+        if (!hubUserProvider.existsById(userId)) {
+            throw new BadCredentialsException("Usuario do token nao encontrado no Hub.");
         }
     }
 

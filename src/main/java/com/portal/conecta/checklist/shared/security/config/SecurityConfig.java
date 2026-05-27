@@ -5,6 +5,7 @@ import com.portal.conecta.checklist.shared.security.filter.HubJwtAuthenticationF
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -26,6 +27,13 @@ public class SecurityConfig {
 
     @Value("${checklist.security.swagger-public:false}")
     private boolean swaggerPublic;
+
+    @Bean
+    public FilterRegistrationBean<HubJwtAuthenticationFilter> hubJwtAuthenticationFilterRegistration() {
+        FilterRegistrationBean<HubJwtAuthenticationFilter> registration = new FilterRegistrationBean<>(hubJwtAuthenticationFilter);
+        registration.setEnabled(false);
+        return registration;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

@@ -3,9 +3,13 @@ package com.portal.conecta.checklist.module.checklist.application.usecase.templa
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
+import com.portal.conecta.checklist.shared.context.RequestContext;
+import com.portal.conecta.checklist.shared.context.RequestContextProvider;
+import com.portal.conecta.checklist.shared.context.TypeUser;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +30,8 @@ import static org.mockito.Mockito.when;
 class ActivateChecklistTemplateUseCaseTest {
 
     private final ChecklistTemplateRepository templateRepository = mock(ChecklistTemplateRepository.class);
-    private final ActivateChecklistTemplateUseCase useCase = new ActivateChecklistTemplateUseCase(templateRepository);
+    private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
+    private final ActivateChecklistTemplateUseCase useCase = new ActivateChecklistTemplateUseCase(templateRepository, contextProvider);
 
     @Test
     @DisplayName("deve ativar template e desativar outros templates ativos da mesma sala")
@@ -36,6 +41,7 @@ class ActivateChecklistTemplateUseCaseTest {
         ChecklistTemplate template = template(templateId, roomId, ChecklistTemplateStatus.DRAFT, false);
         ChecklistTemplate activeTemplate = template(UUID.randomUUID(), roomId, ChecklistTemplateStatus.ACTIVE, true);
 
+        when(contextProvider.getRequestContext()).thenReturn(senai());
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
         when(templateRepository.findByRoomIdAndActiveTrueAndStatus(roomId, ChecklistTemplateStatus.ACTIVE))
                 .thenReturn(List.of(activeTemplate));
@@ -59,6 +65,7 @@ class ActivateChecklistTemplateUseCaseTest {
         UUID roomId = UUID.randomUUID();
         ChecklistTemplate template = template(templateId, roomId, ChecklistTemplateStatus.ACTIVE, true);
 
+        when(contextProvider.getRequestContext()).thenReturn(senai());
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
         when(templateRepository.findByRoomIdAndActiveTrueAndStatus(roomId, ChecklistTemplateStatus.ACTIVE))
                 .thenReturn(List.of(template));
@@ -78,11 +85,24 @@ class ActivateChecklistTemplateUseCaseTest {
     void deveRejeitarQuandoTemplateNaoExiste() {
         UUID templateId = UUID.randomUUID();
 
+        when(contextProvider.getRequestContext()).thenReturn(senai());
         when(templateRepository.findById(templateId)).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> useCase.execute(templateId));
 
         verify(templateRepository, never()).findByRoomIdAndActiveTrueAndStatus(any(UUID.class), eq(ChecklistTemplateStatus.ACTIVE));
+    }
+
+    @Test
+    @DisplayName("deve rejeitar quando usuario nao gerencia templates")
+    void deveRejeitarQuandoUsuarioNaoGerenciaTemplates() {
+        UUID templateId = UUID.randomUUID();
+
+        when(contextProvider.getRequestContext()).thenReturn(student());
+
+        assertThrows(AccessDeniedException.class, () -> useCase.execute(templateId));
+
+        verify(templateRepository, never()).findById(templateId);
     }
 
     private ChecklistTemplate template(
@@ -97,5 +117,13 @@ class ActivateChecklistTemplateUseCaseTest {
                 .status(status)
                 .active(active)
                 .build();
+    }
+
+    private RequestContext senai() {
+        return new RequestContext(UUID.randomUUID(), TypeUser.SENAI);
+    }
+
+    private RequestContext student() {
+        return new RequestContext(UUID.randomUUID(), TypeUser.STUDENT);
     }
 }

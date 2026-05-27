@@ -4,5 +4,5 @@ import java.util.UUID;
 
 public interface HubRoomProvider {
 
-
-    boolean existsById(UUID roomId);}
+    boolean existsById(UUID roomId);
+}

@@ -1,7 +1,7 @@
-package com.portal.conecta.checklist.module.checklist.domain.enums;
+    package com.portal.conecta.checklist.module.checklist.domain.enums;
 
-public enum ChecklistExecutionStatus {
-    DRAFT,
-    SUBMITTED,
-    CANCELED
-}
+    public enum ChecklistExecutionStatus {
+        DRAFT,
+        SUBMITTED,
+        CANCELED
+    }

@@ -6,6 +6,7 @@ import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -13,11 +14,8 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class ChecklistExecutionControllerTest {
 
@@ -59,5 +57,54 @@ class ChecklistExecutionControllerTest {
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
         verify(facade).submit(executionId, request);
+    }
+
+    // -----------------------------------------------
+    // Testes do endpoint cancel
+    // -----------------------------------------------
+
+    @Test
+    @DisplayName("deve retornar 200 OK ao cancelar execucao com sucesso")
+    void deveRetornarOkAoCancelarExecucao() {
+        UUID executionId = UUID.randomUUID();
+        ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
+
+        when(facade.cancel(executionId)).thenReturn(response);
+
+        ResponseEntity<ChecklistExecutionResponseDTO> result = controller.cancel(executionId);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(response, result.getBody());
+        verify(facade).cancel(executionId);
+    }
+
+    @Test
+    @DisplayName("deve propagar EntityNotFoundException quando execucao nao existe")
+    void devePropagar404QuandoExecucaoNaoExiste() {
+        UUID executionId = UUID.randomUUID();
+
+        when(facade.cancel(executionId))
+                .thenThrow(new EntityNotFoundException("Execucao de checklist nao encontrada."));
+
+        EntityNotFoundException excecao = assertThrows(EntityNotFoundException.class,
+                () -> controller.cancel(executionId));
+
+        assertEquals("Execucao de checklist nao encontrada.", excecao.getMessage());
+        verify(facade).cancel(executionId);
+    }
+
+    @Test
+    @DisplayName("deve propagar IllegalStateException quando status nao permite cancelamento")
+    void devePropagar400QuandoStatusInvalido() {
+        UUID executionId = UUID.randomUUID();
+
+        when(facade.cancel(executionId))
+                .thenThrow(new IllegalStateException("Somente checklists enviados podem ser cancelados."));
+
+        IllegalStateException excecao = assertThrows(IllegalStateException.class,
+                () -> controller.cancel(executionId));
+
+        assertEquals("Somente checklists enviados podem ser cancelados.", excecao.getMessage());
+        verify(facade).cancel(executionId);
     }
 }

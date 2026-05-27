@@ -243,6 +243,12 @@ The current Hub token generator does not emit `permissionVersion`. If the Hub la
 
 ### Testing With Postman
 
+For a complete step-by-step guide with mock IDs and ready-to-use JSON bodies, see:
+
+```text
+docs/guia-postman-mock.md
+```
+
 Use this flow while the Hub is not available. The Checklist API still validates a real JWT, but user, room, and class existence can be validated through mock providers.
 
 #### What Is Being Tested

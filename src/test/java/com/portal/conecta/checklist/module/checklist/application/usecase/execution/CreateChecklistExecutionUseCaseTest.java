@@ -170,6 +170,92 @@ class CreateChecklistExecutionUseCaseTest {
         verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any());
         verify(executionRepository, never()).save(any());
     }
+    @Test
+    @DisplayName("deve criar DEPARTURE com sucesso quando ARRIVAL existe no mesmo dia")
+    void deveCriarDepartureComSucessoQuandoArrivalExiste() {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        ChecklistExecutionDraftCreateDTO request = requestDeparture(templateId, roomId, classId);
+        ChecklistTemplate template = activeTemplate(templateId, roomId);
+        RequestContext currentUser = representative(userId, classId);
+        ChecklistExecution draft = ChecklistExecution.builder().id(UUID.randomUUID()).build();
+        ChecklistExecution saved = ChecklistExecution.builder().id(UUID.randomUUID()).build();
+
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
+        when(contextProvider.getRequestContext()).thenReturn(currentUser);
+        when(executionRepository.existsDuplicateChecklist(
+                eq(classId), eq(roomId), eq(Period.MORNING.name()), eq(ChecklistType.DEPARTURE.name()),
+                any(LocalDateTime.class), any(LocalDateTime.class)
+        )).thenReturn(false);
+        when(executionRepository.existArrivalForDeparture(
+                eq(classId), eq(roomId), eq(Period.MORNING.name()),
+                any(LocalDateTime.class), any(LocalDateTime.class)
+        )).thenReturn(true);
+        when(executionMapper.toDraftEntity(eq(request), eq(template), eq(userId), any(LocalDateTime.class))).thenReturn(draft);
+        when(executionRepository.save(draft)).thenReturn(saved);
+
+        ChecklistExecution result = useCase.execute(request);
+
+        assertSame(saved, result);
+        verify(executionRepository).save(draft);
+    }
+
+    @Test
+    @DisplayName("deve rejeitar DEPARTURE quando nao existe ARRIVAL no mesmo dia")
+    void deveRejeitarDepartureSemArrivalNoDia() {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        ChecklistExecutionDraftCreateDTO request = requestDeparture(templateId, roomId, classId);
+
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
+        when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID(), classId));
+        when(executionRepository.existsDuplicateChecklist(
+                eq(classId), eq(roomId), eq(Period.MORNING.name()), eq(ChecklistType.DEPARTURE.name()),
+                any(LocalDateTime.class), any(LocalDateTime.class)
+        )).thenReturn(false);
+        when(executionRepository.existArrivalForDeparture(
+                eq(classId), eq(roomId), eq(Period.MORNING.name()),
+                any(LocalDateTime.class), any(LocalDateTime.class)
+        )).thenReturn(false);
+
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(request));
+
+        verify(executionRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("deve rejeitar DEPARTURE duplicado")
+    void deveRejeitarDepartureDuplicado() {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        ChecklistExecutionDraftCreateDTO request = requestDeparture(templateId, roomId, classId);
+
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
+        when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID(), classId));
+        when(executionRepository.existsDuplicateChecklist(
+                eq(classId), eq(roomId), eq(Period.MORNING.name()), eq(ChecklistType.DEPARTURE.name()),
+                any(LocalDateTime.class), any(LocalDateTime.class)
+        )).thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(request));
+
+        verify(executionRepository, never()).save(any());
+    }
+
+    // helper para DEPARTURE — adiciona junto aos outros helpers no final da classe
+    private ChecklistExecutionDraftCreateDTO requestDeparture(UUID templateId, UUID roomId, UUID classId) {
+        return new ChecklistExecutionDraftCreateDTO(
+                templateId,
+                roomId,
+                classId,
+                Period.MORNING,
+                ChecklistType.DEPARTURE
+        );
+    }
 
     private ChecklistExecutionDraftCreateDTO request(UUID templateId, UUID roomId, UUID classId) {
         return new ChecklistExecutionDraftCreateDTO(

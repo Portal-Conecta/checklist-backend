@@ -241,6 +241,79 @@ Current persistence uses UUIDs for users and classes, so `sub` and `classes[].cl
 
 The current Hub token generator does not emit `permissionVersion`. If the Hub later adds that claim or an authorization-check endpoint, that flow should be introduced as a new integration decision instead of being assumed by this service.
 
+### Testing With Postman
+
+Postman must send a signed JWT, not the raw JSON payload. The old payload shape with `id`, `nome`, `email`, `role`, and `turmas` is not accepted by the current Checklist API.
+
+Use the request authorization type `Bearer Token` and set the token value to:
+
+```text
+{{hubToken}}
+```
+
+Create a Postman environment with these variables:
+
+```text
+JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+USER_ID=33333333-3333-3333-3333-333333333331
+CLASS_ID=22222222-2222-2222-2222-222222222221
+```
+
+Add this Pre-request Script to the collection or request to generate a local test token:
+
+```javascript
+const secret = pm.environment.get("JWT_SECRET");
+const now = Math.floor(Date.now() / 1000);
+
+function base64Url(wordArray) {
+  return CryptoJS.enc.Base64.stringify(wordArray)
+    .replace(/=+$/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+}
+
+const header = {
+  alg: "HS256",
+  typ: "JWT"
+};
+
+const payload = {
+  jti: pm.variables.replaceIn("{{$guid}}"),
+  sub: pm.environment.get("USER_ID"),
+  userType: "REPRESENTATIVE",
+  classes: [
+    {
+      classId: pm.environment.get("CLASS_ID"),
+      role: "REPRESENTATIVE"
+    }
+  ],
+  iat: now,
+  exp: now + 3600
+};
+
+const encodedHeader = base64Url(CryptoJS.enc.Utf8.parse(JSON.stringify(header)));
+const encodedPayload = base64Url(CryptoJS.enc.Utf8.parse(JSON.stringify(payload)));
+const unsignedToken = `${encodedHeader}.${encodedPayload}`;
+const signature = base64Url(CryptoJS.HmacSHA256(unsignedToken, CryptoJS.enc.Base64.parse(secret)));
+
+pm.environment.set("hubToken", `${unsignedToken}.${signature}`);
+```
+
+Quick checks:
+
+```text
+GET http://localhost:8080/actuator/health
+```
+
+No token is required for health.
+
+```text
+GET http://localhost:8080/api/checklist-templates
+Authorization: Bearer {{hubToken}}
+```
+
+This validates the authentication filter and the local authorization rules for a representative.
+
 Initial authorization rules implemented:
 
 - A class representative can create checklist executions only for their own class.

@@ -96,7 +96,7 @@ Suggested local variables:
 
 ```env
 SPRING_PROFILES_ACTIVE=local
-SERVER_PORT=8080
+SERVER_PORT=8083
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=checklist_db
@@ -167,13 +167,13 @@ mvn spring-boot:run -Dspring-boot.run.profiles=local
 Swagger UI should be available at:
 
 ```text
-http://localhost:8080/swagger-ui.html
+http://localhost:8083/swagger-ui.html
 ```
 
 OpenAPI JSON should be available at:
 
 ```text
-http://localhost:8080/v3/api-docs
+http://localhost:8083/v3/api-docs
 ```
 
 ## Health Check
@@ -181,7 +181,7 @@ http://localhost:8080/v3/api-docs
 Actuator health endpoint:
 
 ```text
-http://localhost:8080/actuator/health
+http://localhost:8083/actuator/health
 ```
 
 ## Testing
@@ -243,23 +243,99 @@ The current Hub token generator does not emit `permissionVersion`. If the Hub la
 
 ### Testing With Postman
 
-Postman must send a signed JWT, not the raw JSON payload. The old payload shape with `id`, `nome`, `email`, `role`, and `turmas` is not accepted by the current Checklist API.
+Use this flow while the Hub is not available. The Checklist API still validates a real JWT, but user, room, and class existence can be validated through mock providers.
 
-Use the request authorization type `Bearer Token` and set the token value to:
+#### What Is Being Tested
+
+JWT is the token format used by the Hub. It has three parts:
 
 ```text
-{{hubToken}}
+header.payload.signature
 ```
 
-Create a Postman environment with these variables:
+The payload is the JSON with `sub`, `userType`, `classes`, `iat`, and `exp`, but Postman must send the full signed token, not the raw JSON.
+
+Checklist API validates:
+
+- JWT signature using HS256 and `JWT_SECRET`;
+- expiration date from `exp`;
+- required claims: `jti`, `sub`, `userType`, `iat`, `exp`;
+- `sub` as a valid user UUID;
+- `classes[].classId` as valid class UUIDs;
+- `classes[].role` as `STUDENT`, `TEACHER`, or `REPRESENTATIVE`;
+- user existence through `HubUserProvider`;
+- room/class existence through Hub providers when the endpoint needs it.
+
+#### Run API With Mock Hub Providers
+
+Start PostgreSQL:
+
+```powershell
+docker compose up -d
+```
+
+Run the API with the `mock` profile:
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE="mock"
+$env:SERVER_PORT="8083"
+$env:JWT_SECRET="MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
+mvn spring-boot:run
+```
+
+If your machine has Maven Wrapper configured, use:
+
+```powershell
+.\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=mock
+```
+
+Health check does not require token:
 
 ```text
+GET http://localhost:8083/actuator/health
+```
+
+#### Mock Data Used By The API
+
+The `mock` profile reads mock Hub data from `src/main/resources/application-mock.properties`.
+
+The example user and classes below are already configured there:
+
+```text
+USER_ID=a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d
+TEACHER_CLASS_ID=8f8e8d8c-8b8a-8f8e-8d8c-8b8a8f8e8d8c
+STUDENT_CLASS_ID=1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+ROOM_ID=11111111-1111-1111-1111-111111111111
+```
+
+If Postman sends a `sub`, `classId`, or `roomId` that is not in the mock properties, the API must reject the request.
+
+#### Create A Postman Environment
+
+Create an environment called `Checklist Local` with:
+
+```text
+BASE_URL=http://localhost:8083
 JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
-USER_ID=33333333-3333-3333-3333-333333333331
-CLASS_ID=22222222-2222-2222-2222-222222222221
+USER_ID=a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d
+TEACHER_CLASS_ID=8f8e8d8c-8b8a-8f8e-8d8c-8b8a8f8e8d8c
+STUDENT_CLASS_ID=1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+ROOM_ID=11111111-1111-1111-1111-111111111111
+USER_TYPE=STUDENT
+TEACHER_CLASS_ROLE=TEACHER
+STUDENT_CLASS_ROLE=STUDENT
 ```
 
-Add this Pre-request Script to the collection or request to generate a local test token:
+#### Configure Authorization
+
+In the Postman collection, open `Authorization`:
+
+```text
+Type: Bearer Token
+Token: {{hubToken}}
+```
+
+Then add this script in `Pre-request Script` at collection level. Postman already provides `CryptoJS`, so no dependency is needed.
 
 ```javascript
 const secret = pm.environment.get("JWT_SECRET");
@@ -280,15 +356,19 @@ const header = {
 const payload = {
   jti: pm.variables.replaceIn("{{$guid}}"),
   sub: pm.environment.get("USER_ID"),
-  userType: "REPRESENTATIVE",
+  userType: pm.environment.get("USER_TYPE"),
   classes: [
     {
-      classId: pm.environment.get("CLASS_ID"),
-      role: "REPRESENTATIVE"
+      classId: pm.environment.get("TEACHER_CLASS_ID"),
+      role: pm.environment.get("TEACHER_CLASS_ROLE")
+    },
+    {
+      classId: pm.environment.get("STUDENT_CLASS_ID"),
+      role: pm.environment.get("STUDENT_CLASS_ROLE")
     }
   ],
   iat: now,
-  exp: now + 3600
+  exp: now + 900
 };
 
 const encodedHeader = base64Url(CryptoJS.enc.Utf8.parse(JSON.stringify(header)));
@@ -297,22 +377,236 @@ const unsignedToken = `${encodedHeader}.${encodedPayload}`;
 const signature = base64Url(CryptoJS.HmacSHA256(unsignedToken, CryptoJS.enc.Base64.parse(secret)));
 
 pm.environment.set("hubToken", `${unsignedToken}.${signature}`);
+pm.environment.set("hubTokenPayload", JSON.stringify(payload, null, 2));
 ```
 
-Quick checks:
+The script creates a fresh token before each request. This avoids using an expired `exp`.
+
+#### First Request: Validate Authentication
 
 ```text
-GET http://localhost:8080/actuator/health
-```
-
-No token is required for health.
-
-```text
-GET http://localhost:8080/api/checklist-templates
+GET {{BASE_URL}}/api/checklist-templates
 Authorization: Bearer {{hubToken}}
 ```
 
-This validates the authentication filter and the local authorization rules for a representative.
+Expected result with the example token:
+
+```text
+200 OK
+```
+
+If the token is missing:
+
+```text
+401 Unauthorized
+```
+
+If the token is expired, unsigned, signed with the wrong secret, or has invalid claims:
+
+```text
+401 Unauthorized
+```
+
+If the token is valid but the user does not have permission for the action:
+
+```text
+403 Forbidden
+```
+
+#### Create A Template
+
+Template management is allowed for `SENAI` or `WEG`. Before this request, change the environment variable:
+
+```text
+USER_TYPE=SENAI
+```
+
+Request:
+
+```text
+POST {{BASE_URL}}/api/checklist-templates
+Authorization: Bearer {{hubToken}}
+Content-Type: application/json
+```
+
+Body:
+
+```json
+{
+  "roomId": "{{ROOM_ID}}",
+  "title": "Checklist Padrao",
+  "description": "Template para teste local",
+  "schemaJson": {
+    "sections": [
+      {
+        "key": "estrutura",
+        "title": "Estrutura",
+        "order": 1,
+        "items": [
+          {
+            "key": "quadro",
+            "title": "Quadro em bom estado?",
+            "description": "Verificar quadro",
+            "required": true,
+            "order": 1
+          },
+          {
+            "key": "iluminacao",
+            "title": "Iluminacao adequada?",
+            "description": "Verificar luzes",
+            "required": true,
+            "order": 2
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Save the returned `id` as a Postman environment variable:
+
+```text
+TEMPLATE_ID=<id returned by API>
+```
+
+Or add this in the request `Tests` tab:
+
+```javascript
+const body = pm.response.json();
+pm.environment.set("TEMPLATE_ID", body.id);
+```
+
+#### Activate The Template
+
+Keep:
+
+```text
+USER_TYPE=SENAI
+```
+
+Request:
+
+```text
+PATCH {{BASE_URL}}/api/checklist-templates/{{TEMPLATE_ID}}/activate
+Authorization: Bearer {{hubToken}}
+```
+
+Expected result:
+
+```text
+200 OK
+```
+
+#### Create A Checklist Draft
+
+Now switch back to the operational user from the example token:
+
+```text
+USER_TYPE=STUDENT
+TEACHER_CLASS_ROLE=TEACHER
+```
+
+The example user can create a checklist for `TEACHER_CLASS_ID` because the token says this user has `role: TEACHER` in that class.
+
+Request:
+
+```text
+POST {{BASE_URL}}/api/checklist-executions/drafts
+Authorization: Bearer {{hubToken}}
+Content-Type: application/json
+```
+
+Body:
+
+```json
+{
+  "templateId": "{{TEMPLATE_ID}}",
+  "roomId": "{{ROOM_ID}}",
+  "classId": "{{TEACHER_CLASS_ID}}",
+  "period": "MORNING",
+  "checklistType": "ARRIVAL"
+}
+```
+
+Save the returned `id` as:
+
+```text
+EXECUTION_ID=<id returned by API>
+```
+
+Or add this in the request `Tests` tab:
+
+```javascript
+const body = pm.response.json();
+pm.environment.set("EXECUTION_ID", body.id);
+```
+
+#### Submit The Checklist
+
+Request:
+
+```text
+POST {{BASE_URL}}/api/checklist-executions/{{EXECUTION_ID}}/submit
+Authorization: Bearer {{hubToken}}
+Content-Type: application/json
+```
+
+Body:
+
+```json
+{
+  "answers": [
+    {
+      "itemKey": "quadro",
+      "value": "COMPLIANT",
+      "observation": null,
+      "answeredAt": "2026-05-27T12:00:00Z"
+    },
+    {
+      "itemKey": "iluminacao",
+      "value": "NON_COMPLIANT",
+      "observation": "Lampada queimada",
+      "answeredAt": "2026-05-27T12:01:00Z"
+    }
+  ]
+}
+```
+
+Rules validated here:
+
+- only `DRAFT` checklists can be submitted;
+- all required items must be answered;
+- `COMPLIANT` does not require observation;
+- `NON_COMPLIANT` requires observation;
+- `NON_COMPLIANT` generates an issue;
+- only the user that created the execution can submit it.
+
+#### Common Problems
+
+`401 Token do Hub invalido ou expirado.`
+
+- Token was pasted as raw JSON instead of JWT.
+- `JWT_SECRET` in Postman is different from the API.
+- `exp` is in the past.
+- `sub`, `jti`, or `classes[].classId` is not a UUID.
+- User from `sub` does not exist in mock Hub properties.
+
+`403 Acesso negado.`
+
+- Token is valid, but `userType` or `classes[].role` does not allow the action.
+- Example: `STUDENT` without `TEACHER` or `REPRESENTATIVE` class role trying to create a checklist draft.
+- Example: `STUDENT` trying to create or activate checklist templates.
+
+`404` or `Sala/Turma nao encontrada no Hub.`
+
+- `ROOM_ID` is not listed in `checklist.mock.hub.room-ids`.
+- `classId` is not listed in `checklist.mock.hub.class-ids`.
+
+Duplicate checklist error.
+
+- The API does not allow duplicated checklist for the same class, room, period, day, and type.
+- To test again, change `period`, `checklistType`, class, or reset the local database.
 
 Initial authorization rules implemented:
 

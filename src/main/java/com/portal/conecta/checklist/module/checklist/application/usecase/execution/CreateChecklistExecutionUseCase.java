@@ -2,6 +2,7 @@ package com.portal.conecta.checklist.module.checklist.application.usecase.execut
 
 
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
@@ -62,6 +63,22 @@ public class CreateChecklistExecutionUseCase {
         if (duplicated) {
             throw new IllegalArgumentException("Ja existe checklist para esta turma, sala, periodo, dia e tipo.");
         }
+
+        if(request.checklistType() == ChecklistType.DEPARTURE){
+            boolean arrivalExists = repository.existArrivalForDeparture(
+                    request.classId(),
+                    request.roomId(),
+                    request.period().name(),
+                    startOfDay,
+                    endOfDay
+            );
+
+            if (!arrivalExists){
+                throw new IllegalArgumentException("Nao e possivel criar DEPARTURE sem um ARRIVAL anterior para esta turma, sala, periodo e dia.");
+            }
+        }
+
+
 
         ChecklistExecution execution = executionMapper.toDraftEntity(request, template, currentUser.userId(), now);
 

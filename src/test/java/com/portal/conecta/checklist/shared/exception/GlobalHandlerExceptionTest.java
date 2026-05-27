@@ -9,10 +9,14 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
 
@@ -142,6 +146,69 @@ class GlobalHandlerExceptionTest {
         assertNotNull(response.getBody());
         assertEquals(500, response.getBody().status());
         assertEquals("Ocorreu um erro interno inesperado no servidor.", response.getBody().message());
+        assertNull(response.getBody().errors());
+        assertNotNull(response.getBody().localDateTime());
+    }
+    @Test
+    @DisplayName("should return bad request when UUID or type param is invalid")
+    void shouldReturnBadRequestWhenUuidOrTypeParamIsInvalid() {
+        MethodArgumentTypeMismatchException exception = mock(MethodArgumentTypeMismatchException.class);
+        when(exception.getName()).thenReturn("executionId");
+        when(exception.getValue()).thenReturn("uuid-invalido");
+
+        ResponseEntity<ErrorResponseDTO> response = handler.handleTypeMismatch(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(400, response.getBody().status());
+        assertEquals("Valor inválido para o parâmetro 'executionId': 'uuid-invalido'", response.getBody().message());
+        assertNull(response.getBody().errors());
+        assertNotNull(response.getBody().localDateTime());
+    }
+
+    @Test
+    @DisplayName("should return bad request when JSON is malformed or enum is invalid")
+    void shouldReturnBadRequestWhenJsonIsMalformedOrEnumIsInvalid() {
+        HttpMessageNotReadableException exception = mock(HttpMessageNotReadableException.class);
+
+        ResponseEntity<ErrorResponseDTO> response = handler.handleNotReadable(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(400, response.getBody().status());
+        assertEquals("JSON malformado ou valor inválido no corpo da requisição.", response.getBody().message());
+        assertNull(response.getBody().errors());
+        assertNotNull(response.getBody().localDateTime());
+    }
+
+    @Test
+    @DisplayName("should return method not allowed when HTTP method is not supported")
+    void shouldReturnMethodNotAllowedWhenHttpMethodIsNotSupported() {
+        HttpRequestMethodNotSupportedException exception = mock(HttpRequestMethodNotSupportedException.class);
+        when(exception.getMethod()).thenReturn("DELETE");
+
+        ResponseEntity<ErrorResponseDTO> response = handler.handleMethodNotSupported(exception);
+
+        assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(405, response.getBody().status());
+        assertEquals("Método HTTP 'DELETE' não suportado para esta rota.", response.getBody().message());
+        assertNull(response.getBody().errors());
+        assertNotNull(response.getBody().localDateTime());
+    }
+
+    @Test
+    @DisplayName("should return not found when route does not exist")
+    void shouldReturnNotFoundWhenRouteDoesNotExist() {
+        NoResourceFoundException exception = mock(NoResourceFoundException.class);
+        when(exception.getResourcePath()).thenReturn("/api/rota-inexistente");
+
+        ResponseEntity<ErrorResponseDTO> response = handler.handleNoResourceFound(exception);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(404, response.getBody().status());
+        assertEquals("Rota não encontrada: /api/rota-inexistente", response.getBody().message());
         assertNull(response.getBody().errors());
         assertNotNull(response.getBody().localDateTime());
     }

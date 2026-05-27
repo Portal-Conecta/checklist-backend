@@ -10,6 +10,8 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.request.Ch
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
+import com.portal.conecta.checklist.shared.hub.provider.classes.HubClassProvider;
+import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -26,6 +28,8 @@ public class CreateChecklistExecutionUseCase {
     private final ChecklistTemplateRepository templateRepository;
     private final ChecklistExecutionMapper executionMapper;
     private final RequestContextProvider contextProvider;
+    private final HubRoomProvider hubRoomProvider;
+    private final HubClassProvider hubClassProvider;
 
     @Transactional
     public ChecklistExecution execute(ChecklistExecutionDraftCreateDTO request) {
@@ -38,6 +42,14 @@ public class CreateChecklistExecutionUseCase {
 
         if (!template.getRoomId().equals(request.roomId())) {
             throw new IllegalArgumentException("Template nao pertence a sala informada.");
+        }
+
+        if (!hubRoomProvider.existsById(request.roomId())) {
+            throw new EntityNotFoundException("Sala nao encontrada no Hub.");
+        }
+
+        if (!hubClassProvider.existsById(request.classId())) {
+            throw new EntityNotFoundException("Turma nao encontrada no Hub.");
         }
 
         RequestContext currentUser = contextProvider.getRequestContext();

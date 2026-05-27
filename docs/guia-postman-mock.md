@@ -1,18 +1,18 @@
 # Guia De Testes No Postman Com JWT Mock
 
-Este guia centraliza os dados JSON usados para testar a Checklist API enquanto o Hub ainda nao esta disponivel. A API valida um JWT real, mas consulta usuarios, salas e turmas em providers mockados configurados no projeto.
+Este guia mostra o caminho mais simples para testar a Checklist API no Postman usando os dados mockados do projeto.
 
-> Importante: os JSONs podem mudar conforme as regras do backend evoluirem. Sempre confira se os IDs usados aqui continuam existindo em `src/main/resources/application-mock.properties`.
+> Importante: esses JSONs podem mudar conforme o backend evoluir. Quando alguma regra ou DTO mudar, atualize este guia junto.
 
-## 1. Subir A API Em Modo Mock
+## 1. Subir A API
 
-Na raiz do projeto:
+Na raiz do projeto, suba o banco:
 
 ```powershell
 docker compose up -d
 ```
 
-Depois rode a API com o profile `mock`:
+Rode a API com o profile `mock`:
 
 ```powershell
 $env:SPRING_PROFILES_ACTIVE="mock"
@@ -21,9 +21,7 @@ $env:JWT_SECRET="MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
 mvn spring-boot:run
 ```
 
-Se estiver usando outra porta, ajuste a variavel `BASE_URL` no Postman.
-
-Health check:
+Valide se a API subiu:
 
 ```http
 GET http://localhost:8083/actuator/health
@@ -33,7 +31,7 @@ Esse endpoint nao precisa de token.
 
 ## 2. Dados Mock Disponiveis
 
-Os dados abaixo existem no profile `mock`.
+Esses IDs existem em `src/main/resources/application-mock.properties`.
 
 ### Usuarios
 
@@ -61,95 +59,42 @@ a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d
 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
 ```
 
-## 3. Configurar Ambiente No Postman
+## 3. Configurar O Postman
 
 Crie um environment chamado `Checklist Local Mock`.
 
+Adicione estas variaveis:
+
 ```text
 BASE_URL=http://localhost:8083
-JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
-USER_ID=44444444-4444-4444-4444-444444444444
-ROOM_ID=11111111-1111-1111-1111-111111111111
-TEACHER_CLASS_ID=8f8e8d8c-8b8a-8f8e-8d8c-8b8a8f8e8d8c
-STUDENT_CLASS_ID=1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
-USER_TYPE=SENAI
-TEACHER_CLASS_ROLE=TEACHER
-STUDENT_CLASS_ROLE=STUDENT
+hubToken=<colar o JWT gerado>
+TEMPLATE_ID=<preencher depois>
+EXECUTION_ID=<preencher depois>
 ```
 
-## 4. Autenticacao JWT
-
-Rotas privadas precisam receber o header:
-
-```http
-Authorization: Bearer {{hubToken}}
-```
-
-O backend nao aceita o payload JSON puro. Ele precisa receber um JWT assinado no formato:
+Nas rotas privadas, use:
 
 ```text
-header.payload.signature
-```
-
-### Gerar JWT Automaticamente No Postman
-
-Na collection do Postman, va em `Authorization`:
-
-```text
-Type: Bearer Token
+Authorization > Type: Bearer Token
 Token: {{hubToken}}
 ```
 
-Depois va em `Pre-request Script` e cole:
+## 4. Gerar O JWT
 
-```javascript
-const secret = pm.environment.get("JWT_SECRET");
-const now = Math.floor(Date.now() / 1000);
+Use um gerador de JWT, como `jwt.io`, apenas para gerar o token de teste local.
 
-function base64Url(wordArray) {
-  return CryptoJS.enc.Base64.stringify(wordArray)
-    .replace(/=+$/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
+### Header
+
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
 }
-
-const header = {
-  alg: "HS256",
-  typ: "JWT"
-};
-
-const payload = {
-  jti: pm.variables.replaceIn("{{$guid}}"),
-  sub: pm.environment.get("USER_ID"),
-  userType: pm.environment.get("USER_TYPE"),
-  classes: [
-    {
-      classId: pm.environment.get("TEACHER_CLASS_ID"),
-      role: pm.environment.get("TEACHER_CLASS_ROLE")
-    },
-    {
-      classId: pm.environment.get("STUDENT_CLASS_ID"),
-      role: pm.environment.get("STUDENT_CLASS_ROLE")
-    }
-  ],
-  iat: now,
-  exp: now + 900
-};
-
-const encodedHeader = base64Url(CryptoJS.enc.Utf8.parse(JSON.stringify(header)));
-const encodedPayload = base64Url(CryptoJS.enc.Utf8.parse(JSON.stringify(payload)));
-const unsignedToken = `${encodedHeader}.${encodedPayload}`;
-const signature = base64Url(CryptoJS.HmacSHA256(unsignedToken, CryptoJS.enc.Base64.parse(secret)));
-
-pm.environment.set("hubToken", `${unsignedToken}.${signature}`);
-pm.environment.set("hubTokenPayload", JSON.stringify(payload, null, 2));
 ```
 
-Esse script gera um token novo antes de cada requisicao, evitando erro por `exp` expirado.
+### Payload
 
-### Payload Base Do Token
-
-Este e o payload gerado pelo script, com `iat` e `exp` dinamicos:
+Use este payload:
 
 ```json
 {
@@ -171,19 +116,46 @@ Este e o payload gerado pelo script, com `iat` e `exp` dinamicos:
 }
 ```
 
-Se for gerar manualmente no jwt.io:
+### Secret
 
-- algoritmo: `HS256`;
-- secret Base64: `MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=`;
-- marque a opcao de secret em Base64, se a ferramenta oferecer essa opcao;
-- se nao marcar Base64, use o secret decodificado: `0123456789abcdef0123456789abcdef`;
-- atualize `iat` e `exp` para datas validas.
+O secret Base64 do projeto e:
 
-## 5. Validar Se O Token Esta Funcionando
+```text
+MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+```
+
+No `jwt.io`, selecione algoritmo `HS256`.
+
+Se a ferramenta tiver a opcao `secret base64 encoded`, marque essa opcao.
+
+Se a ferramenta nao tiver essa opcao, use o secret decodificado:
+
+```text
+0123456789abcdef0123456789abcdef
+```
+
+Depois de gerar o token, copie o JWT completo e cole na variavel `hubToken` do Postman.
+
+O JWT completo tem este formato:
+
+```text
+header.payload.signature
+```
+
+Nao cole apenas o JSON do payload no Postman.
+
+## 5. Validar Autenticacao
+
+Request:
 
 ```http
 GET {{BASE_URL}}/api/checklist-templates
-Authorization: Bearer {{hubToken}}
+```
+
+Authorization:
+
+```text
+Bearer Token: {{hubToken}}
 ```
 
 Resultado esperado:
@@ -192,23 +164,18 @@ Resultado esperado:
 200 OK
 ```
 
-Se retornar `401`, o problema esta na autenticacao/token. Se retornar `403`, o token e valido, mas o usuario nao tem permissao para a acao.
+Se retornar `401`, o token esta ausente, expirado, mal assinado ou com algum campo invalido.
+
+Se retornar `403`, o token e valido, mas o usuario nao tem permissao para aquela acao.
 
 ## 6. Criar Template De Checklist
 
-O que testa:
+O usuario do token tem `userType` `SENAI`, entao pode criar template.
 
-- autenticacao JWT;
-- permissao de gestao de template por `SENAI`;
-- existencia da sala no provider mock;
-- validacao das keys do schema.
-
-Rota:
+Request:
 
 ```http
 POST {{BASE_URL}}/api/checklist-templates
-Authorization: Bearer {{hubToken}}
-Content-Type: application/json
 ```
 
 Body:
@@ -260,27 +227,22 @@ Body:
 }
 ```
 
-Observacao: o backend atual cria o template como `DRAFT`. Por isso o payload de criacao nao usa `isActive`; a ativacao acontece na rota de activate.
+Resultado esperado:
 
-No Postman, adicione este script na aba `Tests` da requisicao para salvar o ID:
-
-```javascript
-const body = pm.response.json();
-pm.environment.set("TEMPLATE_ID", body.id);
+```text
+201 Created
 ```
+
+Copie o campo `id` da resposta e cole na variavel `TEMPLATE_ID`.
+
+Observacao: o template nasce como `DRAFT`. A ativacao acontece na proxima rota.
 
 ## 7. Ativar Template
 
-O que testa:
-
-- permissao de gestao de template;
-- fluxo que ativa o template e desativa outros templates ativos da mesma sala.
-
-Rota:
+Request:
 
 ```http
 PATCH {{BASE_URL}}/api/checklist-templates/{{TEMPLATE_ID}}/activate
-Authorization: Bearer {{hubToken}}
 ```
 
 Resultado esperado:
@@ -291,20 +253,10 @@ Resultado esperado:
 
 ## 8. Criar Draft De Checklist
 
-O que testa:
-
-- template precisa estar ativo;
-- sala precisa existir no mock;
-- turma precisa existir no mock;
-- usuario precisa ter `role` `TEACHER` ou `REPRESENTATIVE` na turma informada;
-- nao pode existir checklist duplicado para mesma turma, sala, periodo, dia e tipo.
-
-Rota:
+Request:
 
 ```http
 POST {{BASE_URL}}/api/checklist-executions/drafts
-Authorization: Bearer {{hubToken}}
-Content-Type: application/json
 ```
 
 Body:
@@ -319,30 +271,20 @@ Body:
 }
 ```
 
-No Postman, adicione este script na aba `Tests` da requisicao para salvar o ID:
+Resultado esperado:
 
-```javascript
-const body = pm.response.json();
-pm.environment.set("EXECUTION_ID", body.id);
+```text
+201 Created
 ```
+
+Copie o campo `id` da resposta e cole na variavel `EXECUTION_ID`.
 
 ## 9. Enviar Checklist
 
-O que testa:
-
-- checklist precisa estar em `DRAFT`;
-- somente o usuario que criou o draft pode enviar;
-- todos os itens obrigatorios precisam estar respondidos;
-- item `COMPLIANT` nao exige observacao;
-- item `NON_COMPLIANT` exige observacao;
-- item `NON_COMPLIANT` gera issue.
-
-Rota:
+Request:
 
 ```http
 POST {{BASE_URL}}/api/checklist-executions/{{EXECUTION_ID}}/submit
-Authorization: Bearer {{hubToken}}
-Content-Type: application/json
 ```
 
 Body:
@@ -378,9 +320,15 @@ Body:
 }
 ```
 
-## 10. Testes Negativos Recomendados
+Resultado esperado:
 
-### Token Sem Bearer
+```text
+200 OK
+```
+
+## 10. Testes Negativos Simples
+
+### Sem Token
 
 Remova o token da requisicao.
 
@@ -392,7 +340,7 @@ Resultado esperado:
 
 ### Usuario Inexistente
 
-Troque `USER_ID` para um UUID que nao esta em `checklist.mock.hub.user-ids`.
+No payload do JWT, troque `sub` para um UUID que nao esta nos usuarios mockados.
 
 Resultado esperado:
 
@@ -402,7 +350,7 @@ Resultado esperado:
 
 ### Sala Inexistente
 
-Troque `roomId` para um UUID que nao esta em `checklist.mock.hub.room-ids`.
+No body, troque `roomId` para um UUID que nao esta nas salas mockadas.
 
 Resultado esperado:
 
@@ -410,15 +358,17 @@ Resultado esperado:
 404 Not Found
 ```
 
-### Turma Sem Permissao
+### Turma Sem Permissao Operacional
 
-Troque o `classId` do draft para:
+No draft, troque `classId` para:
 
 ```text
 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
 ```
 
-No token base, essa turma tem `role` `STUDENT`. Como `STUDENT` nao pode criar draft, o esperado e:
+No token base, essa turma tem `role` `STUDENT`. Esse papel nao pode criar draft.
+
+Resultado esperado:
 
 ```text
 403 Forbidden
@@ -446,13 +396,13 @@ Resultado esperado:
 
 Para testar novamente, altere `period`, `checklistType`, turma, sala ou limpe o banco local.
 
-## 11. Resumo Dos Status Mais Comuns
+## 11. Resumo Dos Status
 
 ```text
-200 OK       -> requisicao executada com sucesso
-201 Created  -> recurso criado
-400 Bad Request -> regra de negocio ou payload invalido
-401 Unauthorized -> problema de token/autenticacao
-403 Forbidden -> token valido, mas sem permissao
-404 Not Found -> recurso nao encontrado
+200 OK            -> sucesso
+201 Created       -> recurso criado
+400 Bad Request   -> payload invalido ou regra de negocio
+401 Unauthorized  -> problema de token
+403 Forbidden     -> usuario autenticado, mas sem permissao
+404 Not Found     -> recurso, sala ou turma nao encontrado
 ```

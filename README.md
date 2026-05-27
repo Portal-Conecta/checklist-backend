@@ -341,52 +341,17 @@ Type: Bearer Token
 Token: {{hubToken}}
 ```
 
-Then add this script in `Pre-request Script` at collection level. Postman already provides `CryptoJS`, so no dependency is needed.
+Generate the JWT manually with a JWT tool such as `jwt.io`, then paste the full token into the `hubToken` environment variable.
 
-```javascript
-const secret = pm.environment.get("JWT_SECRET");
-const now = Math.floor(Date.now() / 1000);
+Use algorithm `HS256` and the same `JWT_SECRET` configured in the API. If the tool has a `secret base64 encoded` option, enable it.
 
-function base64Url(wordArray) {
-  return CryptoJS.enc.Base64.stringify(wordArray)
-    .replace(/=+$/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
-}
+The token sent to Postman must be the full signed JWT in this format:
 
-const header = {
-  alg: "HS256",
-  typ: "JWT"
-};
-
-const payload = {
-  jti: pm.variables.replaceIn("{{$guid}}"),
-  sub: pm.environment.get("USER_ID"),
-  userType: pm.environment.get("USER_TYPE"),
-  classes: [
-    {
-      classId: pm.environment.get("TEACHER_CLASS_ID"),
-      role: pm.environment.get("TEACHER_CLASS_ROLE")
-    },
-    {
-      classId: pm.environment.get("STUDENT_CLASS_ID"),
-      role: pm.environment.get("STUDENT_CLASS_ROLE")
-    }
-  ],
-  iat: now,
-  exp: now + 900
-};
-
-const encodedHeader = base64Url(CryptoJS.enc.Utf8.parse(JSON.stringify(header)));
-const encodedPayload = base64Url(CryptoJS.enc.Utf8.parse(JSON.stringify(payload)));
-const unsignedToken = `${encodedHeader}.${encodedPayload}`;
-const signature = base64Url(CryptoJS.HmacSHA256(unsignedToken, CryptoJS.enc.Base64.parse(secret)));
-
-pm.environment.set("hubToken", `${unsignedToken}.${signature}`);
-pm.environment.set("hubTokenPayload", JSON.stringify(payload, null, 2));
+```text
+header.payload.signature
 ```
 
-The script creates a fresh token before each request. This avoids using an expired `exp`.
+Do not paste only the JSON payload as the token.
 
 #### First Request: Validate Authentication
 
@@ -470,17 +435,10 @@ Body:
 }
 ```
 
-Save the returned `id` as a Postman environment variable:
+Save the returned `id` manually as a Postman environment variable:
 
 ```text
 TEMPLATE_ID=<id returned by API>
-```
-
-Or add this in the request `Tests` tab:
-
-```javascript
-const body = pm.response.json();
-pm.environment.set("TEMPLATE_ID", body.id);
 ```
 
 #### Activate The Template
@@ -535,17 +493,10 @@ Body:
 }
 ```
 
-Save the returned `id` as:
+Save the returned `id` manually as:
 
 ```text
 EXECUTION_ID=<id returned by API>
-```
-
-Or add this in the request `Tests` tab:
-
-```javascript
-const body = pm.response.json();
-pm.environment.set("EXECUTION_ID", body.id);
 ```
 
 #### Submit The Checklist

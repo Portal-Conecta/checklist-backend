@@ -39,9 +39,17 @@ public record RequestContext(
             return false;
         }
 
+        if (hasManagementProfile()) {
+            return false;
+        }
+
         return classes.stream().anyMatch(c ->
                 c.matchesClass(classId) && (isClassRepresentative(c) || isLinkedTeacher(c))
         );
+    }
+
+    private boolean hasManagementProfile() {
+        return userType == TypeUser.SENAI || userType == TypeUser.WEG || userType == TypeUser.ADMIN;
     }
 
     private boolean isClassRepresentative(ContextClass contextClass) {

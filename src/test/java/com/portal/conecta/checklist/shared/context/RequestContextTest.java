@@ -59,4 +59,28 @@ class RequestContextTest {
         assertThat(weg.canManageChecklistTemplates()).isTrue();
         assertThat(weg.canViewDashboard()).isTrue();
     }
+
+    @Test
+    void managementProfilesCannotCreateChecklistExecutionEvenWithClassRole() {
+        UUID classId = UUID.randomUUID();
+        RequestContext senai = new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.SENAI,
+                List.of(new ContextClass(classId, "TEACHER"))
+        );
+        RequestContext weg = new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.WEG,
+                List.of(new ContextClass(classId, "REPRESENTATIVE"))
+        );
+        RequestContext admin = new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.ADMIN,
+                List.of(new ContextClass(classId, "TEACHER"))
+        );
+
+        assertThat(senai.canCreateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(weg.canCreateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(admin.canCreateChecklistExecutionForClass(classId)).isFalse();
+    }
 }

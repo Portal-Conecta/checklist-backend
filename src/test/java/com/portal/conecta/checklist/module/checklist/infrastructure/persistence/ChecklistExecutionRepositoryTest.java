@@ -132,6 +132,34 @@ class ChecklistExecutionRepositoryTest {
                 () -> assertTrue(query.contains("item.value ->> 'justificativa'"))
         );
     }
+    @Test
+    @DisplayName("deve declarar query nativa para verificar se existe ARRIVAL para DEPARTURE")
+    void deveDeclararQueryNativaParaVerificarArrivalParaDeparture() throws NoSuchMethodException {
+        Method method = ChecklistExecutionRepository.class.getMethod(
+                "existsArrivalForDeparture",
+                UUID.class,
+                UUID.class,
+                String.class,
+                LocalDateTime.class,
+                LocalDateTime.class
+        );
+
+        String query = normalizedQuery(method);
+
+        assertAll(
+                () -> assertEquals(boolean.class, method.getReturnType()),
+                () -> assertNativeQuery(method),
+                () -> assertQueryParamsMatchMethodParams(method),
+                () -> assertTrue(query.contains("from checklist_execution ce")),
+                () -> assertTrue(query.contains("ce.class_id = :classid")),
+                () -> assertTrue(query.contains("ce.room_id = :roomid")),
+                () -> assertTrue(query.contains("ce.period = :period")),
+                () -> assertTrue(query.contains("ce.checklist_type = 'arrival'")),
+                () -> assertTrue(query.contains("ce.started_at >= :startofday")),
+                () -> assertTrue(query.contains("ce.started_at < :endofday")),
+                () -> assertTrue(query.contains("ce.status <> 'canceled'"))
+        );
+    }
 
     private static void assertNativeQuery(Method method) {
         Query query = method.getAnnotation(Query.class);

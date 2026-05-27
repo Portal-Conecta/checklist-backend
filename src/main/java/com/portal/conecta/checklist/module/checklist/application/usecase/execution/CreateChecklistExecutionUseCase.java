@@ -65,7 +65,7 @@ public class CreateChecklistExecutionUseCase {
         }
 
         if(request.checklistType() == ChecklistType.DEPARTURE){
-            boolean arrivalExists = repository.existArrivalForDeparture(
+            boolean arrivalExists = repository.existsArrivalForDeparture(
                     request.classId(),
                     request.roomId(),
                     request.period().name(),

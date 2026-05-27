@@ -189,7 +189,7 @@ class CreateChecklistExecutionUseCaseTest {
                 eq(classId), eq(roomId), eq(Period.MORNING.name()), eq(ChecklistType.DEPARTURE.name()),
                 any(LocalDateTime.class), any(LocalDateTime.class)
         )).thenReturn(false);
-        when(executionRepository.existArrivalForDeparture(
+        when(executionRepository.existsArrivalForDeparture(
                 eq(classId), eq(roomId), eq(Period.MORNING.name()),
                 any(LocalDateTime.class), any(LocalDateTime.class)
         )).thenReturn(true);
@@ -216,7 +216,7 @@ class CreateChecklistExecutionUseCaseTest {
                 eq(classId), eq(roomId), eq(Period.MORNING.name()), eq(ChecklistType.DEPARTURE.name()),
                 any(LocalDateTime.class), any(LocalDateTime.class)
         )).thenReturn(false);
-        when(executionRepository.existArrivalForDeparture(
+        when(executionRepository.existsArrivalForDeparture(
                 eq(classId), eq(roomId), eq(Period.MORNING.name()),
                 any(LocalDateTime.class), any(LocalDateTime.class)
         )).thenReturn(false);

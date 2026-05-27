@@ -84,19 +84,19 @@ public interface ChecklistExecutionRepository extends JpaRepository<ChecklistExe
     );
 
     @Query(value = """
-              SELECT EXISTS(
-                SELECT 1
-                FROM checklist_execution ce
-                WHERE ce.class_id =: class_id
-                AND ce.room_id =: room_id
-                AND ce.period  =: period
-                AND ce.checklist_type =: 'ARRIVAL'
-                AND ce.started_at >= :startOfDay
-                AND ce.started_at < :endOfDay
-                AND ce.status <> 'CANCELED'
-              )
-            """, nativeQuery = true)
-    boolean existArrivalForDeparture(
+        select exists (
+            select 1
+            from checklist_execution ce
+            where ce.class_id = :classId
+              and ce.room_id = :roomId
+              and ce.period = :period
+              and ce.checklist_type = 'ARRIVAL'
+              and ce.started_at >= :startOfDay
+              and ce.started_at < :endOfDay
+              and ce.status <> 'CANCELED'
+        )
+        """, nativeQuery = true)
+    boolean existsArrivalForDeparture(
             @Param("classId") UUID classId,
             @Param("roomId") UUID roomId,
             @Param("period") String period,

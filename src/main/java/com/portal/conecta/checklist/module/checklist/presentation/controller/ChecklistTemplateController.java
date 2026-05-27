@@ -2,7 +2,7 @@ package com.portal.conecta.checklist.module.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistTemplateResponseDTO;
-import com.portal.conecta.checklist.module.checklist.presentation.facade.ChecklistTemplateFacade;
+import com.portal.conecta.checklist.module.checklist.application.facade.ChecklistTemplateFacade;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -24,7 +24,7 @@ public final class EnvFileLoader {
         try {
             loadLines(Files.readAllLines(envFile));
         } catch (IOException exception) {
-            throw new IllegalStateException("Could not load .env file.", exception);
+            throw new IllegalStateException("Nao foi possivel carregar o arquivo .env.", exception);
         }
     }
 

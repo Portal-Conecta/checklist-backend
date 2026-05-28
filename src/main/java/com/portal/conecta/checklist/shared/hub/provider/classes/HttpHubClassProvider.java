@@ -32,7 +32,7 @@ public class HttpHubClassProvider implements HubClassProvider {
         } catch (HttpClientErrorException.NotFound exception) {
             return false;
         } catch (RestClientException exception) {
-            throw new HubIntegrationException("Hub class service is unavailable.", exception);
+            throw new HubIntegrationException("Servico de turmas do Hub indisponivel.", exception);
         }
     }
 }

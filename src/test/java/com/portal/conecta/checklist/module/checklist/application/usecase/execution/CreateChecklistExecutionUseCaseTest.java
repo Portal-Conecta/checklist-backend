@@ -227,6 +227,8 @@ class CreateChecklistExecutionUseCaseTest {
         ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, classId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
+        when(hubRoomProvider.existsById(roomId)).thenReturn(true);
+        when(hubClassProvider.existsById(classId)).thenReturn(true);
         when(contextProvider.getRequestContext()).thenReturn(new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.SENAI,

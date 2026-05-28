@@ -17,7 +17,7 @@ Rode a API com o profile `mock`:
 ```powershell
 $env:SPRING_PROFILES_ACTIVE="mock"
 $env:SERVER_PORT="8083"
-$env:JWT_SECRET="MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
+$env:JWT_SECRET="<BASE64_HS256_SECRET>"
 mvn spring-boot:run
 ```
 
@@ -118,20 +118,26 @@ Use este payload:
 
 ### Secret
 
-O secret Base64 do projeto e:
+Use um secret local temporario, nunca um secret real versionado. Para gerar um valor Base64 com 32 bytes no PowerShell:
+
+```powershell
+[Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+```
+
+Configure o valor gerado em `JWT_SECRET` e use o mesmo valor no Postman:
 
 ```text
-MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+<BASE64_HS256_SECRET>
 ```
 
 No `jwt.io`, selecione algoritmo `HS256`.
 
 Se a ferramenta tiver a opcao `secret base64 encoded`, marque essa opcao.
 
-Se a ferramenta nao tiver essa opcao, use o secret decodificado:
+Se a ferramenta nao tiver essa opcao, use a versao decodificada do seu proprio secret:
 
 ```text
-0123456789abcdef0123456789abcdef
+<decoded-32-byte-secret>
 ```
 
 Depois de gerar o token, copie o JWT completo e cole na variavel `hubToken` do Postman.

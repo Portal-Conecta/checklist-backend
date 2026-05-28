@@ -100,17 +100,29 @@ SERVER_PORT=8083
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=checklist_db
-DB_USER=checklist_user
-DB_PASSWORD=checklist_password
-JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+JWT_SECRET=your_base64_hs256_secret
 HUB_API_URL=http://localhost:8081
 ```
 
-`JWT_SECRET` must use the same Base64-encoded HS256 secret configured in the Hub.
+`JWT_SECRET` must use the same Base64-encoded HS256 secret configured for Checklist token validation. For local development, generate a temporary value and keep it only in `.env` or in your shell environment.
+
+PowerShell example to generate a local 32-byte Base64 secret:
+
+```powershell
+[Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+```
 
 You can also create a local `.env` file at the project root. The application loads this file before Spring Boot starts, and values already defined in the operating system or command line keep priority.
 
 Use `.env.example` as the local template. The real `.env` file is ignored by Git.
+
+For deployed environments, configure sensitive values as GitHub Environment Secrets, not as repository variables or committed files:
+
+- `JWT_SECRET`
+- `DB_PASSWORD`
+- `DB_USER`, if the database username is sensitive in your environment
 
 ### Run PostgreSQL
 
@@ -285,7 +297,7 @@ Run the API with the `mock` profile:
 ```powershell
 $env:SPRING_PROFILES_ACTIVE="mock"
 $env:SERVER_PORT="8083"
-$env:JWT_SECRET="MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
+$env:JWT_SECRET="<BASE64_HS256_SECRET>"
 mvn spring-boot:run
 ```
 
@@ -322,7 +334,7 @@ Create an environment called `Checklist Local` with:
 
 ```text
 BASE_URL=http://localhost:8083
-JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+JWT_SECRET=<BASE64_HS256_SECRET>
 USER_ID=a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d
 TEACHER_CLASS_ID=8f8e8d8c-8b8a-8f8e-8d8c-8b8a8f8e8d8c
 STUDENT_CLASS_ID=1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d

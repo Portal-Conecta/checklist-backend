@@ -32,7 +32,7 @@ public class HttpHubUserProvider implements HubUserProvider {
         } catch (HttpClientErrorException.NotFound exception) {
             return false;
         } catch (RestClientException exception) {
-            throw new HubIntegrationException("Hub user service is unavailable.", exception);
+            throw new HubIntegrationException("Servico de usuarios do Hub indisponivel.", exception);
         }
     }
 }

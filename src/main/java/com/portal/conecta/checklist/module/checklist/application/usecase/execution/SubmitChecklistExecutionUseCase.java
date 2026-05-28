@@ -50,7 +50,8 @@ public class SubmitChecklistExecutionUseCase {
 
         var currentUser = contextProvider.getRequestContext();
 
-        if (!execution.getUserId().equals(currentUser.userId())) {
+        if (!execution.getUserId().equals(currentUser.userId())
+                || !currentUser.canSubmitChecklistExecutionForClass(execution.getClassId())) {
             throw new AccessDeniedException("Usuario nao tem permissao para enviar esta execucao de checklist.");
         }
 

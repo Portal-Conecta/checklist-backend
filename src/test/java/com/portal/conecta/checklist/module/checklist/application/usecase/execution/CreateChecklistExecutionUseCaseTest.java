@@ -218,6 +218,30 @@ class CreateChecklistExecutionUseCaseTest {
         verify(executionRepository, never()).save(any());
     }
 
+    @Test
+    @DisplayName("deve rejeitar perfil de gestao mesmo com papel na turma")
+    void deveRejeitarPerfilDeGestaoMesmoComPapelNaTurma() {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, classId);
+
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
+        when(hubRoomProvider.existsById(roomId)).thenReturn(true);
+        when(hubClassProvider.existsById(classId)).thenReturn(true);
+        when(contextProvider.getRequestContext()).thenReturn(new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.SENAI,
+                List.of(new ContextClass(classId, "TEACHER"))
+        ));
+
+        assertThrows(AccessDeniedException.class, () -> useCase.execute(request));
+
+        verify(executionRepository, never()).existsDuplicateChecklist(any(), any(), any(), any(), any(), any());
+        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any());
+        verify(executionRepository, never()).save(any());
+    }
+
     private ChecklistExecutionDraftCreateDTO request(UUID templateId, UUID roomId, UUID classId) {
         return new ChecklistExecutionDraftCreateDTO(
                 templateId,

@@ -14,6 +14,7 @@ jobs:
   build-and-test:
     name: Build e Testes (JUnit 5)
     runs-on: ubuntu-latest
+    environment: development
 
     steps:
       - name: Checkout do repositório
@@ -35,3 +36,5 @@ jobs:
 
       - name: Executar testes com Maven
         run: mvn clean test
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}

@@ -19,7 +19,7 @@ public record RequestContext(
 
     public boolean canAccessChecklistModule() {
         return canManageChecklistTemplates()
-                || classes.stream().anyMatch(c -> isClassRepresentative(c) || isLinkedTeacher(c));
+                || hasOperationalProfile() && classes.stream().anyMatch(c -> isClassRepresentative(c) || isLinkedTeacher(c));
     }
 
     public boolean canManageChecklistTemplates() {
@@ -35,13 +35,39 @@ public record RequestContext(
     }
 
     public boolean canCreateChecklistExecutionForClass(UUID classId) {
+        return canOperateChecklistExecutionForClass(classId);
+    }
+
+    public boolean canSubmitChecklistExecutionForClass(UUID classId) {
+        return canOperateChecklistExecutionForClass(classId);
+    }
+
+    public boolean canCancelChecklistExecution(UUID executionUserId, UUID classId) {
+        if (canManageChecklistTemplates()) {
+            return true;
+        }
+
+        return userId != null
+                && userId.equals(executionUserId)
+                && canOperateChecklistExecutionForClass(classId);
+    }
+
+    public boolean canOperateChecklistExecutionForClass(UUID classId) {
         if (classId == null) {
+            return false;
+        }
+
+        if (!hasOperationalProfile()) {
             return false;
         }
 
         return classes.stream().anyMatch(c ->
                 c.matchesClass(classId) && (isClassRepresentative(c) || isLinkedTeacher(c))
         );
+    }
+
+    private boolean hasOperationalProfile() {
+        return userType == TypeUser.REPRESENTATIVE || userType == TypeUser.TEACHER;
     }
 
     private boolean isClassRepresentative(ContextClass contextClass) {

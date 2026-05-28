@@ -54,7 +54,7 @@ public class CreateChecklistExecutionUseCase {
 
         RequestContext currentUser = contextProvider.getRequestContext();
 
-        if (!currentUser.canCreateChecklistExecutionForClass(request.classId())) {
+        if (!currentUser.canOperateChecklistExecutionForClass(request.classId())) {
             throw new AccessDeniedException("Usuario nao tem permissao para criar checklist para a turma informada.");
         }
 

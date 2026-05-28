@@ -32,7 +32,7 @@ public class HttpHubRoomProvider implements HubRoomProvider {
         } catch (HttpClientErrorException.NotFound exception) {
             return false;
         } catch (RestClientException exception) {
-            throw new HubIntegrationException("Hub room service is unavailable.", exception);
+            throw new HubIntegrationException("Servico de salas do Hub indisponivel.", exception);
         }
     }
 }

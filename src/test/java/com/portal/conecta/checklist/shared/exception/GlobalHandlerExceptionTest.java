@@ -35,8 +35,8 @@ class GlobalHandlerExceptionTest {
     void shouldReturnBadRequestWithFieldErrorsWhenValidationFails() {
         MethodArgumentNotValidException exception = mock(MethodArgumentNotValidException.class);
         BindingResult bindingResult = mock(BindingResult.class);
-        FieldError nameError = new FieldError("request", "name", "Name is required");
-        FieldError descriptionError = new FieldError("request", "description", "Description is required");
+        FieldError nameError = new FieldError("request", "name", "Nome e obrigatorio");
+        FieldError descriptionError = new FieldError("request", "description", "Descricao e obrigatoria");
 
         when(exception.getBindingResult()).thenReturn(bindingResult);
         when(bindingResult.getFieldErrors()).thenReturn(List.of(nameError, descriptionError));
@@ -47,8 +47,8 @@ class GlobalHandlerExceptionTest {
         assertNotNull(response.getBody());
         assertEquals(400, response.getBody().status());
         assertEquals("Erro de validação nos campos informados.", response.getBody().message());
-        assertEquals("Name is required", response.getBody().errors().get("name"));
-        assertEquals("Description is required", response.getBody().errors().get("description"));
+        assertEquals("Nome e obrigatorio", response.getBody().errors().get("name"));
+        assertEquals("Descricao e obrigatoria", response.getBody().errors().get("description"));
         assertNotNull(response.getBody().localDateTime());
     }
 
@@ -98,12 +98,12 @@ class GlobalHandlerExceptionTest {
     @DisplayName("should return not found when entity does not exist")
     void shouldReturnNotFoundWhenEntityDoesNotExist() {
         ResponseEntity<ErrorResponseDTO> response =
-                handler.handleEntityNotFound(new EntityNotFoundException("Checklist not found"));
+                handler.handleEntityNotFound(new EntityNotFoundException("Checklist nao encontrado"));
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(404, response.getBody().status());
-        assertEquals("Checklist not found", response.getBody().message());
+        assertEquals("Checklist nao encontrado", response.getBody().message());
         assertNull(response.getBody().errors());
         assertNotNull(response.getBody().localDateTime());
     }
@@ -112,12 +112,12 @@ class GlobalHandlerExceptionTest {
     @DisplayName("should return forbidden when user has no permission")
     void shouldReturnForbiddenWhenUserHasNoPermission() {
         ResponseEntity<ErrorResponseDTO> response =
-                handler.handleAccessDenied(new AccessDeniedException("Access denied"));
+                handler.handleAccessDenied(new AccessDeniedException("Acesso negado"));
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(403, response.getBody().status());
-        assertEquals("Access denied", response.getBody().message());
+        assertEquals("Acesso negado", response.getBody().message());
         assertNull(response.getBody().errors());
         assertNotNull(response.getBody().localDateTime());
     }
@@ -126,12 +126,12 @@ class GlobalHandlerExceptionTest {
     @DisplayName("should return service unavailable when Hub integration fails")
     void shouldReturnServiceUnavailableWhenHubIntegrationFails() {
         ResponseEntity<ErrorResponseDTO> response =
-                handler.handleHubIntegration(new HubIntegrationException("Hub unavailable"));
+                handler.handleHubIntegration(new HubIntegrationException("Hub indisponivel"));
 
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(503, response.getBody().status());
-        assertEquals("Hub unavailable", response.getBody().message());
+        assertEquals("Hub indisponivel", response.getBody().message());
         assertNull(response.getBody().errors());
         assertNotNull(response.getBody().localDateTime());
     }

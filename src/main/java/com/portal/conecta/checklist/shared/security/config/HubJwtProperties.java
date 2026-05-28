@@ -8,7 +8,7 @@ public record HubJwtProperties(String secret) {
 
     public HubJwtProperties {
         if (secret == null || secret.isBlank()) {
-            throw new IllegalStateException("JWT_SECRET must be configured.");
+            throw new IllegalStateException("JWT_SECRET deve ser configurado.");
         }
 
         byte[] decodedSecret;
@@ -16,11 +16,11 @@ public record HubJwtProperties(String secret) {
         try {
             decodedSecret = Decoders.BASE64.decode(secret);
         } catch (RuntimeException exception) {
-            throw new IllegalStateException("JWT_SECRET must be Base64 encoded.", exception);
+            throw new IllegalStateException("JWT_SECRET deve estar codificado em Base64.", exception);
         }
 
         if (decodedSecret.length < 32) {
-            throw new IllegalStateException("JWT_SECRET must decode to at least 32 bytes for HS256.");
+            throw new IllegalStateException("JWT_SECRET deve decodificar para pelo menos 32 bytes para HS256.");
         }
     }
 }

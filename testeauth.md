@@ -29,14 +29,20 @@ Suba a API com profile `mock`:
 ```powershell
 $env:SPRING_PROFILES_ACTIVE="mock"
 $env:SERVER_PORT="8083"
-$env:JWT_SECRET="MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
+$env:JWT_SECRET="<BASE64_HS256_SECRET>"
 mvn spring-boot:run
+```
+
+Gere um secret local temporario com:
+
+```powershell
+[Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
 ```
 
 Se estiver usando IntelliJ, configure as variaveis de ambiente da Run Configuration:
 
 ```text
-SPRING_PROFILES_ACTIVE=mock;SERVER_PORT=8083;JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+SPRING_PROFILES_ACTIVE=mock;SERVER_PORT=8083;JWT_SECRET=<BASE64_HS256_SECRET>
 ```
 
 Depois pare a aplicacao antiga e rode novamente.
@@ -76,7 +82,7 @@ BASE_URL=http://localhost:8083
 USER_ID=44444444-4444-4444-4444-444444444444
 ROOM_ID=11111111-1111-1111-1111-111111111111
 CLASS_ID=8f8e8d8c-8b8a-8f8e-8d8c-8b8a8f8e8d8c
-JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+JWT_SECRET=<BASE64_HS256_SECRET>
 ```
 
 Esses IDs existem no `application-mock.properties`.
@@ -165,10 +171,10 @@ https://jwt.io
 
 ### Secret
 
-Use:
+Use o mesmo secret local temporario configurado em `JWT_SECRET`:
 
 ```text
-MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+<BASE64_HS256_SECRET>
 ```
 
 No `jwt.io`:

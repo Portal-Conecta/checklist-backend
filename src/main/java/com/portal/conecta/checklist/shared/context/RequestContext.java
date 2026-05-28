@@ -42,6 +42,16 @@ public record RequestContext(
         return canOperateChecklistExecutionForClass(classId);
     }
 
+    public boolean canCancelChecklistExecution(UUID executionUserId, UUID classId) {
+        if (canManageChecklistTemplates()) {
+            return true;
+        }
+
+        return userId != null
+                && userId.equals(executionUserId)
+                && canOperateChecklistExecutionForClass(classId);
+    }
+
     public boolean canOperateChecklistExecutionForClass(UUID classId) {
         if (classId == null) {
             return false;

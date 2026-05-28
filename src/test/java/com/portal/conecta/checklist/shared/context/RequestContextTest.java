@@ -20,6 +20,8 @@ class RequestContextTest {
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canOperateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canSubmitChecklistExecutionForClass(classId)).isTrue();
         assertThat(user.canCreateChecklistExecutionForClass(UUID.randomUUID())).isFalse();
     }
 
@@ -46,6 +48,8 @@ class RequestContextTest {
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canOperateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canSubmitChecklistExecutionForClass(classId)).isTrue();
         assertThat(user.canCreateChecklistExecutionForClass(UUID.randomUUID())).isFalse();
     }
 
@@ -80,7 +84,14 @@ class RequestContextTest {
         );
 
         assertThat(senai.canCreateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(senai.canOperateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(senai.canSubmitChecklistExecutionForClass(classId)).isFalse();
         assertThat(weg.canCreateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(weg.canOperateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(weg.canSubmitChecklistExecutionForClass(classId)).isFalse();
         assertThat(admin.canCreateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(admin.canOperateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(admin.canSubmitChecklistExecutionForClass(classId)).isFalse();
+        assertThat(admin.canAccessChecklistModule()).isFalse();
     }
 }

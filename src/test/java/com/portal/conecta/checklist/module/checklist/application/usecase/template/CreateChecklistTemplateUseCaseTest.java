@@ -3,6 +3,7 @@ package com.portal.conecta.checklist.module.checklist.application.usecase.templa
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.module.checklist.application.mapper.ChecklistTemplateCommandMapper;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.domain.validation.ChecklistTemplateLimits;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistItemDTO;
@@ -16,8 +17,10 @@ import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -81,24 +84,105 @@ class CreateChecklistTemplateUseCaseTest {
         verify(templateRepository, never()).save(any());
     }
 
+    @Test
+    void shouldRejectWhenSchemaHasTooManySections() {
+        UUID roomId = UUID.randomUUID();
+        ChecklistTemplateCreateRequest request = request(
+                roomId,
+                IntStream.rangeClosed(1, ChecklistTemplateLimits.MAX_SECTIONS + 1)
+                        .mapToObj(section -> 1)
+                        .toList()
+        );
+
+        when(contextProvider.getRequestContext()).thenReturn(user(TypeUser.SENAI));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> useCase.execute(request));
+
+        assertThat(exception.getMessage()).contains("limite de " + ChecklistTemplateLimits.MAX_SECTIONS + " secoes");
+        verify(hubRoomProvider, never()).existsById(any());
+        verify(templateRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldRejectWhenSectionHasTooManyItems() {
+        UUID roomId = UUID.randomUUID();
+        ChecklistTemplateCreateRequest request = request(
+                roomId,
+                List.of(ChecklistTemplateLimits.MAX_ITEMS_PER_SECTION + 1)
+        );
+
+        when(contextProvider.getRequestContext()).thenReturn(user(TypeUser.SENAI));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> useCase.execute(request));
+
+        assertThat(exception.getMessage())
+                .contains("limite de " + ChecklistTemplateLimits.MAX_ITEMS_PER_SECTION + " itens por secao");
+        verify(hubRoomProvider, never()).existsById(any());
+        verify(templateRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldRejectWhenSchemaHasTooManyItemsInTotal() {
+        UUID roomId = UUID.randomUUID();
+        ChecklistTemplateCreateRequest request = request(roomId, itemCountsExceedingTotalLimit());
+
+        when(contextProvider.getRequestContext()).thenReturn(user(TypeUser.SENAI));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> useCase.execute(request));
+
+        assertThat(exception.getMessage())
+                .contains("limite total de " + ChecklistTemplateLimits.MAX_TOTAL_ITEMS + " itens");
+        verify(hubRoomProvider, never()).existsById(any());
+        verify(templateRepository, never()).save(any());
+    }
+
     private ChecklistTemplateCreateRequest request(UUID roomId) {
+        return request(roomId, List.of(1));
+    }
+
+    private ChecklistTemplateCreateRequest request(UUID roomId, List<Integer> itemsPerSection) {
         return new ChecklistTemplateCreateRequest(
                 roomId,
                 "Checklist padrao",
                 "Descricao",
-                new ChecklistSchemaDTO(List.of(new ChecklistSectionDTO(
-                        "estrutura",
-                        "Estrutura",
-                        1,
-                        List.of(new ChecklistItemDTO(
-                                "quadro",
-                                "Quadro em bom estado?",
-                                "Verificar quadro",
-                                true,
-                                1
-                        ))
-                )))
+                new ChecklistSchemaDTO(IntStream.range(0, itemsPerSection.size())
+                        .mapToObj(sectionIndex -> section(sectionIndex + 1, itemsPerSection.get(sectionIndex)))
+                        .toList())
         );
+    }
+
+    private ChecklistSectionDTO section(int sectionIndex, int itemCount) {
+        return new ChecklistSectionDTO(
+                "secao-" + sectionIndex,
+                "Secao " + sectionIndex,
+                sectionIndex,
+                IntStream.rangeClosed(1, itemCount)
+                        .mapToObj(itemIndex -> item(sectionIndex, itemIndex))
+                        .toList()
+        );
+    }
+
+    private ChecklistItemDTO item(int sectionIndex, int itemIndex) {
+        return new ChecklistItemDTO(
+                "item-" + sectionIndex + "-" + itemIndex,
+                "Item " + sectionIndex + "." + itemIndex,
+                "Verificar item",
+                true,
+                itemIndex
+        );
+    }
+
+    private List<Integer> itemCountsExceedingTotalLimit() {
+        List<Integer> itemCounts = new ArrayList<>();
+        int remainingItems = ChecklistTemplateLimits.MAX_TOTAL_ITEMS + 1;
+
+        while (remainingItems > 0) {
+            int sectionItems = Math.min(ChecklistTemplateLimits.MAX_ITEMS_PER_SECTION, remainingItems);
+            itemCounts.add(sectionItems);
+            remainingItems -= sectionItems;
+        }
+
+        return itemCounts;
     }
 
     private RequestContext user(TypeUser userType) {

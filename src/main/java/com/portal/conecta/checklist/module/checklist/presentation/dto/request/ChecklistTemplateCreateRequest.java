@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.module.checklist.presentation.dto.request;
 
 import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistSchemaDTO;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,6 +22,7 @@ public record ChecklistTemplateCreateRequest(
 
         @Valid
         @NotNull(message = "schemaJson e obrigatorio.")
+        @Schema(description = "Schema do checklist. Limites: ate 20 secoes, ate 50 itens por secao e ate 500 itens no total.")
         ChecklistSchemaDTO schemaJson
 ) {
 }

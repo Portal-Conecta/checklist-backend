@@ -188,6 +188,17 @@ OpenAPI JSON should be available at:
 http://localhost:8083/v3/api-docs
 ```
 
+## Request And Template Limits
+
+Template creation enforces the following limits to avoid very large responses and degraded performance:
+
+- request body: maximum `1 MiB` (`1048576` bytes), configurable with `CHECKLIST_MAX_REQUEST_BODY_BYTES`;
+- sections per template: maximum `20`;
+- items per section: maximum `50`;
+- total items per template: maximum `500`.
+
+Requests above the template structure limits return `400 Bad Request`. Requests with a body above the configured limit return `413 Payload Too Large`.
+
 ## Health Check
 
 Actuator health endpoint:
@@ -411,6 +422,8 @@ POST {{BASE_URL}}/api/checklist-templates
 Authorization: Bearer {{hubToken}}
 Content-Type: application/json
 ```
+
+Limits for this request: body up to `1 MiB`, up to `20` sections, up to `50` items per section, and up to `500` items total.
 
 Body:
 

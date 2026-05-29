@@ -2,6 +2,7 @@ package com.portal.conecta.checklist.module.checklist.application.usecase.templa
 
 import com.portal.conecta.checklist.module.checklist.application.mapper.ChecklistTemplateCommandMapper;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.domain.validation.ChecklistTemplateLimits;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistItemDTO;
@@ -33,6 +34,8 @@ public class CreateChecklistTemplateUseCase {
         if (!currentUser.canManageChecklistTemplates()) {
             throw new AccessDeniedException("Usuario nao tem permissao para criar templates de checklist.");
         }
+
+        validateTemplateSize(request.schemaJson());
 
         if (!hubRoomProvider.existsById(request.roomId())) {
             throw new EntityNotFoundException("Sala nao encontrada no Hub.");

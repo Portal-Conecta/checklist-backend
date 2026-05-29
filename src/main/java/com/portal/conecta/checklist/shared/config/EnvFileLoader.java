@@ -62,7 +62,16 @@ public final class EnvFileLoader {
             return;
         }
 
-        System.setProperty(key, unquote(value));
+        String resolvedValue = unquote(value);
+
+        System.setProperty(key, resolvedValue);
+        setSpringAliasIfNeeded(key, resolvedValue);
+    }
+
+    private static void setSpringAliasIfNeeded(String key, String value) {
+        if ("SPRING_PROFILES_ACTIVE".equals(key) && System.getProperty("spring.profiles.active") == null) {
+            System.setProperty("spring.profiles.active", value);
+        }
     }
 
     private static boolean isValidKey(String key) {

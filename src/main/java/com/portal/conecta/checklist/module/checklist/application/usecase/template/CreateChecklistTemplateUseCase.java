@@ -44,6 +44,39 @@ public class CreateChecklistTemplateUseCase {
         return templateRepository.save(template);
     }
 
+    private void validateTemplateSize(ChecklistSchemaDTO schema) {
+        int sectionCount = schema.sections().size();
+
+        if (sectionCount > ChecklistTemplateLimits.MAX_SECTIONS) {
+            throw new IllegalArgumentException(
+                    "schemaJson.sections excede o limite de " + ChecklistTemplateLimits.MAX_SECTIONS + " secoes."
+            );
+        }
+
+        int totalItems = 0;
+        for (var section : schema.sections()) {
+            int sectionItems = section.items().size();
+
+            if (sectionItems > ChecklistTemplateLimits.MAX_ITEMS_PER_SECTION) {
+                throw new IllegalArgumentException(
+                        "section.items excede o limite de "
+                                + ChecklistTemplateLimits.MAX_ITEMS_PER_SECTION
+                                + " itens por secao: "
+                                + section.key()
+                );
+            }
+
+            totalItems += sectionItems;
+            if (totalItems > ChecklistTemplateLimits.MAX_TOTAL_ITEMS) {
+                throw new IllegalArgumentException(
+                        "schemaJson excede o limite total de "
+                                + ChecklistTemplateLimits.MAX_TOTAL_ITEMS
+                                + " itens."
+                );
+            }
+        }
+    }
+
     private void validateStableKeys(ChecklistSchemaDTO schema) {
         Set<String> sectionKeys = new HashSet<>();
         Set<String> itemKeys = new HashSet<>();

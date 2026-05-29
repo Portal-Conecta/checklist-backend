@@ -1,6 +1,8 @@
 package com.portal.conecta.checklist.shared.security.filter;
 
+import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
+import com.portal.conecta.checklist.shared.security.config.SecurityConfig;
 import com.portal.conecta.checklist.shared.security.error.SecurityErrorResponseWriter;
 import com.portal.conecta.checklist.shared.security.token.HubJwtTokenProvider;
 import jakarta.servlet.FilterChain;
@@ -14,11 +16,34 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+
+/**
+ * Filtro de autenticação que intercepta todas as requisições e valida o JWT emitido pelo Hub.
+ *
+ * <p>Fluxo de execução por requisição:</p>
+ * <ol>
+ *   <li>Se não houver cabeçalho {@code Authorization}, passa para o próximo filtro
+ *       (o Spring Security rejeitará rotas protegidas sem autenticação).</li>
+ *   <li>Se o cabeçalho não iniciar com {@code "Bearer "}, rejeita com {@code 401}.</li>
+ *   <li>Delega a validação e extração do contexto para {@link HubJwtTokenProvider}.</li>
+ *   <li>Em caso de token inválido ou expirado, rejeita com {@code 401}.</li>
+ *   <li>Em caso de Hub indisponível durante a validação, rejeita com {@code 503}.</li>
+ *   <li>Em sucesso, armazena o {@link RequestContext} no {@link SecurityContextHolder}.</li>
+ * </ol>
+ *
+ * <p>Registrado antes de {@link UsernamePasswordAuthenticationFilter} na cadeia de filtros.
+ * O bean do filtro é desabilitado no registro automático do servlet para evitar
+ * dupla execução — é gerenciado exclusivamente pelo Spring Security.</p>
+ *
+ * @see HubJwtTokenProvider
+ * @see SecurityConfig
+ */
 
 @Component
 @RequiredArgsConstructor

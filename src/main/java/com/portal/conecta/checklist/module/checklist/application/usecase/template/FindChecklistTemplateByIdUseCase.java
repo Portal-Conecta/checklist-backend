@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class FindChecklistTemplateByIdUseCase {
+public class    FindChecklistTemplateByIdUseCase {
 
     private final ChecklistTemplateRepository templateRepository;
     private final RequestContextProvider contextProvider;

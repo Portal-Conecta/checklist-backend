@@ -127,6 +127,26 @@ public class ChecklistExecutionMapper {
                 answer.answeredAt()
         );
     }
+    public ChecklistExecutionHistoryDTO toHistoryResponse(ChecklistExecution execution) {
+        ChecklistTemplate template = execution.getChecklistTemplate();
+        ChecklistAnswersDTO answers = toAnswersDTO(execution.getAnswersJson());
+
+        return new ChecklistExecutionHistoryDTO(
+                execution.getId(),
+                template == null ? null : template.getId(),
+                template == null ? null : template.getVersion(),
+                execution.getRoomId(),
+                execution.getClassId(),
+                execution.getUserId(),
+                execution.getPeriod(),
+                execution.getChecklistType(),
+                execution.getStatus(),
+                execution.getComplianceScore(),
+                toInstant(execution.getStartedAt()),
+                toInstant(execution.getSubmittedAt()),
+                answers.summary()
+        );
+    }
 
     private ChecklistAnswersDTO emptyAnswers() {
         return new ChecklistAnswersDTO(List.of(), new ChecklistExecutionSummaryDTO(0, 0, 0, 0));

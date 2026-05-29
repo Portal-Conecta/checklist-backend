@@ -17,7 +17,7 @@ public record ChecklistExecutionHistoryDTO(UUID id,
                                            Period period,
                                            ChecklistType checklistType,
                                            ChecklistExecutionStatus status,
-                                           BigDecimal compliaceScore,
+                                           BigDecimal complianceScore,
                                            Instant startedAt,
                                            Instant submittedAt,
                                            ChecklistExecutionSummaryDTO summary) {

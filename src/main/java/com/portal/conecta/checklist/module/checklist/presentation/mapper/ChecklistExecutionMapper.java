@@ -9,10 +9,7 @@ import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTempl
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistAnswerRequestDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistAnswerResponseDTO;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistAnswersDTO;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionSummaryDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.response.*;
 import com.portal.conecta.checklist.module.issues.presentation.mapper.ChecklistIssueMapper;
 import org.springframework.stereotype.Component;
 
@@ -127,7 +124,12 @@ public class ChecklistExecutionMapper {
                 answer.answeredAt()
         );
     }
+
     public ChecklistExecutionHistoryDTO toHistoryResponse(ChecklistExecution execution) {
+        if (execution == null) {
+            return null;
+        }
+
         ChecklistTemplate template = execution.getChecklistTemplate();
         ChecklistAnswersDTO answers = toAnswersDTO(execution.getAnswersJson());
 
@@ -146,6 +148,16 @@ public class ChecklistExecutionMapper {
                 toInstant(execution.getSubmittedAt()),
                 answers.summary()
         );
+    }
+
+    public List<ChecklistExecutionHistoryDTO> toHistoryResponseList(List<ChecklistExecution> executions) {
+        if (executions == null) {
+            return List.of();
+        }
+
+        return executions.stream()
+                .map(this::toHistoryResponse)
+                .toList();
     }
 
     private ChecklistAnswersDTO emptyAnswers() {

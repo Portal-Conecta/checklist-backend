@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.module.checklist.application.facade;
 
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.CreateChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.ListChecklistHistoryByClassUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.SubmitChecklistExecutionUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
@@ -23,12 +24,14 @@ class ChecklistExecutionFacadeTest {
     private final CreateChecklistExecutionUseCase createChecklistExecutionUseCase = mock(CreateChecklistExecutionUseCase.class);
     private final SubmitChecklistExecutionUseCase submitChecklistExecutionUseCase = mock(SubmitChecklistExecutionUseCase.class);
     private final ChecklistExecutionMapper executionMapper = mock(ChecklistExecutionMapper.class);
+    private final ListChecklistHistoryByClassUseCase listChecklistHistoryByClassUseCase = mock(ListChecklistHistoryByClassUseCase.class);
     private final CancelChecklistExecutionUseCase cancelChecklistExecutionUseCase = mock(CancelChecklistExecutionUseCase.class); // ← essa linha estava faltando
     private final ChecklistExecutionFacade facade = new ChecklistExecutionFacade(
             createChecklistExecutionUseCase,
             submitChecklistExecutionUseCase,
             executionMapper,
-            cancelChecklistExecutionUseCase
+            cancelChecklistExecutionUseCase,
+            listChecklistHistoryByClassUseCase
     );
 
     @Test

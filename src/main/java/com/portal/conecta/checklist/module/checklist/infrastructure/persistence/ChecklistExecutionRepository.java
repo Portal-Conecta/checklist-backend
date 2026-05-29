@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.module.checklist.infrastructure.persistence;
 
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,6 +13,11 @@ import java.util.UUID;
 
 @Repository
 public interface ChecklistExecutionRepository extends JpaRepository<ChecklistExecution, UUID> {
+
+    List<ChecklistExecution> findByClassIdAndStatusOrderBySubmittedAtDesc(
+            UUID classId,
+            ChecklistExecutionStatus status
+    );
 
     @Query(value = """
             select exists (

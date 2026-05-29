@@ -3,6 +3,7 @@ package com.portal.conecta.checklist.module.checklist.presentation.controller;
 import com.portal.conecta.checklist.module.checklist.application.facade.ChecklistExecutionFacade;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionHistoryDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -38,4 +40,12 @@ public class ChecklistExecutionController {
     ){
         return ResponseEntity.ok(checklistExecutionFacade.cancel(executionId));
     }
+
+    @GetMapping("/classes/{classId}/history")
+    public ResponseEntity<List<ChecklistExecutionHistoryDTO>> listHistoryByClass(
+            @PathVariable UUID classId
+    ) {
+        return ResponseEntity.ok(checklistExecutionFacade.listHistoryByClass(classId));
+    }
+
 }

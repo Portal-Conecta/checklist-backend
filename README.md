@@ -1,4 +1,12 @@
-# API de Checklist — Portal Conecta
+<h1 align="center">
+   Checklist API
+</h1>
+
+<p align="center">
+  <img loading="lazy" src="https://img.shields.io/static/v1?label=STATUS&message=EM_ANDAMENTO&color=yellow&style=for-the-badge"/>
+</p>
+
+<br> 
 
 API REST em **Spring Boot** do ecossistema **Portal Conecta**. Responsável por **modelos de checklist (templates)**, **execuções** (rascunho, envio e cancelamento), **respostas**, **cálculo de conformidade** e **pendências** geradas a partir de itens não conformes.
 
@@ -764,3 +772,8 @@ Resumo do fluxo:
 
 - [Guia Postman (ambiente simulado)](docs/guia-postman-mock.md)
 - [Guia de contribuição](CONTRIBUTING.md)
+
+# Squad
+
+| <img loading="lazy" src="https://github.com/user-attachments/assets/7c1d9831-992b-440d-88d5-d05bd9555b6f" width="115"><br><sub><a href="https://github.com/melissarfaela">Melissa R. Pereira</a><br><span style="color:#00BFFF">Scrum Master</span></sub> | <img loading="lazy" src="https://github.com/user-attachments/assets/3bc3562b-7027-4d6b-b477-bcdae5da3c82" width="115"><br><sub><a href="https://github.com/danielsismer">Daniel V. R. Sismer</a><br><span style="color:#8A2BE2">Tech Lead</span></sub> | <img loading="lazy" src="https://github.com/user-attachments/assets/3c89e328-4c69-4140-b35d-2b8f6576422d" width="115"><br><sub><a href="https://github.com/KaelLuih">Kael Luih de Araujo</a><br><span style="color:#00BFFF">Desenvolvedora</span></sub> | <img loading="lazy" src="https://github.com/user-attachments/assets/5be154eb-d2bd-4e20-a457-45a8f9b8fd6d" width="115"><br><sub><a href="https://github.com/Matheus089107">Matheus A. de Castro</a><br><span style="color:#32CD32">Desenvolvedor</span></sub> | <img loading="lazy" src="https://github.com/user-attachments/assets/04cc81b7-c095-4397-aa47-90ffaa4abacb" width="115"><br><sub><a href="https://github.com/Murilo2901">Murilo Kerschbaum</a><br><span style="color:#FFA500">Desenvolvedor</span></sub> | <img loading="lazy" src="https://github.com/user-attachments/assets/1b0c6294-3dc4-4ddf-8a92-455ed819e064" width="115"><br><sub><a href="https://github.com/EduardoDias1902">Eduardo Dias da Maia</a><br><span style="color:#FF69B4">Desenvolvedor</span></sub> |
+| :---: | :---: | :---: | :---: | :---: | :---: |

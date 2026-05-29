@@ -17,6 +17,24 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * Configuração central de segurança da aplicação.
+ *
+ * <p>Define:</p>
+ * <ul>
+ *   <li>Política stateless (sem sessão HTTP).</li>
+ *   <li>CSRF, form login, HTTP basic e logout desabilitados.</li>
+ *   <li>Rotas públicas: {@code GET /actuator/health} e {@code GET /actuator/info}.
+ *       Swagger liberado condicionalmente via {@code checklist.security.swagger-public=true}.</li>
+ *   <li>As demais rotas exigem autenticação.</li>
+ *   <li>{@link HubJwtAuthenticationFilter} inserido antes do filtro padrão do Spring Security.</li>
+ *   <li>Respostas padronizadas para {@code 401 Unauthorized} e {@code 403 Forbidden}
+ *       via {@link SecurityErrorResponseWriter}.</li>
+ * </ul>
+ *
+ * <p>O bean do {@link HubJwtAuthenticationFilter} é desregistrado do servlet container
+ * para evitar dupla execução — é gerenciado exclusivamente pelo Spring Security.</p>
+ */
 @Configuration
 @RequiredArgsConstructor
 @EnableConfigurationProperties({

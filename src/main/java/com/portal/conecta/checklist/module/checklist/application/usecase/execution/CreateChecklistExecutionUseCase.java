@@ -31,10 +31,38 @@ public class CreateChecklistExecutionUseCase {
     private final HubRoomProvider hubRoomProvider;
     private final HubClassProvider hubClassProvider;
 
+    /**
+     * Caso de uso responsável pela criação de uma nova execução de checklist (em status de rascunho).
+     * <p>
+     * Valida os dados do template, a existência da sala e turma nos provedores externos (Hub),
+     * as permissões do usuário logado e se já existe um checklist idêntico criado no mesmo dia.
+     * </p>
+     */
+
     @Transactional
     public ChecklistExecution execute(ChecklistExecutionDraftCreateDTO request) {
         ChecklistTemplate template = templateRepository.findById(request.templateId())
                 .orElseThrow(() -> new EntityNotFoundException("Template nao encontrado."));
+
+        /**
+         * Inicia uma nova execução de checklist a partir de um template existente.
+         * <p>
+         * O processo envolve as seguintes validações:
+         * 1. O template deve existir, estar ativo e estar associado à mesma sala informada na requisição.
+         * 2. A sala e a turma informadas devem existir nos registros do Hub.
+         * 3. O usuário logado deve ter as permissões necessárias para operar na turma especificada.
+         * 4. Não pode existir um checklist já criado para a mesma turma, sala, período e tipo na data de hoje.
+         * </p>
+         * Se todas as validações passarem, uma nova entidade {@link ChecklistExecution} no status rascunho (DRAFT) será salva.
+         *
+         * @param request os dados iniciais necessários para a criação do rascunho do checklist.
+         * @return a entidade {@link ChecklistExecution} recém-criada e persistida.
+         * @throws EntityNotFoundException  se o template, a sala ou a turma não forem encontrados.
+         * @throws IllegalStateException    se o template selecionado não estiver ativo.
+         * @throws IllegalArgumentException se o template não pertencer à sala informada ou se já houver um checklist duplicado no mesmo dia.
+         * @throws AccessDeniedException    se o usuário atual não tiver permissão para criar o checklist para a turma.
+         */
+
 
         if (!template.isActive() || template.getStatus() != ChecklistTemplateStatus.ACTIVE) {
             throw new IllegalStateException("Template nao esta ativo.");

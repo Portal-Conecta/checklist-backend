@@ -15,6 +15,8 @@ class EnvFileLoaderTest {
     private static final String SAMPLE_KEY = "CHECKLIST_ENV_FILE_LOADER_SAMPLE";
     private static final String EXISTING_KEY = "CHECKLIST_ENV_FILE_LOADER_EXISTING";
     private static final String QUOTED_KEY = "CHECKLIST_ENV_FILE_LOADER_QUOTED";
+    private static final String SPRING_PROFILES_ACTIVE_KEY = "SPRING_PROFILES_ACTIVE";
+    private static final String SPRING_PROFILES_ACTIVE_ALIAS = "spring.profiles.active";
 
     @TempDir
     Path tempDir;
@@ -24,6 +26,8 @@ class EnvFileLoaderTest {
         System.clearProperty(SAMPLE_KEY);
         System.clearProperty(EXISTING_KEY);
         System.clearProperty(QUOTED_KEY);
+        System.clearProperty(SPRING_PROFILES_ACTIVE_KEY);
+        System.clearProperty(SPRING_PROFILES_ACTIVE_ALIAS);
     }
 
     @Test
@@ -51,5 +55,16 @@ class EnvFileLoaderTest {
         EnvFileLoader.load(envFile);
 
         assertThat(System.getProperty(EXISTING_KEY)).isEqualTo("already-defined");
+    }
+
+    @Test
+    void shouldMapSpringProfilesActiveToSpringBootProperty() throws IOException {
+        Path envFile = tempDir.resolve(".env");
+        Files.writeString(envFile, "SPRING_PROFILES_ACTIVE=mock");
+
+        EnvFileLoader.load(envFile);
+
+        assertThat(System.getProperty(SPRING_PROFILES_ACTIVE_KEY)).isEqualTo("mock");
+        assertThat(System.getProperty(SPRING_PROFILES_ACTIVE_ALIAS)).isEqualTo("mock");
     }
 }

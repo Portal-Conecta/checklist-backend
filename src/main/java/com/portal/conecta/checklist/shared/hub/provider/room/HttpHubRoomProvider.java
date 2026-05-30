@@ -10,6 +10,12 @@ import org.springframework.web.client.RestClientException;
 
 import java.util.UUID;
 
+/**
+ * Provider HTTP para consultar salas no Hub real.
+ *
+ * <p>Usado por regras que precisam confirmar a existencia de uma sala antes de
+ * persistir templates ou execucoes.</p>
+ */
 @Component
 @Profile("!mock & !test")
 public class HttpHubRoomProvider implements HubRoomProvider {

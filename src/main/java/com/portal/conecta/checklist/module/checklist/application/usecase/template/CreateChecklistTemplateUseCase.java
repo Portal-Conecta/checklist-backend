@@ -17,6 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Caso de uso responsavel pela criacao de templates de checklist.
+ *
+ * <p>Aplica autorizacao gerencial, valida a existencia da sala no Hub e
+ * garante que chaves de secoes e itens sejam estaveis e unicas dentro do
+ * schema recebido.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class CreateChecklistTemplateUseCase {

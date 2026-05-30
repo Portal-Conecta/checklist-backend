@@ -6,6 +6,12 @@ import lombok.Getter;
 
 import java.util.UUID;
 
+/**
+ * Value object que representa a referencia do usuario autenticado.
+ *
+ * <p>Armazena apenas o UUID do usuario, mantendo dados cadastrais e permissoes
+ * como responsabilidade do Hub e do contexto de seguranca.</p>
+ */
 @Embeddable
 @Getter
 public class UserReference {

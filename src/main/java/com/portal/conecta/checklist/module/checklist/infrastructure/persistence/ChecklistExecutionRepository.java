@@ -20,7 +20,7 @@ import java.util.UUID;
      * verifica se já existe uma execução de checklist com os mesmos dados principais no mesmo dia
      * @param classId indentificação de uma turma
      * @param roomId indentificação de uma sala
-     * @param period período da checklist
+     * @param period período dá checklist
      * @param checklistType tipo da checklist
      * @param startOfDay início do intervalo do dia
      * @param endOfDay fim do intervalo do dia
@@ -53,27 +53,6 @@ import java.util.UUID;
             ChecklistExecutionStatus status
     );
 
-    @Query(value = """
-            select exists (
-                select 1
-                from checklist_execution ce
-                where ce.class_id = :classId
-                  and ce.room_id = :roomId
-                  and ce.period = :period
-                  and ce.checklist_type = :checklistType
-                  and ce.started_at >= :startOfDay
-                  and ce.started_at < :endOfDay
-                  and ce.status <> 'CANCELED'
-            )
-            """, nativeQuery = true)
-    boolean existsDuplicateChecklist(
-            @Param("classId") UUID classId,
-            @Param("roomId") UUID roomId,
-            @Param("period") String period,
-            @Param("checklistType") String checklistType,
-            @Param("startOfDay") LocalDateTime startOfDay,
-            @Param("endOfDay") LocalDateTime endOfDay
-    );
     /**
      * verifica se um usuário ficou três dias consecutivos sem enviar checklists
      * @param userId indentificação de um usuário

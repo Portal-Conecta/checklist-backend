@@ -13,6 +13,12 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Fachada de aplicacao para operacoes de templates de checklist.
+ *
+ * <p>Centraliza a chamada dos use cases e converte entidades de dominio para
+ * DTOs de resposta usados pela camada de apresentacao.</p>
+ */
 @Component
 @RequiredArgsConstructor
 public class ChecklistTemplateFacade {

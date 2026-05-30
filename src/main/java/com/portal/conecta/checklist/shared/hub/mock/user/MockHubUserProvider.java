@@ -9,6 +9,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Provider mockado de usuarios do Hub.
+ *
+ * <p>Usado pelo fluxo de seguranca local para confirmar se o usuario do token
+ * existe nos dados mockados.</p>
+ */
 @Component
 @Profile({"mock", "test"})
 public class MockHubUserProvider implements HubUserProvider {

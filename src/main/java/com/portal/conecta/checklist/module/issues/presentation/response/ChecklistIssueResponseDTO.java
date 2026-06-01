@@ -6,6 +6,12 @@ import com.portal.conecta.checklist.module.issues.domain.enums.IssueStatus;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * DTO de resposta para uma issue de checklist.
+ *
+ * <p>Expoe identificadores, item afetado, descricao, prioridade, status e
+ * datas relevantes da pendencia.</p>
+ */
 public record ChecklistIssueResponseDTO(
         UUID id,
         UUID executionId,

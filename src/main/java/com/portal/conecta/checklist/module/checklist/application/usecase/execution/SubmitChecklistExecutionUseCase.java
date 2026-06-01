@@ -32,6 +32,12 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Caso de uso responsavel por submeter uma execucao de checklist.
+ *
+ * <p>Valida permissao, status, respostas obrigatorias e regras de nao
+ * conformidade antes de consolidar o checklist como enviado.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class SubmitChecklistExecutionUseCase {

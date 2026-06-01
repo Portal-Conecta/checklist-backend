@@ -6,6 +6,12 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
+/**
+ * DTO de entrada para criacao de uma execucao de checklist em rascunho.
+ *
+ * <p>Carrega os identificadores externos de template, sala e turma, alem do
+ * periodo e tipo usados nas regras de duplicidade.</p>
+ */
 public record ChecklistExecutionDraftCreateDTO(
         @NotNull(message = "templateId e obrigatorio.")
         UUID templateId,

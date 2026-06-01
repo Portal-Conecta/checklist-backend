@@ -18,6 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Controller REST para templates de checklist.
+ *
+ * <p>Publica operacoes de criacao, ativacao, consulta e listagem de templates,
+ * mantendo a validacao de contrato na camada de DTO e as regras na aplicacao.</p>
+ */
 @RestController
 @RequestMapping("/api/checklist-templates")
 @RequiredArgsConstructor

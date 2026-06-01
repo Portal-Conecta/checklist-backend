@@ -10,6 +10,12 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * DTO de resposta para execucoes de checklist.
+ *
+ * <p>Consolida os dados de identificacao, status, respostas e score que a API
+ * devolve para clientes apos operacoes de rascunho, submit ou cancelamento.</p>
+ */
 public record ChecklistExecutionResponseDTO(
         UUID id,
         UUID templateId,

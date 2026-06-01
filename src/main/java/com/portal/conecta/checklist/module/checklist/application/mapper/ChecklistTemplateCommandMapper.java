@@ -10,6 +10,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+/**
+ * Mapper de comandos responsavel por transformar requisicoes de template em
+ * entidades persistiveis.
+ *
+ * <p>Tambem normaliza campos opcionais e converte o schema tipado do request
+ * para a estrutura JSON usada no dominio.</p>
+ */
 @Component
 public class ChecklistTemplateCommandMapper {
 

@@ -11,6 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+/**
+ * Caso de uso responsavel por buscar um template de checklist por identificador.
+ *
+ * <p>Antes de retornar o template, valida se o usuario autenticado possui
+ * permissao para acessar o modulo de checklist.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class FindChecklistTemplateByIdUseCase {

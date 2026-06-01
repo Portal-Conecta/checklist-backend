@@ -24,6 +24,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Mapper de apresentacao para execucoes de checklist.
+ *
+ * <p>Converte DTOs e entidades, alem de transformar respostas entre objetos
+ * tipados e a representacao JSON persistida.</p>
+ */
 @Component
 public class ChecklistExecutionMapper {
 

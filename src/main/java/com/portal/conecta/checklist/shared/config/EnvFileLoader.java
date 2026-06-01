@@ -5,6 +5,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * Utilitario para carregar variaveis locais a partir de um arquivo {@code .env}.
+ *
+ * <p>Define propriedades de sistema antes da inicializacao do Spring, sem
+ * sobrescrever variaveis ja configuradas no ambiente da JVM ou do sistema.</p>
+ */
 public final class EnvFileLoader {
 
     private static final String ENV_FILE_NAME = ".env";

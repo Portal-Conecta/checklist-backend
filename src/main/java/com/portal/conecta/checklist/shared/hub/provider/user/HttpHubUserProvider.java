@@ -10,6 +10,12 @@ import org.springframework.web.client.RestClientException;
 
 import java.util.UUID;
 
+/**
+ * Provider HTTP para consultar usuarios no Hub real.
+ *
+ * <p>Usado na validacao do token para garantir que o usuario autenticado ainda
+ * existe na fonte central da plataforma.</p>
+ */
 @Component
 @Profile("!mock & !test")
 public class HttpHubUserProvider implements HubUserProvider {

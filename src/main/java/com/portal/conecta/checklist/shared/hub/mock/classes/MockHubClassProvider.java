@@ -9,6 +9,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Provider mockado de turmas do Hub.
+ *
+ * <p>Valida existencia de turmas a partir das propriedades locais do profile
+ * {@code mock} ou {@code test}.</p>
+ */
 @Component
 @Profile({"mock", "test"})
 public class MockHubClassProvider implements HubClassProvider {

@@ -6,6 +6,12 @@ import lombok.Getter;
 
 import java.util.UUID;
 
+/**
+ * Value object que representa a referencia de uma turma externa.
+ *
+ * <p>Encapsula o identificador vindo do Hub e impede a criacao de referencias
+ * sem UUID valido.</p>
+ */
 @Embeddable
 @Getter
 public class ClassReference {

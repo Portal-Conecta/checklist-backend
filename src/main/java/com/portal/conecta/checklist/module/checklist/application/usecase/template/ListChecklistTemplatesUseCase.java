@@ -10,6 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Caso de uso responsavel por listar templates de checklist.
+ *
+ * <p>A listagem respeita as regras de acesso do modulo e retorna os templates
+ * existentes para usuarios autorizados.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class ListChecklistTemplatesUseCase {

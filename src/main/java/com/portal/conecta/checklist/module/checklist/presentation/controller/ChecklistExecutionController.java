@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Controlador REST responsável pelas operações HTTP de execução de checklists.
+ */
 @RestController
 @RequestMapping("/api/checklist-executions")
 @RequiredArgsConstructor
@@ -21,12 +24,24 @@ public class ChecklistExecutionController {
 
     private final ChecklistExecutionFacade checklistExecutionFacade;
 
-
+    /**
+     * Cria uma execução de checklist em rascunho.
+     *
+     * @param request payload com turma, sala, período e tipo do checklist.
+     * @return resposta HTTP 201 contendo a execução criada.
+     */
     @PostMapping("/drafts")
     public ResponseEntity<ChecklistExecutionResponseDTO> createDraft(@RequestBody @Valid ChecklistExecutionDraftCreateDTO request) {
-      return ResponseEntity.status(HttpStatus.CREATED).body(checklistExecutionFacade.createDTO(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(checklistExecutionFacade.createDTO(request));
     }
 
+    /**
+     * Submete as respostas de uma execução de checklist.
+     *
+     * @param executionId identificador único da execução.
+     * @param request payload com as respostas preenchidas.
+     * @return resposta HTTP 200 contendo a execução submetida.
+     */
     @PostMapping("/{executionId}/submit")
     public ResponseEntity<ChecklistExecutionResponseDTO> submit(
             @PathVariable UUID executionId,
@@ -34,13 +49,26 @@ public class ChecklistExecutionController {
     ) {
         return ResponseEntity.ok(checklistExecutionFacade.submit(executionId, request));
     }
+
+    /**
+     * Cancela uma execução de checklist.
+     *
+     * @param executionId identificador único da execução.
+     * @return resposta HTTP 200 contendo a execução cancelada.
+     */
     @PatchMapping("/{executionId}/cancel")
-    public ResponseEntity<ChecklistExecutionResponseDTO>cancel(
+    public ResponseEntity<ChecklistExecutionResponseDTO> cancel(
             @PathVariable UUID executionId
-    ){
+    ) {
         return ResponseEntity.ok(checklistExecutionFacade.cancel(executionId));
     }
 
+    /**
+     * Lista o histórico de checklists submetidos para uma turma.
+     *
+     * @param classId identificador único da turma.
+     * @return resposta HTTP 200 contendo a lista de registros históricos da turma.
+     */
     @GetMapping("/classes/{classId}/history")
     public ResponseEntity<List<ChecklistExecutionHistoryDTO>> listHistoryByClass(
             @PathVariable UUID classId

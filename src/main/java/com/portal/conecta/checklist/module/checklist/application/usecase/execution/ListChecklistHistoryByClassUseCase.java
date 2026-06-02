@@ -12,6 +12,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Caso de uso responsável por consultar o histórico de checklists submetidos por turma.
+ *
+ * <p>Valida se o usuário atual possui permissão para acessar a turma informada e retorna
+ * apenas execuções com status {@link ChecklistExecutionStatus#SUBMITTED}.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class ListChecklistHistoryByClassUseCase {
@@ -20,6 +26,13 @@ public class ListChecklistHistoryByClassUseCase {
     private final ChecklistExecutionMapper executionMapper;
     private final RequestContextProvider contextProvider;
 
+    /**
+     * Busca o histórico de execuções submetidas para uma turma.
+     *
+     * @param classId identificador único da turma.
+     * @return lista de execuções convertidas para DTOs de histórico.
+     * @throws AccessDeniedException quando o usuário atual não possui permissão para consultar a turma.
+     */
     public List<ChecklistExecutionHistoryDTO> execute(UUID classId) {
         var currentUser = contextProvider.getRequestContext();
 

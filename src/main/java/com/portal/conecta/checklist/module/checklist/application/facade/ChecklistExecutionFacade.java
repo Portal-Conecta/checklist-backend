@@ -18,72 +18,67 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Camada de Fachada (Facade) para orquestrar as operações relacionadas à Execução de Checklists.
- * <p>
- * Atua como um intermediário entre os controladores (presentation) e os casos de uso (application),
- * abstraindo a complexidade das regras de negócio e sendo responsável por delegar as chamadas aos
- * UseCases adequados, bem como mapear as entidades de domínio de volta para DTOs de resposta.
- * </p>
+ * Fachada responsável por orquestrar as operações de execução de checklists.
+ *
+ * <p>Centraliza a comunicação entre a camada de apresentação e os casos de uso de execução,
+ * delegando regras de negócio e convertendo entidades de domínio em DTOs de resposta.</p>
  */
 @Component
 @RequiredArgsConstructor
 public class ChecklistExecutionFacade {
 
-private final CreateChecklistExecutionUseCase createChecklistExecutionUseCase;
-private final SubmitChecklistExecutionUseCase submitChecklistExecutionUseCase;
-private final ChecklistExecutionMapper executionMapper;
-private final CancelChecklistExecutionUseCase cancelChecklistExecutionUseCase;
-private final ListChecklistHistoryByClassUseCase listChecklistHistoryByClassUseCase;
+    private final CreateChecklistExecutionUseCase createChecklistExecutionUseCase;
+    private final SubmitChecklistExecutionUseCase submitChecklistExecutionUseCase;
+    private final ChecklistExecutionMapper executionMapper;
+    private final CancelChecklistExecutionUseCase cancelChecklistExecutionUseCase;
+    private final ListChecklistHistoryByClassUseCase listChecklistHistoryByClassUseCase;
 
     /**
-     * Inicia a criação de um novo rascunho de execução de checklist.
-     * <p>
-     * Delega a lógica de criação para o {@link CreateChecklistExecutionUseCase} e converte
-     * a entidade resultante em um DTO para a camada de apresentação.
-     * </p>
+     * Cria uma execução de checklist em formato de rascunho.
      *
-     * @param request o DTO contendo os dados necessários para criar o rascunho.
-     * @return um {@link ChecklistExecutionResponseDTO} representando o checklist recém-criado.
+     * @param request dados necessários para criação do rascunho.
+     * @return execução criada, já convertida para DTO de resposta.
      */
-
-    public ChecklistExecutionResponseDTO createDTO(ChecklistExecutionDraftCreateDTO request){
-
+    public ChecklistExecutionResponseDTO createDTO(ChecklistExecutionDraftCreateDTO request) {
         ChecklistExecution execution = createChecklistExecutionUseCase.execute(request);
-        return  executionMapper.toResponse(execution);
+        return executionMapper.toResponse(execution);
     }
-    /**
-     * Submete as respostas de uma execução de checklist em formato de rascunho.
-     * <p>
-     * Delega a validação e o processamento da submissão para o {@link SubmitChecklistExecutionUseCase}
-     * e converte a entidade submetida em um DTO de resposta.
-     * </p>
-     *
-     * @param executionId o identificador único da execução do checklist.
-     * @param request     o DTO contendo as respostas enviadas pelo usuário.
-     * @return um {@link ChecklistExecutionResponseDTO} contendo os dados do checklist atualizado.
-     */
 
+    /**
+     * Submete as respostas de uma execução de checklist.
+     *
+     * <p>Delega validação e processamento para {@link SubmitChecklistExecutionUseCase}
+     * e retorna a execução atualizada em formato de resposta.</p>
+     *
+     * @param executionId identificador único da execução do checklist.
+     * @param request respostas enviadas para submissão.
+     * @return execução submetida, já convertida para DTO de resposta.
+     */
     public ChecklistExecutionResponseDTO submit(UUID executionId, ChecklistExecutionSubmitDTO request) {
         ChecklistExecution execution = submitChecklistExecutionUseCase.execute(executionId, request);
         return executionMapper.toResponse(execution);
     }
 
     /**
-     * Cancela uma execução de checklist previamente submetida.
-     * <p>
-     * Delega a verificação de regras de cancelamento para o {@link CancelChecklistExecutionUseCase}
-     * e retorna a entidade cancelada mapeada em um DTO.
-     * </p>
+     * Cancela uma execução de checklist.
      *
-     * @param executionId o identificador único da execução do checklist a ser cancelada.
-     * @return um {@link ChecklistExecutionResponseDTO} contendo o novo status da execução.
+     * <p>Delega as regras de cancelamento para {@link CancelChecklistExecutionUseCase}
+     * e retorna a execução com o status atualizado.</p>
+     *
+     * @param executionId identificador único da execução do checklist a ser cancelada.
+     * @return execução cancelada, já convertida para DTO de resposta.
      */
-
-    public ChecklistExecutionResponseDTO cancel(UUID executionId){
+    public ChecklistExecutionResponseDTO cancel(UUID executionId) {
         ChecklistExecution execution = cancelChecklistExecutionUseCase.execute(executionId);
-        return  executionMapper.toResponse(execution);
+        return executionMapper.toResponse(execution);
     }
 
+    /**
+     * Lista o histórico de execuções submetidas para uma turma.
+     *
+     * @param classId identificador único da turma consultada.
+     * @return lista de execuções históricas da turma, ordenada conforme regra do caso de uso.
+     */
     public List<ChecklistExecutionHistoryDTO> listHistoryByClass(UUID classId) {
         return listChecklistHistoryByClassUseCase.execute(classId);
     }

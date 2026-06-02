@@ -12,42 +12,51 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * consulta no banco dados relacionados á entidade ChecklistExecution
+ * Repositório responsável pelo acesso às execuções de checklist persistidas.
  */
-    @Repository
-    public interface ChecklistExecutionRepository extends JpaRepository<ChecklistExecution, UUID> {
-    /**
-     * verifica se já existe uma execução de checklist com os mesmos dados principais no mesmo dia
-     * @param classId indentificação de uma turma
-     * @param roomId indentificação de uma sala
-     * @param period período dá checklist
-     * @param checklistType tipo da checklist
-     * @param startOfDay início do intervalo do dia
-     * @param endOfDay fim do intervalo do dia
-     * @return true caso exista checklist duplicadas
-     */
-        @Query(value = """
-                select exists (
-                    select 1
-                    from checklist_execution ce
-                    where ce.class_id = :classId
-                      and ce.room_id = :roomId
-                      and ce.period = :period
-                      and ce.checklist_type = :checklistType
-                      and ce.started_at >= :startOfDay
-                      and ce.started_at < :endOfDay
-                      and ce.status <> 'CANCELED'
-                )
-                """, nativeQuery = true)
-        boolean existsDuplicateChecklist(
-                @Param("classId") UUID classId,
-                @Param("roomId") UUID roomId,
-                @Param("period") String period,
-                @Param("checklistType") String checklistType,
-                @Param("startOfDay") LocalDateTime startOfDay,
-                @Param("endOfDay") LocalDateTime endOfDay
-        );
+@Repository
+public interface ChecklistExecutionRepository extends JpaRepository<ChecklistExecution, UUID> {
 
+    /**
+     * Verifica se já existe uma execução de checklist com os mesmos dados principais no mesmo dia.
+     *
+     * @param classId identificação de uma turma.
+     * @param roomId identificação de uma sala.
+     * @param period período da checklist.
+     * @param checklistType tipo da checklist.
+     * @param startOfDay início do intervalo do dia.
+     * @param endOfDay fim do intervalo do dia.
+     * @return {@code true} caso exista checklist duplicada.
+     */
+    @Query(value = """
+            select exists (
+                select 1
+                from checklist_execution ce
+                where ce.class_id = :classId
+                  and ce.room_id = :roomId
+                  and ce.period = :period
+                  and ce.checklist_type = :checklistType
+                  and ce.started_at >= :startOfDay
+                  and ce.started_at < :endOfDay
+                  and ce.status <> 'CANCELED'
+            )
+            """, nativeQuery = true)
+    boolean existsDuplicateChecklist(
+            @Param("classId") UUID classId,
+            @Param("roomId") UUID roomId,
+            @Param("period") String period,
+            @Param("checklistType") String checklistType,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay
+    );
+
+    /**
+     * Busca execuções de uma turma filtradas por status, ordenando as mais recentes primeiro.
+     *
+     * @param classId identificador único da turma.
+     * @param status status usado como filtro da consulta.
+     * @return lista de execuções encontradas para a turma e status informados.
+     */
     List<ChecklistExecution> findByClassIdAndStatusOrderBySubmittedAtDesc(
             UUID classId,
             ChecklistExecutionStatus status

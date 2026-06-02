@@ -1,13 +1,15 @@
 package com.portal.conecta.checklist.shared.hub.provider.room;
 
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.RoomReference;
+import com.portal.conecta.checklist.shared.hub.client.room.HubRoomClient;
+import com.portal.conecta.checklist.shared.hub.client.room.HubRoomResponse;
 import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
-import com.portal.conecta.checklist.shared.hub.properties.HubApiProperties;
+import feign.FeignException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -18,26 +20,25 @@ import java.util.UUID;
  */
 @Component
 @Profile("!mock & !test")
+@RequiredArgsConstructor
 public class HttpHubRoomProvider implements HubRoomProvider {
 
-    private final RestClient restClient;
-
-    public HttpHubRoomProvider(HubApiProperties properties, RestClient.Builder restClientBuilder) {
-        this.restClient = restClientBuilder.baseUrl(properties.url()).build();
-    }
+    private final HubRoomClient hubRoomClient;
 
     @Override
     public boolean existsById(UUID roomId) {
-        try {
-            restClient.get()
-                    .uri("/rooms/{roomId}", roomId)
-                    .retrieve()
-                    .toBodilessEntity();
+        return findById(roomId).isPresent();
+    }
 
-            return true;
-        } catch (HttpClientErrorException.NotFound exception) {
-            return false;
-        } catch (RestClientException exception) {
+    @Override
+    public Optional<RoomReference> findById(UUID roomId) {
+        try {
+            HubRoomResponse response = hubRoomClient.findById(roomId);
+
+            return response == null ? Optional.empty() : Optional.of(response.toReference(roomId));
+        } catch (FeignException.NotFound exception) {
+            return Optional.empty();
+        } catch (FeignException exception) {
             throw new HubIntegrationException("Servico de salas do Hub indisponivel.", exception);
         }
     }

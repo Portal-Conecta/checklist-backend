@@ -1,5 +1,6 @@
     package com.portal.conecta.checklist.shared.exception;
 
+    import com.portal.conecta.checklist.module.checklist.domain.exception.SubmissionWindowViolationException;
     import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
     import jakarta.persistence.EntityNotFoundException;
     import org.springframework.dao.DataAccessResourceFailureException;
@@ -110,6 +111,11 @@
          * @param ex A exceção {@link IllegalStateException}.
          * @return Resposta indicando a quebra da regra de negócio atual.
          */
+        @ExceptionHandler(SubmissionWindowViolationException.class)
+        public ResponseEntity<ErrorResponseDTO> handleWindowViolation(SubmissionWindowViolationException ex) {
+            return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), null);
+        }
+
         @ExceptionHandler(IllegalStateException.class)
         public ResponseEntity<ErrorResponseDTO> handleIllegalState(IllegalStateException ex) {
             return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), null);

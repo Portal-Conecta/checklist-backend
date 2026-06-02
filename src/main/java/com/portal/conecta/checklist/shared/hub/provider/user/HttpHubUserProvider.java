@@ -1,13 +1,15 @@
 package com.portal.conecta.checklist.shared.hub.provider.user;
 
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.UserReference;
+import com.portal.conecta.checklist.shared.hub.client.user.HubUserClient;
+import com.portal.conecta.checklist.shared.hub.client.user.HubUserResponse;
 import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
-import com.portal.conecta.checklist.shared.hub.properties.HubApiProperties;
+import feign.FeignException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -18,26 +20,25 @@ import java.util.UUID;
  */
 @Component
 @Profile("!mock & !test")
+@RequiredArgsConstructor
 public class HttpHubUserProvider implements HubUserProvider {
 
-    private final RestClient restClient;
-
-    public HttpHubUserProvider(HubApiProperties properties, RestClient.Builder restClientBuilder) {
-        this.restClient = restClientBuilder.baseUrl(properties.url()).build();
-    }
+    private final HubUserClient hubUserClient;
 
     @Override
     public boolean existsById(UUID userId) {
-        try {
-            restClient.get()
-                    .uri("/users/{userId}", userId)
-                    .retrieve()
-                    .toBodilessEntity();
+        return findById(userId).isPresent();
+    }
 
-            return true;
-        } catch (HttpClientErrorException.NotFound exception) {
-            return false;
-        } catch (RestClientException exception) {
+    @Override
+    public Optional<UserReference> findById(UUID userId) {
+        try {
+            HubUserResponse response = hubUserClient.findById(userId);
+
+            return response == null ? Optional.empty() : Optional.of(response.toReference(userId));
+        } catch (FeignException.NotFound exception) {
+            return Optional.empty();
+        } catch (FeignException exception) {
             throw new HubIntegrationException("Servico de usuarios do Hub indisponivel.", exception);
         }
     }

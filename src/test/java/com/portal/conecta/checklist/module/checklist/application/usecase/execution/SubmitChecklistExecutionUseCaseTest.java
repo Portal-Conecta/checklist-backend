@@ -1,7 +1,10 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.execution;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.conecta.checklist.module.checklist.application.usecase.window.SubmissionWindowValidator;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Shift;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ConformityAnswerValue;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
@@ -16,8 +19,10 @@ import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -35,19 +40,27 @@ import static org.mockito.Mockito.when;
 
 class SubmitChecklistExecutionUseCaseTest {
 
-    private final ChecklistExecutionRepository executionRepository = mock(ChecklistExecutionRepository.class);
-    private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
-    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-    private final ChecklistExecutionMapper executionMapper = new ChecklistExecutionMapper(
-            objectMapper,
-            new ChecklistIssueMapper()
+    private final ChecklistExecutionRepository executionRepository    = mock(ChecklistExecutionRepository.class);
+    private final RequestContextProvider contextProvider              = mock(RequestContextProvider.class);
+    private final SubmissionWindowValidator submissionWindowValidator = mock(SubmissionWindowValidator.class);
+    private final ObjectMapper objectMapper                           = new ObjectMapper().findAndRegisterModules();
+    private final ChecklistExecutionMapper executionMapper            = new ChecklistExecutionMapper(
+            objectMapper, new ChecklistIssueMapper()
     );
-    private final SubmitChecklistExecutionUseCase useCase = new SubmitChecklistExecutionUseCase(
-            executionRepository,
-            executionMapper,
-            objectMapper,
-            contextProvider
-    );
+
+    private SubmitChecklistExecutionUseCase useCase;
+
+    @BeforeEach
+    void setUp() {
+        useCase = new SubmitChecklistExecutionUseCase(
+                executionRepository,
+                executionMapper,
+                objectMapper,
+                contextProvider,
+                submissionWindowValidator
+        );
+        ReflectionTestUtils.setField(useCase, "timezone", "America/Sao_Paulo");
+    }
 
     @Test
     void shouldSubmitChecklistAndCreateIssueForNonCompliantAnswer() {
@@ -182,6 +195,8 @@ class SubmitChecklistExecutionUseCaseTest {
                 .id(executionId)
                 .userId(userId)
                 .classId(classId)
+                .shift(Shift.FULL_AM_PM)
+                .checklistType(ChecklistType.ARRIVAL)
                 .status(ChecklistExecutionStatus.DRAFT)
                 .checklistTemplate(ChecklistTemplate.builder()
                         .id(UUID.randomUUID())

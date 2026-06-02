@@ -1,10 +1,13 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.execution;
 
+import com.portal.conecta.checklist.module.checklist.application.usecase.window.SubmissionWindowValidator;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Shift;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.ClassReference;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
@@ -14,11 +17,14 @@ import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
 import com.portal.conecta.checklist.shared.hub.provider.classes.HubClassProvider;
+import com.portal.conecta.checklist.shared.hub.provider.course.HubCourseProvider;
 import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
 import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,27 +43,38 @@ import static org.mockito.Mockito.when;
 class CreateChecklistExecutionUseCaseTest {
 
     private final ChecklistExecutionRepository executionRepository = mock(ChecklistExecutionRepository.class);
-    private final ChecklistTemplateRepository templateRepository = mock(ChecklistTemplateRepository.class);
-    private final ChecklistExecutionMapper executionMapper = mock(ChecklistExecutionMapper.class);
-    private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
-    private final HubRoomProvider hubRoomProvider = mock(HubRoomProvider.class);
-    private final HubClassProvider hubClassProvider = mock(HubClassProvider.class);
-    private final CreateChecklistExecutionUseCase useCase = new CreateChecklistExecutionUseCase(
-            executionRepository,
-            templateRepository,
-            executionMapper,
-            contextProvider,
-            hubRoomProvider,
-            hubClassProvider
-    );
+    private final ChecklistTemplateRepository templateRepository   = mock(ChecklistTemplateRepository.class);
+    private final ChecklistExecutionMapper executionMapper         = mock(ChecklistExecutionMapper.class);
+    private final RequestContextProvider contextProvider           = mock(RequestContextProvider.class);
+    private final HubRoomProvider hubRoomProvider                 = mock(HubRoomProvider.class);
+    private final HubClassProvider hubClassProvider               = mock(HubClassProvider.class);
+    private final HubCourseProvider hubCourseProvider             = mock(HubCourseProvider.class);
+    private final SubmissionWindowValidator submissionWindowValidator = mock(SubmissionWindowValidator.class);
+
+    private CreateChecklistExecutionUseCase useCase;
+
+    @BeforeEach
+    void setUp() {
+        useCase = new CreateChecklistExecutionUseCase(
+                executionRepository,
+                templateRepository,
+                executionMapper,
+                contextProvider,
+                hubRoomProvider,
+                hubClassProvider,
+                hubCourseProvider,
+                submissionWindowValidator
+        );
+        ReflectionTestUtils.setField(useCase, "timezone", "America/Sao_Paulo");
+    }
 
     @Test
     @DisplayName("deve criar draft quando template esta ativo e nao existe duplicidade")
     void deveCriarDraftQuandoTemplateEstaAtivoENaoExisteDuplicidade() {
         UUID templateId = UUID.randomUUID();
-        UUID roomId = UUID.randomUUID();
-        UUID classId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
+        UUID roomId     = UUID.randomUUID();
+        UUID classId    = UUID.randomUUID();
+        UUID userId     = UUID.randomUUID();
         ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, classId);
         ChecklistTemplate template = activeTemplate(templateId, roomId);
         RequestContext currentUser = representative(userId, classId);
@@ -66,23 +83,25 @@ class CreateChecklistExecutionUseCaseTest {
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
         when(hubRoomProvider.existsById(roomId)).thenReturn(true);
-        when(hubClassProvider.existsById(classId)).thenReturn(true);
-        when(executionRepository.existsDuplicateChecklist(
-                eq(classId),
-                eq(roomId),
-                eq(Period.MORNING.name()),
-                eq(ChecklistType.ARRIVAL.name()),
-                any(LocalDateTime.class),
-                any(LocalDateTime.class)
-        )).thenReturn(false);
+        when(hubClassProvider.findById(classId)).thenReturn(Optional.of(classReference(classId)));
         when(contextProvider.getRequestContext()).thenReturn(currentUser);
-        when(executionMapper.toDraftEntity(eq(request), eq(template), eq(userId), any(LocalDateTime.class))).thenReturn(draft);
+        when(executionRepository.existsDuplicateChecklist(
+                eq(classId), eq(roomId),
+                eq(Period.MORNING.name()), eq(ChecklistType.ARRIVAL.name()),
+                any(LocalDateTime.class), any(LocalDateTime.class)
+        )).thenReturn(false);
+        when(executionMapper.toDraftEntity(
+                eq(request), eq(template), eq(userId),
+                any(LocalDateTime.class), eq(Shift.FULL_AM_PM), eq(Period.MORNING)
+        )).thenReturn(draft);
         when(executionRepository.save(draft)).thenReturn(saved);
 
         ChecklistExecution result = useCase.execute(request);
 
         assertSame(saved, result);
-        verify(executionMapper).toDraftEntity(eq(request), eq(template), eq(userId), any(LocalDateTime.class));
+        verify(executionMapper).toDraftEntity(
+                eq(request), eq(template), eq(userId),
+                any(LocalDateTime.class), eq(Shift.FULL_AM_PM), eq(Period.MORNING));
         verify(executionRepository).save(draft);
     }
 
@@ -90,27 +109,24 @@ class CreateChecklistExecutionUseCaseTest {
     @DisplayName("deve rejeitar quando ja existe draft ou envio para o mesmo conjunto")
     void deveRejeitarQuandoJaExisteDraftOuEnvioParaMesmoConjunto() {
         UUID templateId = UUID.randomUUID();
-        UUID roomId = UUID.randomUUID();
-        UUID classId = UUID.randomUUID();
+        UUID roomId     = UUID.randomUUID();
+        UUID classId    = UUID.randomUUID();
         ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, classId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
         when(hubRoomProvider.existsById(roomId)).thenReturn(true);
-        when(hubClassProvider.existsById(classId)).thenReturn(true);
+        when(hubClassProvider.findById(classId)).thenReturn(Optional.of(classReference(classId)));
         when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID(), classId));
         when(executionRepository.existsDuplicateChecklist(
-                eq(classId),
-                eq(roomId),
-                eq(Period.MORNING.name()),
-                eq(ChecklistType.ARRIVAL.name()),
-                any(LocalDateTime.class),
-                any(LocalDateTime.class)
+                eq(classId), eq(roomId),
+                eq(Period.MORNING.name()), eq(ChecklistType.ARRIVAL.name()),
+                any(LocalDateTime.class), any(LocalDateTime.class)
         )).thenReturn(true);
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(request));
 
         verify(contextProvider).getRequestContext();
-        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any());
+        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any(), any(), any());
         verify(executionRepository, never()).save(any());
     }
 
@@ -118,7 +134,7 @@ class CreateChecklistExecutionUseCaseTest {
     @DisplayName("deve rejeitar quando sala nao existe no Hub")
     void deveRejeitarQuandoSalaNaoExisteNoHub() {
         UUID templateId = UUID.randomUUID();
-        UUID roomId = UUID.randomUUID();
+        UUID roomId     = UUID.randomUUID();
         ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, UUID.randomUUID());
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
@@ -126,7 +142,7 @@ class CreateChecklistExecutionUseCaseTest {
 
         assertThrows(EntityNotFoundException.class, () -> useCase.execute(request));
 
-        verify(hubClassProvider, never()).existsById(any());
+        verify(hubClassProvider, never()).findById(any());
         verify(contextProvider, never()).getRequestContext();
         verify(executionRepository, never()).save(any());
     }
@@ -135,15 +151,33 @@ class CreateChecklistExecutionUseCaseTest {
     @DisplayName("deve rejeitar quando turma nao existe no Hub")
     void deveRejeitarQuandoTurmaNaoExisteNoHub() {
         UUID templateId = UUID.randomUUID();
-        UUID roomId = UUID.randomUUID();
-        UUID classId = UUID.randomUUID();
+        UUID roomId     = UUID.randomUUID();
+        UUID classId    = UUID.randomUUID();
         ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, classId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
         when(hubRoomProvider.existsById(roomId)).thenReturn(true);
-        when(hubClassProvider.existsById(classId)).thenReturn(false);
+        when(hubClassProvider.findById(classId)).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> useCase.execute(request));
+
+        verify(contextProvider, never()).getRequestContext();
+        verify(executionRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("deve rejeitar quando Hub nao informa o turno da turma")
+    void deveRejeitarQuandoHubNaoInformaTurnoDaTurma() {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId     = UUID.randomUUID();
+        UUID classId    = UUID.randomUUID();
+        ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, classId);
+
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
+        when(hubRoomProvider.existsById(roomId)).thenReturn(true);
+        when(hubClassProvider.findById(classId)).thenReturn(Optional.of(new ClassReference(classId)));
+
+        assertThrows(IllegalStateException.class, () -> useCase.execute(request));
 
         verify(contextProvider, never()).getRequestContext();
         verify(executionRepository, never()).save(any());
@@ -166,7 +200,7 @@ class CreateChecklistExecutionUseCaseTest {
     @DisplayName("deve rejeitar quando template nao esta ativo")
     void deveRejeitarQuandoTemplateNaoEstaAtivo() {
         UUID templateId = UUID.randomUUID();
-        UUID roomId = UUID.randomUUID();
+        UUID roomId     = UUID.randomUUID();
         ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, UUID.randomUUID());
         ChecklistTemplate template = ChecklistTemplate.builder()
                 .id(templateId)
@@ -200,21 +234,21 @@ class CreateChecklistExecutionUseCaseTest {
     @Test
     @DisplayName("deve rejeitar quando usuario nao representa a turma informada")
     void deveRejeitarQuandoUsuarioNaoRepresentaATurmaInformada() {
-        UUID templateId = UUID.randomUUID();
-        UUID roomId = UUID.randomUUID();
+        UUID templateId      = UUID.randomUUID();
+        UUID roomId          = UUID.randomUUID();
         UUID requestedClassId = UUID.randomUUID();
-        UUID anotherClassId = UUID.randomUUID();
+        UUID anotherClassId  = UUID.randomUUID();
         ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, requestedClassId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
         when(hubRoomProvider.existsById(roomId)).thenReturn(true);
-        when(hubClassProvider.existsById(requestedClassId)).thenReturn(true);
+        when(hubClassProvider.findById(requestedClassId)).thenReturn(Optional.of(classReference(requestedClassId)));
         when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID(), anotherClassId));
 
         assertThrows(AccessDeniedException.class, () -> useCase.execute(request));
 
         verify(executionRepository, never()).existsDuplicateChecklist(any(), any(), any(), any(), any(), any());
-        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any());
+        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any(), any(), any());
         verify(executionRepository, never()).save(any());
     }
 
@@ -222,13 +256,13 @@ class CreateChecklistExecutionUseCaseTest {
     @DisplayName("deve rejeitar perfil de gestao mesmo com papel na turma")
     void deveRejeitarPerfilDeGestaoMesmoComPapelNaTurma() {
         UUID templateId = UUID.randomUUID();
-        UUID roomId = UUID.randomUUID();
-        UUID classId = UUID.randomUUID();
+        UUID roomId     = UUID.randomUUID();
+        UUID classId    = UUID.randomUUID();
         ChecklistExecutionDraftCreateDTO request = request(templateId, roomId, classId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
         when(hubRoomProvider.existsById(roomId)).thenReturn(true);
-        when(hubClassProvider.existsById(classId)).thenReturn(true);
+        when(hubClassProvider.findById(classId)).thenReturn(Optional.of(classReference(classId)));
         when(contextProvider.getRequestContext()).thenReturn(new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.SENAI,
@@ -238,18 +272,12 @@ class CreateChecklistExecutionUseCaseTest {
         assertThrows(AccessDeniedException.class, () -> useCase.execute(request));
 
         verify(executionRepository, never()).existsDuplicateChecklist(any(), any(), any(), any(), any(), any());
-        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any());
+        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any(), any(), any());
         verify(executionRepository, never()).save(any());
     }
 
     private ChecklistExecutionDraftCreateDTO request(UUID templateId, UUID roomId, UUID classId) {
-        return new ChecklistExecutionDraftCreateDTO(
-                templateId,
-                roomId,
-                classId,
-                Period.MORNING,
-                ChecklistType.ARRIVAL
-        );
+        return new ChecklistExecutionDraftCreateDTO(templateId, roomId, classId, ChecklistType.ARRIVAL);
     }
 
     private ChecklistTemplate activeTemplate(UUID templateId, UUID roomId) {
@@ -259,6 +287,10 @@ class CreateChecklistExecutionUseCaseTest {
                 .status(ChecklistTemplateStatus.ACTIVE)
                 .active(true)
                 .build();
+    }
+
+    private ClassReference classReference(UUID classId) {
+        return new ClassReference(classId, "Turma teste", 1, Shift.FULL_AM_PM, null, null);
     }
 
     private RequestContext representative(UUID userId, UUID classId) {

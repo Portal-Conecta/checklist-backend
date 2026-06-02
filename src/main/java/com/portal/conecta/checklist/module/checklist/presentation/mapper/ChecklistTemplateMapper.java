@@ -9,6 +9,12 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Mapper de apresentacao para templates de checklist.
+ *
+ * <p>Converte entidades de template para DTOs de resposta e reconstitui o
+ * schema JSON em sua forma tipada.</p>
+ */
 @Component
 public class ChecklistTemplateMapper {
 

@@ -8,6 +8,12 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+/**
+ * Provider mockado de salas do Hub.
+ *
+ * <p>Permite validar salas em ambiente local sem depender do servico real do
+ * Hub.</p>
+ */
 @Component
 @Profile({"mock", "test"})
 public class MockHubRoomProvider implements HubRoomProvider {

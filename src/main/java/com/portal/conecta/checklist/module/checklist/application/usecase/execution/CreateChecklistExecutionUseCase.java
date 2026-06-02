@@ -20,6 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+/**
+ * Caso de uso responsavel por criar uma execucao de checklist em rascunho.
+ *
+ * <p>Valida template, sala, turma, permissao do usuario autenticado e
+ * duplicidade por turma, sala, periodo, dia e tipo antes de persistir a
+ * execucao.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class CreateChecklistExecutionUseCase {

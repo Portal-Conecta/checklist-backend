@@ -24,6 +24,9 @@ import java.util.UUID;
 /**
  * Mapper responsável por converter execuções de checklist entre entidades de domínio,
  * estruturas JSON de respostas e DTOs usados pela camada de apresentação.
+ *
+ * <p>Converte DTOs e entidades, alem de transformar respostas entre objetos
+ * tipados e a representacao JSON persistida.</p>
  */
 @Component
 public class ChecklistExecutionMapper {

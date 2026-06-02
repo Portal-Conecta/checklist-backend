@@ -10,6 +10,12 @@ import org.springframework.web.client.RestClientException;
 
 import java.util.UUID;
 
+/**
+ * Provider HTTP para consultar turmas no Hub real.
+ *
+ * <p>Converte respostas de nao encontrado em {@code false} e falhas de
+ * comunicacao em excecoes de integracao.</p>
+ */
 @Component
 @Profile("!mock & !test")
 public class HttpHubClassProvider implements HubClassProvider {

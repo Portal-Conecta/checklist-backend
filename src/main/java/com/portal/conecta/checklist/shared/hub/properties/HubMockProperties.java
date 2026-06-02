@@ -4,6 +4,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
 
+/**
+ * Propriedades com identificadores mockados do Hub.
+ *
+ * <p>Centraliza listas de usuarios, salas e turmas aceitas durante execucao
+ * local com profile {@code mock} ou em testes.</p>
+ */
 @ConfigurationProperties(prefix = "checklist.mock.hub")
 public record HubMockProperties(
         List<String> classIds,

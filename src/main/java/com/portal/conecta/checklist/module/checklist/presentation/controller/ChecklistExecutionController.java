@@ -16,6 +16,9 @@ import java.util.UUID;
 
 /**
  * Controlador REST responsável pelas operações HTTP de execução de checklists.
+ *
+ * <p>Expoe endpoints para criar rascunhos, submeter respostas e
+ * cancelar execucoes, delegando regras de negocio para a fachada de aplicacao.</p>
  */
 @RestController
 @RequestMapping("/api/checklist-executions")

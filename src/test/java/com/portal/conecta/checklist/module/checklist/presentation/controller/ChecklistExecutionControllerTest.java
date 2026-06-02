@@ -40,7 +40,6 @@ class ChecklistExecutionControllerTest {
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                Period.MORNING,
                 ChecklistType.ARRIVAL
         );
         ChecklistExecution execution = mock(ChecklistExecution.class);

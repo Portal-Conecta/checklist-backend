@@ -3,7 +3,7 @@
 ## Titulo sugerido
 
 ```text
-chore: prepara release 0.1.0
+#108 chore: prepara release 0.1.0
 ```
 
 ## Descricao do PR
@@ -137,14 +137,14 @@ main -> develop
 ## Commit principal
 
 ```text
-chore: prepara release 0.1.0
+#108 chore: prepara release 0.1.0
 ```
 
 ---
 
 ## Issue relacionada
 
-Release de fechamento da sprint.
+Closes #108
 ```
 
 ## Proximos passos apos aprovar o PR

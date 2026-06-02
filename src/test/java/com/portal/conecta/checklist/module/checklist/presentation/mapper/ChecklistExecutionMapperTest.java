@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Shift;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
@@ -42,11 +43,10 @@ class ChecklistExecutionMapperTest {
                 templateId,
                 roomId,
                 classId,
-                Period.MORNING,
                 ChecklistType.ARRIVAL
         );
 
-        ChecklistExecution execution = mapper.toDraftEntity(request, template, filledBy, startedAt);
+        ChecklistExecution execution = mapper.toDraftEntity(request, template, filledBy, startedAt, Shift.FULL_AM_PM, Period.MORNING);
         ChecklistAnswersDTO answers = mapper.toAnswersDTO(execution.getAnswersJson());
 
         assertSame(template, execution.getChecklistTemplate());

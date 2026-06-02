@@ -14,9 +14,11 @@ import com.portal.conecta.checklist.module.checklist.presentation.mapper.Checkli
 import com.portal.conecta.checklist.module.issues.domain.enums.IssuePriority;
 import com.portal.conecta.checklist.module.issues.domain.enums.IssueStatus;
 import com.portal.conecta.checklist.module.issues.domain.model.ChecklistIssue;
+import com.portal.conecta.checklist.module.checklist.application.usecase.window.SubmissionWindowValidator;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +51,10 @@ public class SubmitChecklistExecutionUseCase {
     private final ChecklistExecutionMapper executionMapper;
     private final ObjectMapper objectMapper;
     private final RequestContextProvider contextProvider;
+    private final SubmissionWindowValidator submissionWindowValidator;
+
+    @Value("${checklist.timezone:America/Sao_Paulo}")
+    private String timezone;
 
     /**
      * Submete e processa a execução de um checklist.
@@ -85,6 +92,8 @@ public class SubmitChecklistExecutionUseCase {
             throw new IllegalStateException("Somente checklists em rascunho podem ser enviados.");
         }
 
+        submissionWindowValidator.validate(execution.getShift(), execution.getChecklistType());
+
         ChecklistSchemaDTO schema = objectMapper.convertValue(
                 execution.getChecklistTemplate().getSchemaJson(),
                 ChecklistSchemaDTO.class
@@ -98,7 +107,7 @@ public class SubmitChecklistExecutionUseCase {
         execution.setAnswersJson(executionMapper.toAnswersJson(request));
         execution.setComplianceScore(calculateComplianceScore(request.answers()));
         execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
-        execution.setSubmittedAt(LocalDateTime.now());
+        execution.setSubmittedAt(LocalDateTime.now(ZoneId.of(timezone)));
         createIssuesForNonCompliantAnswers(execution, request.answers(), itemsByKey);
 
         return executionRepository.save(execution);

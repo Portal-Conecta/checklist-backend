@@ -2,7 +2,7 @@ package com.portal.conecta.checklist.module.issues.presentation.mapper;
 
 import com.portal.conecta.checklist.module.checklist.domain.valueobject.UserReference;
 import com.portal.conecta.checklist.module.issues.domain.model.ChecklistIssue;
-import com.portal.conecta.checklist.module.issues.presentation.response.ChecklistIssueResponseDTO;
+import com.portal.conecta.checklist.module.issues.presentation.dto.response.ChecklistIssueResponseDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

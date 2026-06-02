@@ -1,55 +1,49 @@
 package com.portal.conecta.checklist.module.checklist.presentation.controller;
 
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.ActivateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.CreateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.FindChecklistTemplateByIdUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.ListChecklistTemplatesUseCase;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistTemplateResponseDTO;
-import com.portal.conecta.checklist.module.checklist.application.facade.ChecklistTemplateFacade;
+import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistTemplateMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Controller REST para templates de checklist.
- *
- * <p>Publica operacoes de criacao, ativacao, consulta e listagem de templates,
- * mantendo a validacao de contrato na camada de DTO e as regras na aplicacao.</p>
- */
 @RestController
 @RequestMapping("/api/checklist-templates")
 @RequiredArgsConstructor
 public class ChecklistTemplateController {
 
-    private final ChecklistTemplateFacade checklistTemplateFacade;
+    private final CreateChecklistTemplateUseCase createUseCase;
+    private final ActivateChecklistTemplateUseCase activateUseCase;
+    private final FindChecklistTemplateByIdUseCase findByIdUseCase;
+    private final ListChecklistTemplatesUseCase listUseCase;
+    private final ChecklistTemplateMapper mapper;
 
     @PostMapping
     public ResponseEntity<ChecklistTemplateResponseDTO> createTemplate(@RequestBody @Valid ChecklistTemplateCreateRequest request) {
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(checklistTemplateFacade.createTemplate(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(createUseCase.execute(request)));
     }
 
     @PatchMapping("/{templateId}/activate")
     public ResponseEntity<ChecklistTemplateResponseDTO> activateTemplate(@PathVariable UUID templateId) {
-        return ResponseEntity.ok(checklistTemplateFacade.activateTemplate(templateId));
+        return ResponseEntity.ok(mapper.toResponse(activateUseCase.execute(templateId)));
     }
 
     @GetMapping("/{templateId}")
     public ResponseEntity<ChecklistTemplateResponseDTO> findTemplateById(@PathVariable UUID templateId) {
-        return ResponseEntity.ok(checklistTemplateFacade.findTemplateById(templateId));
+        return ResponseEntity.ok(mapper.toResponse(findByIdUseCase.execute(templateId)));
     }
 
     @GetMapping
     public ResponseEntity<List<ChecklistTemplateResponseDTO>> listTemplates() {
-        return ResponseEntity.ok(checklistTemplateFacade.listTemplates());
+        return ResponseEntity.ok(mapper.toResponseList(listUseCase.execute()));
     }
 }

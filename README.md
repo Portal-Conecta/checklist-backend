@@ -63,25 +63,23 @@ Contains cross-cutting code used by the service, such as security configuration,
 
 ## Access Rules
 
-The service follows the official Hub access profiles:
+The service follows the Hub token contract. Global user access comes from `userType`, and class-specific access is read from `classes[].role`:
 
-- `APRENDIZ`
-- `REPRESENTANTE`
-- `DOCENTE`
-- `PERFIL_SENAI`
-- `PERFIL_WEG`
-- `ADMINISTRADOR`
+- `STUDENT`
+- `REPRESENTATIVE`
+- `TEACHER`
+- `SENAI`
+- `WEG`
+- `ADMIN`
 
 Initial Checklist rules:
 
-- `REPRESENTANTE` can view and create checklists for their own class.
-- `DOCENTE` can view and create checklists for linked classes.
-- `PERFIL_SENAI` can view dashboards and edit completed checklists within SENAI scope.
-- `PERFIL_WEG` can view dashboards and edit completed checklists within WEG scope.
-- `APRENDIZ` has no Checklist access.
-- `ADMINISTRADOR` has Hub administration permissions, but operational Checklist access still requires confirmation.
-
-Legacy roles such as `GESTOR`, `INSTRUTOR`, `PROFESSOR`, `ALUNO`, and `ADMIN` must not be used in new Checklist rules.
+- `REPRESENTATIVE` can view and create checklists for their own class.
+- `TEACHER` can view and create checklists for linked classes.
+- `SENAI` can view dashboards and edit completed checklists within SENAI scope.
+- `WEG` can view dashboards and edit completed checklists within WEG scope.
+- `STUDENT` without representative class role has no operational Checklist access.
+- `ADMIN` has Hub administration permissions, but no operational Checklist access by default.
 
 ## Local Setup
 
@@ -98,20 +96,56 @@ Suggested local variables:
 
 ```env
 SPRING_PROFILES_ACTIVE=local
-SERVER_PORT=8080
+SERVER_PORT=8083
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=checklist_db
-DB_USER=checklist_user
-DB_PASSWORD=checklist_password
-JWT_SECRET=change-me
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+JWT_SECRET=your_base64_hs256_secret
 HUB_API_URL=http://localhost:8081
 ```
+
+`JWT_SECRET` must use the same Base64-encoded HS256 secret configured for Checklist token validation. For local development, generate a temporary value and keep it only in `.env` or in your shell environment.
+
+PowerShell example to generate a local 32-byte Base64 secret:
+
+```powershell
+[Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+```
+
+You can also create a local `.env` file at the project root. The application loads this file before Spring Boot starts, and values already defined in the operating system or command line keep priority.
+
+Use `.env.example` as the local template. The real `.env` file is ignored by Git.
+
+For deployed environments, configure sensitive values as GitHub Environment Secrets, not as repository variables or committed files:
+
+- `JWT_SECRET`
+- `DB_PASSWORD`
+- `DB_USER`, if the database username is sensitive in your environment
 
 ### Run PostgreSQL
 
 ```bash
 docker compose up -d
+```
+
+Check the container status:
+
+```bash
+docker compose ps
+```
+
+Stop the local database:
+
+```bash
+docker compose down
+```
+
+Remove the local database volume:
+
+```bash
+docker compose down -v
 ```
 
 ### Run the API
@@ -134,18 +168,24 @@ If Maven Wrapper is not available:
 mvn spring-boot:run
 ```
 
+Using a specific profile:
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
+
 ## API Documentation
 
 Swagger UI should be available at:
 
 ```text
-http://localhost:8080/swagger-ui.html
+http://localhost:8083/swagger-ui.html
 ```
 
 OpenAPI JSON should be available at:
 
 ```text
-http://localhost:8080/v3/api-docs
+http://localhost:8083/v3/api-docs
 ```
 
 ## Health Check
@@ -153,7 +193,7 @@ http://localhost:8080/v3/api-docs
 Actuator health endpoint:
 
 ```text
-http://localhost:8080/actuator/health
+http://localhost:8083/actuator/health
 ```
 
 ## Testing
@@ -180,6 +220,368 @@ Authentication is centralized in the Hub. Checklist API must validate the platfo
 When Checklist API needs Hub data, it should call Hub through HTTP contracts, preferably from the infrastructure layer using OpenFeign.
 
 The Checklist service must not directly access Hub database tables.
+
+### Hub Token Authentication
+
+Protected endpoints expect the Hub token in the request header:
+
+```text
+Authorization: Bearer <hub-token>
+```
+
+The Checklist API does not receive `userId` in request bodies or paths to identify the actor. The authenticated user is always resolved from the Hub token.
+
+Expected token claims:
+
+```json
+{
+  "jti": "abc-xyz-789",
+  "sub": "11111111-1111-1111-1111-111111111111",
+  "userType": "REPRESENTATIVE",
+  "classes": [
+    {
+      "classId": "22222222-2222-2222-2222-222222222222",
+      "role": "REPRESENTATIVE"
+    }
+  ],
+  "iat": 1710000000,
+  "exp": 1710003600
+}
+```
+
+Current persistence uses UUIDs for users and classes, so `sub` and `classes[].classId` must be UUID strings. The Checklist API validates the token locally with the shared Base64 HS256 secret and then applies module authorization rules from the authenticated context.
+
+The current Hub token generator does not emit `permissionVersion`. If the Hub later adds that claim or an authorization-check endpoint, that flow should be introduced as a new integration decision instead of being assumed by this service.
+
+### Testing With Postman
+
+For a complete step-by-step guide with mock IDs and ready-to-use JSON bodies, see:
+
+```text
+docs/guia-postman-mock.md
+```
+
+Use this flow while the Hub is not available. The Checklist API still validates a real JWT, but user, room, and class existence can be validated through mock providers.
+
+#### What Is Being Tested
+
+JWT is the token format used by the Hub. It has three parts:
+
+```text
+header.payload.signature
+```
+
+The payload is the JSON with `sub`, `userType`, `classes`, `iat`, and `exp`, but Postman must send the full signed token, not the raw JSON.
+
+Checklist API validates:
+
+- JWT signature using HS256 and `JWT_SECRET`;
+- expiration date from `exp`;
+- required claims: `jti`, `sub`, `userType`, `iat`, `exp`;
+- `sub` as a valid user UUID;
+- `classes[].classId` as valid class UUIDs;
+- `classes[].role` as `STUDENT`, `TEACHER`, or `REPRESENTATIVE`;
+- user existence through `HubUserProvider`;
+- room/class existence through Hub providers when the endpoint needs it.
+
+#### Run API With Mock Hub Providers
+
+Start PostgreSQL:
+
+```powershell
+docker compose up -d
+```
+
+Run the API with the `mock` profile:
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE="mock"
+$env:SERVER_PORT="8083"
+$env:JWT_SECRET="<BASE64_HS256_SECRET>"
+mvn spring-boot:run
+```
+
+If your machine has Maven Wrapper configured, use:
+
+```powershell
+.\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=mock
+```
+
+Health check does not require token:
+
+```text
+GET http://localhost:8083/actuator/health
+```
+
+#### Mock Data Used By The API
+
+The `mock` profile reads mock Hub data from `src/main/resources/application-mock.properties`.
+
+The example user and classes below are already configured there:
+
+```text
+USER_ID=a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d
+TEACHER_CLASS_ID=8f8e8d8c-8b8a-8f8e-8d8c-8b8a8f8e8d8c
+STUDENT_CLASS_ID=1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+ROOM_ID=11111111-1111-1111-1111-111111111111
+```
+
+If Postman sends a `sub`, `classId`, or `roomId` that is not in the mock properties, the API must reject the request.
+
+#### Create A Postman Environment
+
+Create an environment called `Checklist Local` with:
+
+```text
+BASE_URL=http://localhost:8083
+JWT_SECRET=<BASE64_HS256_SECRET>
+USER_ID=a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d
+TEACHER_CLASS_ID=8f8e8d8c-8b8a-8f8e-8d8c-8b8a8f8e8d8c
+STUDENT_CLASS_ID=1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+ROOM_ID=11111111-1111-1111-1111-111111111111
+USER_TYPE=STUDENT
+TEACHER_CLASS_ROLE=TEACHER
+STUDENT_CLASS_ROLE=STUDENT
+```
+
+#### Configure Authorization
+
+In the Postman collection, open `Authorization`:
+
+```text
+Type: Bearer Token
+Token: {{hubToken}}
+```
+
+Generate the JWT manually with a JWT tool such as `jwt.io`, then paste the full token into the `hubToken` environment variable.
+
+Use algorithm `HS256` and the same `JWT_SECRET` configured in the API. If the tool has a `secret base64 encoded` option, enable it.
+
+The token sent to Postman must be the full signed JWT in this format:
+
+```text
+header.payload.signature
+```
+
+Do not paste only the JSON payload as the token.
+
+#### First Request: Validate Authentication
+
+```text
+GET {{BASE_URL}}/api/checklist-templates
+Authorization: Bearer {{hubToken}}
+```
+
+Expected result with the example token:
+
+```text
+200 OK
+```
+
+If the token is missing:
+
+```text
+401 Unauthorized
+```
+
+If the token is expired, unsigned, signed with the wrong secret, or has invalid claims:
+
+```text
+401 Unauthorized
+```
+
+If the token is valid but the user does not have permission for the action:
+
+```text
+403 Forbidden
+```
+
+#### Create A Template
+
+Template management is allowed for `SENAI` or `WEG`. Before this request, change the environment variable:
+
+```text
+USER_TYPE=SENAI
+```
+
+Request:
+
+```text
+POST {{BASE_URL}}/api/checklist-templates
+Authorization: Bearer {{hubToken}}
+Content-Type: application/json
+```
+
+Body:
+
+```json
+{
+  "roomId": "{{ROOM_ID}}",
+  "title": "Checklist Padrao",
+  "description": "Template para teste local",
+  "schemaJson": {
+    "sections": [
+      {
+        "key": "estrutura",
+        "title": "Estrutura",
+        "order": 1,
+        "items": [
+          {
+            "key": "quadro",
+            "title": "Quadro em bom estado?",
+            "description": "Verificar quadro",
+            "required": true,
+            "order": 1
+          },
+          {
+            "key": "iluminacao",
+            "title": "Iluminacao adequada?",
+            "description": "Verificar luzes",
+            "required": true,
+            "order": 2
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Save the returned `id` manually as a Postman environment variable:
+
+```text
+TEMPLATE_ID=<id returned by API>
+```
+
+#### Activate The Template
+
+Keep:
+
+```text
+USER_TYPE=SENAI
+```
+
+Request:
+
+```text
+PATCH {{BASE_URL}}/api/checklist-templates/{{TEMPLATE_ID}}/activate
+Authorization: Bearer {{hubToken}}
+```
+
+Expected result:
+
+```text
+200 OK
+```
+
+#### Create A Checklist Draft
+
+Now switch back to the operational user from the example token:
+
+```text
+USER_TYPE=STUDENT
+TEACHER_CLASS_ROLE=TEACHER
+```
+
+The example user can create a checklist for `TEACHER_CLASS_ID` because the token says this user has `role: TEACHER` in that class.
+
+Request:
+
+```text
+POST {{BASE_URL}}/api/checklist-executions/drafts
+Authorization: Bearer {{hubToken}}
+Content-Type: application/json
+```
+
+Body:
+
+```json
+{
+  "templateId": "{{TEMPLATE_ID}}",
+  "roomId": "{{ROOM_ID}}",
+  "classId": "{{TEACHER_CLASS_ID}}",
+  "period": "MORNING",
+  "checklistType": "ARRIVAL"
+}
+```
+
+Save the returned `id` manually as:
+
+```text
+EXECUTION_ID=<id returned by API>
+```
+
+#### Submit The Checklist
+
+Request:
+
+```text
+POST {{BASE_URL}}/api/checklist-executions/{{EXECUTION_ID}}/submit
+Authorization: Bearer {{hubToken}}
+Content-Type: application/json
+```
+
+Body:
+
+```json
+{
+  "answers": [
+    {
+      "itemKey": "quadro",
+      "value": "COMPLIANT",
+      "observation": null,
+      "answeredAt": "2026-05-27T12:00:00Z"
+    },
+    {
+      "itemKey": "iluminacao",
+      "value": "NON_COMPLIANT",
+      "observation": "Lampada queimada",
+      "answeredAt": "2026-05-27T12:01:00Z"
+    }
+  ]
+}
+```
+
+Rules validated here:
+
+- only `DRAFT` checklists can be submitted;
+- all required items must be answered;
+- `COMPLIANT` does not require observation;
+- `NON_COMPLIANT` requires observation;
+- `NON_COMPLIANT` generates an issue;
+- only the user that created the execution can submit it.
+
+#### Common Problems
+
+`401 Token do Hub invalido ou expirado.`
+
+- Token was pasted as raw JSON instead of JWT.
+- `JWT_SECRET` in Postman is different from the API.
+- `exp` is in the past.
+- `sub`, `jti`, or `classes[].classId` is not a UUID.
+- User from `sub` does not exist in mock Hub properties.
+
+`403 Acesso negado.`
+
+- Token is valid, but `userType` or `classes[].role` does not allow the action.
+- Example: `STUDENT` without `TEACHER` or `REPRESENTATIVE` class role trying to create a checklist draft.
+- Example: `STUDENT` trying to create or activate checklist templates.
+
+`404` or `Sala/Turma nao encontrada no Hub.`
+
+- `ROOM_ID` is not listed in `checklist.mock.hub.room-ids`.
+- `classId` is not listed in `checklist.mock.hub.class-ids`.
+
+Duplicate checklist error.
+
+- The API does not allow duplicated checklist for the same class, room, period, day, and type.
+- To test again, change `period`, `checklistType`, class, or reset the local database.
+
+Initial authorization rules implemented:
+
+- A class representative can create checklist executions only for their own class.
+- A linked teacher can create checklist executions for linked classes.
+- `SENAI` and `WEG` can manage templates, view dashboards, and edit completed checklists.
 
 ## Database Ownership
 
@@ -213,7 +615,7 @@ Central entities such as users, classes, courses, rooms, and global roles belong
 
 ## Pending Decisions
 
-- Whether `PERFIL_SENAI` and `PERFIL_WEG` can create checklists.
+- Whether `SENAI` and `WEG` can create checklist executions.
 - Who can create, edit, activate, and disable checklist templates.
 - How SENAI and WEG scopes will be resolved.
 - Whether issues will have a full workflow in the MVP.

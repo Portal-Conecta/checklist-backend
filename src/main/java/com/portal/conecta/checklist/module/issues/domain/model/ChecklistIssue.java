@@ -1,0 +1,72 @@
+package com.portal.conecta.checklist.module.issues.domain.model;
+
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.UserReference;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.module.issues.domain.enums.IssuePriority;
+import com.portal.conecta.checklist.module.issues.domain.enums.IssueStatus;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.Instant;
+import java.util.UUID;
+
+/**
+ * Entidade que representa uma pendencia gerada por item nao conforme.
+ *
+ * <p>Relaciona a issue com a execucao do checklist, usuario responsavel, item
+ * afetado, prioridade, status e prazo de resolucao.</p>
+ */
+@Entity
+@Table(name = "checklist_issue")
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ChecklistIssue {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "checklist_execution_id", nullable = false)
+    private ChecklistExecution checklistExecution;
+
+    @Embedded
+    @AttributeOverride(name = "userId", column = @Column(name = "assigned_user_id", nullable = false))
+    private UserReference assignedUserReference;
+
+    @Column(name = "item_key", nullable = false, length = 150)
+    private String itemKey;
+
+    @Column(name = "item_title_snapshot", nullable = false, length = 150)
+    private String itemTitleSnapshot;
+
+    @Column(name = "title", nullable = false, length = 100)
+    private String title;
+
+    @Column(name = "description", nullable = false, length = 500)
+    private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
+    private IssueStatus status = IssueStatus.OPEN;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "priority", nullable = false, length = 20)
+    @Builder.Default
+    private IssuePriority priority = IssuePriority.MEDIUM;
+
+    @Column(name = "due_at", nullable = false)
+    private Instant dueAt;
+
+    @Column(name = "resolved_at")
+    private Instant resolvedAt;
+
+    public void resolve() {
+        this.status = IssueStatus.RESOLVED;
+        this.resolvedAt = Instant.now();
+    }
+}

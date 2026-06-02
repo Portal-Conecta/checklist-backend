@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: checklist_user
+      POSTGRES_PASSWORD: checklist_password
+      POSTGRES_DB: checklist_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - grafana_network
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: grafana_dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - grafana_network
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+  grafana_data:
+
+networks:
+  grafana_network:
+    driver: bridge

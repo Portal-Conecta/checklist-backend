@@ -202,6 +202,13 @@ public class ChecklistExecutionMapper {
         );
     }
 
+    public List<ChecklistExecutionHistoryDTO> toListHistory(List<ChecklistExecution> checklistExecutions){
+        return checklistExecutions
+                .stream()
+                .map(this::toHistoryResponse)
+                .toList();
+    }
+
     /**
      * Converte uma lista de execuções para itens de histórico.
      *

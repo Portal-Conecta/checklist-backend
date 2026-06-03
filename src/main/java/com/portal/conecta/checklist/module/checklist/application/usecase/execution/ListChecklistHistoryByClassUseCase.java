@@ -1,8 +1,8 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.execution;
 
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionHistoryDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import lombok.RequiredArgsConstructor;
@@ -33,14 +33,14 @@ public class ListChecklistHistoryByClassUseCase {
      * @return lista de execuções convertidas para DTOs de histórico.
      * @throws AccessDeniedException quando o usuário atual não possui permissão para consultar a turma.
      */
-    public List<ChecklistExecutionHistoryDTO> execute(UUID classId) {
+    public List<ChecklistExecution> execute(UUID classId) {
         var currentUser = contextProvider.getRequestContext();
 
         if (!currentUser.canManageChecklistTemplates() && !currentUser.canOperateChecklistExecutionForClass(classId)) {
             throw new AccessDeniedException("Usuario nao tem permissao para consultar o historico desta turma.");
         }
 
-        var executions = repository.findByClassIdAndStatusOrderBySubmittedAtDesc(
+        List executions = repository.findByClassIdAndStatusOrderBySubmittedAtDesc(
                 classId,
                 ChecklistExecutionStatus.SUBMITTED
         );

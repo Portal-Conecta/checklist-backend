@@ -1,10 +1,12 @@
 package com.portal.conecta.checklist.module.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.module.checklist.application.facade.ChecklistExecutionFacade;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.ListChecklistHistoryByClassUseCase;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionHistoryDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,6 +28,9 @@ import java.util.UUID;
 public class ChecklistExecutionController {
 
     private final ChecklistExecutionFacade checklistExecutionFacade;
+    private final ChecklistExecutionMapper checklistExecutionMapper;
+    private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase;
+
 
     /**
      * Cria uma execução de checklist em rascunho.
@@ -72,11 +77,11 @@ public class ChecklistExecutionController {
      * @param classId identificador único da turma.
      * @return resposta HTTP 200 contendo a lista de registros históricos da turma.
      */
-    @GetMapping("/classes/{classId}/history")
+    @GetMapping("/history/class/{classId}")
     public ResponseEntity<List<ChecklistExecutionHistoryDTO>> listHistoryByClass(
             @PathVariable UUID classId
     ) {
-        return ResponseEntity.ok(checklistExecutionFacade.listHistoryByClass(classId));
+        return ResponseEntity.ok(checklistExecutionMapper.toListHistory(listHistoryByClassUseCase.execute(classId)));
     }
 
 }

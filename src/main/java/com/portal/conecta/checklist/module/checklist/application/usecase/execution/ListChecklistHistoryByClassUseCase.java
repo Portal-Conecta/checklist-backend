@@ -23,7 +23,6 @@ import java.util.UUID;
 public class ListChecklistHistoryByClassUseCase {
 
     private final ChecklistExecutionRepository repository;
-    private final ChecklistExecutionMapper executionMapper;
     private final RequestContextProvider contextProvider;
 
     /**
@@ -36,8 +35,11 @@ public class ListChecklistHistoryByClassUseCase {
     public List<ChecklistExecution> execute(UUID classId) {
         var currentUser = contextProvider.getRequestContext();
 
-        if (!currentUser.canManageChecklistTemplates() && !currentUser.canOperateChecklistExecutionForClass(classId)) {
-            throw new AccessDeniedException("Usuario nao tem permissao para consultar o historico desta turma.");
+        if (!currentUser.canManageChecklistTemplates()
+                && !currentUser.canOperateChecklistExecutionForClass(classId)) {
+            throw new AccessDeniedException(
+                    "Usuario nao tem permissao para consultar o historico desta turma."
+            );
         }
 
         return repository.findByClassIdAndStatusOrderBySubmittedAtDesc(

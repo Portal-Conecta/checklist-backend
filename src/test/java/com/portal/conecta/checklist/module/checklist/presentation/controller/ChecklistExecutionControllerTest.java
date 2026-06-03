@@ -1,11 +1,13 @@
 package com.portal.conecta.checklist.module.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.module.checklist.application.facade.ChecklistExecutionFacade;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.ListChecklistHistoryByClassUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +22,13 @@ import static org.mockito.Mockito.*;
 class ChecklistExecutionControllerTest {
 
     private final ChecklistExecutionFacade facade = mock(ChecklistExecutionFacade.class);
-    private final ChecklistExecutionController controller = new ChecklistExecutionController(facade);
+    private final ChecklistExecutionMapper mapper = mock(ChecklistExecutionMapper.class);
+    private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase = mock(ListChecklistHistoryByClassUseCase.class);
+    private final ChecklistExecutionController controller = new ChecklistExecutionController(
+            facade,
+            mapper,
+            listHistoryByClassUseCase
+    );
 
     @Test
     @DisplayName("deve retornar created ao criar draft")

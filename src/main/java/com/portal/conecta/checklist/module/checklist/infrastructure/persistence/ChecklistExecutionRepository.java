@@ -2,6 +2,8 @@ package com.portal.conecta.checklist.module.checklist.infrastructure.persistence
 
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -57,9 +59,10 @@ public interface ChecklistExecutionRepository extends JpaRepository<ChecklistExe
      * @param status status usado como filtro da consulta.
      * @return lista de execuções encontradas para a turma e status informados.
      */
-    List<ChecklistExecution> findByClassIdAndStatusOrderBySubmittedAtDesc(
+    Page<ChecklistExecution> findByClassIdAndStatusOrderBySubmittedAtDesc(
             UUID classId,
-            ChecklistExecutionStatus status
+            ChecklistExecutionStatus status,
+            Pageable pageable
     );
 
     /**

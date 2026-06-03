@@ -9,11 +9,13 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.response.C
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -78,14 +80,15 @@ public class ChecklistExecutionController {
      * @return resposta HTTP 200 contendo a lista de registros históricos da turma.
      */
     @GetMapping("/history/class/{classId}")
-    public ResponseEntity<List<ChecklistExecutionHistoryDTO>> listHistoryByClass(
-            @PathVariable UUID classId
+    public ResponseEntity<Page<ChecklistExecutionHistoryDTO>> listHistoryByClass(
+            @PathVariable UUID classId,
+            @PageableDefault(size = 20) Pageable pageable
     ) {
-        return ResponseEntity.ok
-                (checklistExecutionMapper.toListHistory(
-                        listHistoryByClassUseCase.execute(classId)
-                        )
-                );
+        return ResponseEntity.ok(
+                checklistExecutionMapper.toPageHistory(
+                        listHistoryByClassUseCase.execute(classId, pageable)
+                )
+        );
     }
 
 }

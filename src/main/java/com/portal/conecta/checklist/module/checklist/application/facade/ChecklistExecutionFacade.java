@@ -12,9 +12,10 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.response.C
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -79,7 +80,9 @@ public class ChecklistExecutionFacade {
      * @param classId identificador único da turma consultada.
      * @return lista de execuções históricas da turma, ordenada conforme regra do caso de uso.
      */
-    public List<ChecklistExecutionHistoryDTO> listHistoryByClass(UUID classId) {
-        return listChecklistHistoryByClassUseCase.execute(classId);
+    public Page<ChecklistExecutionHistoryDTO> listHistoryByClass(UUID classId, Pageable pageable) {
+        return executionMapper.toPageHistory(
+                listChecklistHistoryByClassUseCase.execute(classId, pageable)
+        );
     }
 }

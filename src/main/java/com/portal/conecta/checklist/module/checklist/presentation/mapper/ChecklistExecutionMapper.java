@@ -11,6 +11,7 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.request.Ch
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.*;
 import com.portal.conecta.checklist.module.issues.presentation.mapper.ChecklistIssueMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -202,16 +203,12 @@ public class ChecklistExecutionMapper {
         );
     }
 
-    public List<ChecklistExecutionHistoryDTO> toListHistory(List<ChecklistExecution> checklistExecutions){
-
-        if (checklistExecutions == null){
-            return List.of();
+    public Page<ChecklistExecutionHistoryDTO> toPageHistory(Page<ChecklistExecution> checklistExecutions) {
+        if (checklistExecutions == null) {
+            return Page.empty();
         }
 
-        return checklistExecutions
-                .stream()
-                .map(this::toHistoryResponse)
-                .toList();
+        return checklistExecutions.map(this::toHistoryResponse);
     }
 
     /**

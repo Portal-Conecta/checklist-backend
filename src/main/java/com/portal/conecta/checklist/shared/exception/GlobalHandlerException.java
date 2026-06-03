@@ -30,6 +30,8 @@
      */
     @RestControllerAdvice
     public class GlobalHandlerException {
+        private static final String DUPLICATE_CHECKLIST_INDEX = "uidx_execution_no_duplicate";
+
         /**
          * Trata erros de validação de campos ( anotações como {@code @NotNull}, {@code @@size}, etc.)
          * <p><b>Status HTTP:</b> 400 - Bad Request</p>
@@ -57,6 +59,14 @@
          */
         @ExceptionHandler(DataIntegrityViolationException.class)
         public ResponseEntity<ErrorResponseDTO> handleDataIntegrity(DataIntegrityViolationException ex) {
+            if (containsIgnoreCase(ex, DUPLICATE_CHECKLIST_INDEX)) {
+                return buildResponse(
+                        HttpStatus.CONFLICT,
+                        "Ja existe checklist ativo para esta turma, sala, periodo, dia e tipo.",
+                        null
+                );
+            }
+
             return buildResponse(HttpStatus.CONFLICT, "Conflito de integridade: o registro já existe ou viola regras de negócio.", null);
         }
         /**
@@ -216,5 +226,19 @@
                     errors
             );
             return ResponseEntity.status(status).body(errorResponseDTO);
+        }
+
+        private boolean containsIgnoreCase(Throwable throwable, String expected) {
+            Throwable current = throwable;
+
+            while (current != null) {
+                String message = current.getMessage();
+                if (message != null && message.toLowerCase().contains(expected.toLowerCase())) {
+                    return true;
+                }
+                current = current.getCause();
+            }
+
+            return false;
         }
     }

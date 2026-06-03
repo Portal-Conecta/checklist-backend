@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.shared.hub.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ public record HubMockProperties(
         this(classIds, userIds, roomIds, courseIds, Map.of());
     }
 
+    @ConstructorBinding
     public HubMockProperties {
         classIds = classIds == null ? List.of() : List.copyOf(classIds);
         userIds = userIds == null ? List.of() : List.copyOf(userIds);

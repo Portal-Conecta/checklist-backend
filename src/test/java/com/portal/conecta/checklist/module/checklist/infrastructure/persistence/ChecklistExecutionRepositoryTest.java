@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -61,6 +63,26 @@ class ChecklistExecutionRepositoryTest {
                 () -> assertTrue(query.contains("ce.started_at >= :startofday")),
                 () -> assertTrue(query.contains("ce.started_at < :endofday")),
                 () -> assertTrue(query.contains("ce.status <> 'canceled'"))
+        );
+    }
+
+    @Test
+    @DisplayName("deve declarar indice unico parcial para bloquear duplicidade concorrente")
+    void deveDeclararIndiceUnicoParcialParaBloquearDuplicidadeConcorrente() throws Exception {
+        String schema = Files.readString(Path.of("src/main/resources/schema-postgresql.sql"))
+                .replaceAll("\\s+", " ")
+                .trim()
+                .toLowerCase(Locale.ROOT);
+
+        assertAll(
+                () -> assertTrue(schema.contains("create unique index if not exists uidx_execution_no_duplicate")),
+                () -> assertTrue(schema.contains("on checklist_execution")),
+                () -> assertTrue(schema.contains("class_id")),
+                () -> assertTrue(schema.contains("room_id")),
+                () -> assertTrue(schema.contains("period")),
+                () -> assertTrue(schema.contains("checklist_type")),
+                () -> assertTrue(schema.contains("started_at::date")),
+                () -> assertTrue(schema.contains("where status <> 'canceled'"))
         );
     }
 

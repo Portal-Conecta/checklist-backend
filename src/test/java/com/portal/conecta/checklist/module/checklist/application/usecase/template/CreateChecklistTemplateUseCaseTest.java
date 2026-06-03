@@ -2,6 +2,7 @@ package com.portal.conecta.checklist.module.checklist.application.usecase.templa
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.module.checklist.application.mapper.ChecklistTemplateCommandMapper;
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.command.CreateChecklistTemplateUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistTemplateCreateRequest;

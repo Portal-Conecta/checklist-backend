@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.module.checklist.application.usecase.template;
+package com.portal.conecta.checklist.module.checklist.application.usecase.template.command;
 
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;

@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.template;
 
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.query.ListChecklistTemplatesUseCase;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;

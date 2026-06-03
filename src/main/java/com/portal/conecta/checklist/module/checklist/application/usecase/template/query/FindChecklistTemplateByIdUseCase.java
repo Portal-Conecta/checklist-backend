@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.module.checklist.application.usecase.template;
+package com.portal.conecta.checklist.module.checklist.application.usecase.template.query;
 
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;

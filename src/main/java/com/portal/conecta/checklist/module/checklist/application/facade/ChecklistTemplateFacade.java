@@ -1,9 +1,9 @@
 package com.portal.conecta.checklist.module.checklist.application.facade;
 
-import com.portal.conecta.checklist.module.checklist.application.usecase.template.ActivateChecklistTemplateUseCase;
-import com.portal.conecta.checklist.module.checklist.application.usecase.template.CreateChecklistTemplateUseCase;
-import com.portal.conecta.checklist.module.checklist.application.usecase.template.FindChecklistTemplateByIdUseCase;
-import com.portal.conecta.checklist.module.checklist.application.usecase.template.ListChecklistTemplatesUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.command.ActivateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.command.CreateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.query.FindChecklistTemplateByIdUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.query.ListChecklistTemplatesUseCase;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistTemplateMapper;

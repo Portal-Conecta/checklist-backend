@@ -40,11 +40,11 @@ public class ListChecklistHistoryByClassUseCase {
             throw new AccessDeniedException("Usuario nao tem permissao para consultar o historico desta turma.");
         }
 
-        List executions = repository.findByClassIdAndStatusOrderBySubmittedAtDesc(
+        return repository.findByClassIdAndStatusOrderBySubmittedAtDesc(
                 classId,
                 ChecklistExecutionStatus.SUBMITTED
         );
 
-        return executionMapper.toHistoryResponseList(executions);
+
     }
 }

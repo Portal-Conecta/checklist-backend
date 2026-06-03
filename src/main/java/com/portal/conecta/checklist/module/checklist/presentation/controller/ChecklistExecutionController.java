@@ -81,7 +81,11 @@ public class ChecklistExecutionController {
     public ResponseEntity<List<ChecklistExecutionHistoryDTO>> listHistoryByClass(
             @PathVariable UUID classId
     ) {
-        return ResponseEntity.ok(checklistExecutionMapper.toListHistory(listHistoryByClassUseCase.execute(classId)));
+        return ResponseEntity.ok
+                (checklistExecutionMapper.toListHistory(
+                        listHistoryByClassUseCase.execute(classId)
+                        )
+                );
     }
 
 }

@@ -198,11 +198,16 @@ public class ChecklistExecutionMapper {
                 execution.getComplianceScore(),
                 toInstant(execution.getStartedAt()),
                 toInstant(execution.getSubmittedAt()),
-                answers.summary()
+                answers == null ? null : answers.summary()
         );
     }
 
     public List<ChecklistExecutionHistoryDTO> toListHistory(List<ChecklistExecution> checklistExecutions){
+
+        if (checklistExecutions == null){
+            return List.of();
+        }
+
         return checklistExecutions
                 .stream()
                 .map(this::toHistoryResponse)

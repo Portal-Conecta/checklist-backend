@@ -8,6 +8,8 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.request.Ch
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistTemplateMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -38,7 +40,8 @@ public class ChecklistTemplateFacade {
         return checklistTemplateMapper.toResponse(template);
     }
 
-    public List<ChecklistTemplateResponseDTO> listTemplates() {
-        return checklistTemplateMapper.toResponseList(listChecklistTemplatesUseCase.execute());
+    public Page<ChecklistTemplateResponseDTO> listTemplates(Pageable pageable) {
+        return listChecklistTemplatesUseCase.execute(pageable)
+                .map(checklistTemplateMapper::toResponse);
     }
 }

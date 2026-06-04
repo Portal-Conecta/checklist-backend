@@ -9,6 +9,10 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.response.C
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -106,5 +110,25 @@ class ChecklistExecutionControllerTest {
 
         assertEquals("Somente checklists enviados podem ser cancelados.", excecao.getMessage());
         verify(facade).cancel(executionId);
+    }
+
+    @Test
+    @DisplayName("deve retornar lista paginada de execucoes")
+    void deveRetornarListaPaginadaDeExecucoes() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<ChecklistExecutionResponseDTO> page =
+                new PageImpl<>(java.util.List.of());
+
+        when(facade.listExecution(pageable))
+                .thenReturn(page);
+
+        ResponseEntity<Page<ChecklistExecutionResponseDTO>> result =
+                controller.listExecution(pageable);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(page, result.getBody());
+
+        verify(facade).listExecution(pageable);
     }
 }

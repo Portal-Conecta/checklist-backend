@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistSchemaDTO;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -37,14 +38,8 @@ public class ChecklistTemplateMapper {
         );
     }
 
-    public List<ChecklistTemplateResponseDTO> toResponseList(List<ChecklistTemplate> templates) {
-        if (templates == null) {
-            return List.of();
-        }
-
-        return templates.stream()
-                .map(this::toResponse)
-                .toList();
+    public Page<ChecklistTemplateResponseDTO> toResponsePage(Page<ChecklistTemplate> templates) {
+        return templates.map(this::toResponse);
     }
 
     public ChecklistSchemaDTO toSchemaDTO(Map<String, Object> schemaJson) {

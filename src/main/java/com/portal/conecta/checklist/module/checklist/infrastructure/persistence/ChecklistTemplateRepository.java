@@ -26,7 +26,7 @@ public interface ChecklistTemplateRepository extends JpaRepository<ChecklistTemp
                 SELECT id
                 FROM checklist_template
                 WHERE room_id = :roomId
-                AND active = true 
+                AND active = true
                 AND status = 'ACTIVE'
                 ORDER BY version Desc
                 LIMIT 1

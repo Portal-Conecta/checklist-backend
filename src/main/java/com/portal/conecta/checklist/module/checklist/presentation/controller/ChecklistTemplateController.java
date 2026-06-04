@@ -5,6 +5,8 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.response.C
 import com.portal.conecta.checklist.module.checklist.application.facade.ChecklistTemplateFacade;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,7 +45,7 @@ public class ChecklistTemplateController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ChecklistTemplateResponseDTO>> listTemplates() {
-        return ResponseEntity.ok(checklistTemplateFacade.listTemplates());
+    public ResponseEntity<Page<ChecklistTemplateResponseDTO>> listTemplates(Pageable pageable) {
+        return ResponseEntity.ok(checklistTemplateFacade.listTemplates(pageable));
     }
 }

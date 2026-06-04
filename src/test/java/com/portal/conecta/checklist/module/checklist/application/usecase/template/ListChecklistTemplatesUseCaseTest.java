@@ -5,50 +5,72 @@ import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 class ListChecklistTemplatesUseCaseTest {
 
     private final ChecklistTemplateRepository templateRepository = mock(ChecklistTemplateRepository.class);
     private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
-    private final ListChecklistTemplatesUseCase useCase = new ListChecklistTemplatesUseCase(
-            templateRepository,
-            contextProvider
-    );
+
+    private final ListChecklistTemplatesUseCase useCase =
+            new ListChecklistTemplatesUseCase(
+                    templateRepository,
+                    contextProvider
+            );
 
     @Test
     void shouldRejectApprenticeAccess() {
-        when(contextProvider.getRequestContext()).thenReturn(apprentice());
+        Pageable pageable = PageRequest.of(0, 10);
 
-        assertThrows(AccessDeniedException.class, useCase::execute);
+        when(contextProvider.getRequestContext())
+                .thenReturn(apprentice());
 
-        verify(templateRepository, never()).findAll();
+        assertThrows(
+                AccessDeniedException.class,
+                () -> useCase.execute(pageable)
+        );
+
+        verify(templateRepository, never())
+                .findAll(any(Pageable.class));
     }
 
     @Test
     void shouldAllowNonApprenticeAccess() {
-        when(contextProvider.getRequestContext()).thenReturn(senai());
-        when(templateRepository.findAll()).thenReturn(List.of());
+        Pageable pageable = PageRequest.of(0, 10);
 
-        useCase.execute();
+        when(contextProvider.getRequestContext())
+                .thenReturn(senai());
 
-        verify(templateRepository).findAll();
+        when(templateRepository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        useCase.execute(pageable);
+
+        verify(templateRepository)
+                .findAll(pageable);
     }
 
     private RequestContext apprentice() {
-        return new RequestContext(UUID.randomUUID(), TypeUser.STUDENT);
+        return new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.STUDENT
+        );
     }
 
     private RequestContext senai() {
-        return new RequestContext(UUID.randomUUID(), TypeUser.SENAI);
+        return new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.SENAI
+        );
     }
 }

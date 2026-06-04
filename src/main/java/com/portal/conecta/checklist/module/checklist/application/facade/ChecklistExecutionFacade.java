@@ -1,15 +1,15 @@
 package com.portal.conecta.checklist.module.checklist.application.facade;
 
 
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.CancelChecklistExecutionUseCase;
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.CreateChecklistExecutionUseCase;
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.SubmitChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.*;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -22,6 +22,9 @@ private final CreateChecklistExecutionUseCase createChecklistExecutionUseCase;
 private final SubmitChecklistExecutionUseCase submitChecklistExecutionUseCase;
 private final ChecklistExecutionMapper executionMapper;
 private final CancelChecklistExecutionUseCase cancelChecklistExecutionUseCase;
+private final FindChecklistExecutionByIdUseCase findExecutionByIdUseCase;
+private final ChecklistExecutionMapper checklistExecutionMapper;
+private final ListChecklistExecutionUseCase listChecklistExecutionUseCase;
 
     public ChecklistExecutionResponseDTO createDTO(ChecklistExecutionDraftCreateDTO request){
 
@@ -37,5 +40,13 @@ private final CancelChecklistExecutionUseCase cancelChecklistExecutionUseCase;
     public ChecklistExecutionResponseDTO cancel(UUID executionId){
         ChecklistExecution execution = cancelChecklistExecutionUseCase.execute(executionId);
         return  executionMapper.toResponse(execution);
+    }
+    public ChecklistExecutionResponseDTO findExecutionById(UUID executionId) {
+        var execution = findExecutionByIdUseCase.execute(executionId);
+        return checklistExecutionMapper.toResponse(execution);
+    }
+    public Page<ChecklistExecutionResponseDTO> listExecution(Pageable pageable){
+        return listChecklistExecutionUseCase.execute(pageable)
+                .map(checklistExecutionMapper::toResponse);
     }
 }

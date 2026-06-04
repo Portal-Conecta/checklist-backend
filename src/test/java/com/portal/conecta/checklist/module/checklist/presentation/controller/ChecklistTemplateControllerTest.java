@@ -4,6 +4,10 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.response.C
 import com.portal.conecta.checklist.module.checklist.application.facade.ChecklistTemplateFacade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -33,5 +37,24 @@ class ChecklistTemplateControllerTest {
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
         verify(facade).activateTemplate(templateId);
+    }
+    @Test
+    @DisplayName("deve retornar lista paginada de templates")
+    void deveRetornarListaPaginadaDeTemplates() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<ChecklistTemplateResponseDTO> page =
+                new PageImpl<>(java.util.List.of());
+
+        when(facade.listTemplates(pageable))
+                .thenReturn(page);
+
+        ResponseEntity<Page<ChecklistTemplateResponseDTO>> result =
+                controller.listTemplates(pageable);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(page, result.getBody());
+
+        verify(facade).listTemplates(pageable);
     }
 }

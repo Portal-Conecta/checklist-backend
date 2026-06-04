@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.module.checklist.application.usecase.execution.submit;
+package com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;

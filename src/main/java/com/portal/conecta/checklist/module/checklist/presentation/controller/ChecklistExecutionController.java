@@ -90,5 +90,12 @@ public class ChecklistExecutionController {
                 )
         );
     }
+    @PatchMapping("/{executionId}/answers")
+    public ResponseEntity<ChecklistExecutionResponseDTO> updateAnswers(
+            @PathVariable UUID executionId,
+            @RequestBody @Valid ChecklistExecutionSubmitDTO request
+    ) {
+        return ResponseEntity.ok(checklistExecutionFacade.updateAnswers(executionId, request));
+    }
 
 }

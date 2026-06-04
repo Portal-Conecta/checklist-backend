@@ -1,6 +1,6 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.execution;
 
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.create.CreateChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.create.CreateChecklistExecutionUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.module.checklist.domain.enums.Period;

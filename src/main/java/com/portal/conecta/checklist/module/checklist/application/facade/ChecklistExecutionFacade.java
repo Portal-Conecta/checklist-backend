@@ -1,10 +1,10 @@
 package com.portal.conecta.checklist.module.checklist.application.facade;
 
 
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.cancel.CancelChecklistExecutionUseCase;
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.create.CreateChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.cancel.CancelChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.create.CreateChecklistExecutionUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ListChecklistHistoryByClassUseCase;
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.submit.SubmitChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
@@ -84,5 +84,9 @@ public class ChecklistExecutionFacade {
         return executionMapper.toPageHistory(
                 listChecklistHistoryByClassUseCase.execute(classId, pageable)
         );
+    }
+    public ChecklistExecutionResponseDTO updateAnswers(UUID executionId,ChecklistExecutionSubmitDTO request){
+        return executionMapper.toAnswerResponse();
+
     }
 }

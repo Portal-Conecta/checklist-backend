@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.module.checklist.application.usecase.execution.cancel;
+package com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.cancel;
 
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;

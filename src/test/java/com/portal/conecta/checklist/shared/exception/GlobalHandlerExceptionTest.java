@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.shared.exception;
 
 import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
+import com.portal.conecta.checklist.module.checklist.domain.exception.SubmissionWindowViolationException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
+import java.time.LocalTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -93,6 +95,21 @@ class GlobalHandlerExceptionTest {
         assertNotNull(response.getBody());
         assertEquals(409, response.getBody().status());
         assertEquals("O registro foi alterado por outro usuário. Por favor, recarregue os dados e tente novamente.", response.getBody().message());
+        assertNull(response.getBody().errors());
+        assertNotNull(response.getBody().localDateTime());
+    }
+
+    @Test
+    @DisplayName("should return unprocessable entity when submission window is closed")
+    void shouldReturnUnprocessableEntityWhenSubmissionWindowIsClosed() {
+        ResponseEntity<ErrorResponseDTO> response = handler.handleWindowViolation(
+                new SubmissionWindowViolationException(LocalTime.of(7, 30), LocalTime.of(8, 0))
+        );
+
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(422, response.getBody().status());
+        assertEquals("Fora da janela de envio. Janela permitida: 07:30 ate 08:00.", response.getBody().message());
         assertNull(response.getBody().errors());
         assertNotNull(response.getBody().localDateTime());
     }

@@ -10,6 +10,7 @@ import java.util.UUID;
 
 public record SubmissionWindowResponseDTO(
         UUID id,
+        UUID classId,
         Shift shift,
         ChecklistType checklistType,
         @JsonFormat(pattern = "HH:mm") LocalTime openAt,

@@ -1,7 +1,6 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.window;
 
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
-import com.portal.conecta.checklist.module.checklist.domain.enums.Shift;
 import com.portal.conecta.checklist.module.checklist.domain.exception.SubmissionWindowViolationException;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistSubmissionWindow;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistSubmissionWindowRepository;
@@ -28,11 +27,6 @@ public class SubmissionWindowValidator {
 
     public void validate(UUID classId, ChecklistType checklistType) {
         windowRepository.findByClassIdAndChecklistType(classId, checklistType)
-                .ifPresent(this::validateWindow);
-    }
-
-    public void validate(Shift shift, ChecklistType checklistType) {
-        windowRepository.findByShiftAndChecklistType(shift, checklistType)
                 .ifPresent(this::validateWindow);
     }
 

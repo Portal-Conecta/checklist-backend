@@ -11,7 +11,13 @@ import java.util.UUID;
 
 public interface ChecklistSubmissionWindowRepository extends JpaRepository<ChecklistSubmissionWindow, UUID> {
 
+    Optional<ChecklistSubmissionWindow> findByClassIdAndChecklistType(UUID classId, ChecklistType checklistType);
+
     Optional<ChecklistSubmissionWindow> findByShiftAndChecklistType(Shift shift, ChecklistType checklistType);
+
+    List<ChecklistSubmissionWindow> findAllByClassIdOrderByChecklistTypeAsc(UUID classId);
+
+    List<ChecklistSubmissionWindow> findAllByOrderByClassIdAscChecklistTypeAsc();
 
     List<ChecklistSubmissionWindow> findAllByOrderByShiftAscChecklistTypeAsc();
 }

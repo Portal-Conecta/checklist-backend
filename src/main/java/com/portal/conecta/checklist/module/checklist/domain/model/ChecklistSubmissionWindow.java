@@ -14,8 +14,8 @@ import java.util.UUID;
 @Table(
         name = "checklist_submission_window",
         uniqueConstraints = @UniqueConstraint(
-                name = "uq_window_shift_type",
-                columnNames = {"shift", "checklist_type"}
+                name = "uq_window_class_type",
+                columnNames = {"class_id", "checklist_type"}
         )
 )
 @Getter
@@ -28,6 +28,9 @@ public class ChecklistSubmissionWindow {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(name = "class_id", nullable = false)
+    private UUID classId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "shift", nullable = false, length = 20)

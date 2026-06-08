@@ -10,6 +10,12 @@ import lombok.*;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Entidade que representa uma pendencia gerada por item nao conforme.
+ *
+ * <p>Relaciona a issue com a execucao do checklist, usuario responsavel, item
+ * afetado, prioridade, status e prazo de resolucao.</p>
+ */
 @Entity
 @Table(name = "checklist_issue")
 @Setter

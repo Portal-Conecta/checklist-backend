@@ -13,6 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Caso de uso responsavel por ativar um template de checklist.
+ *
+ * <p>A ativacao e uma acao gerencial: apenas usuarios autorizados para
+ * administrar templates podem alterar o status usado pelas execucoes.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class ActivateChecklistTemplateUseCase {

@@ -1,8 +1,12 @@
 package com.portal.conecta.checklist.module.checklist.presentation.controller;
 
-import com.portal.conecta.checklist.module.checklist.application.facade.ChecklistExecutionFacade;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.CancelChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.CreateChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.ListChecklistHistoryByClassUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.SubmitChecklistExecutionUseCase;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionHistoryDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
 import com.portal.conecta.checklist.shared.exception.ErrorResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,8 +16,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -79,6 +87,15 @@ public class ChecklistExecutionController {
             @RequestBody @Valid ChecklistExecutionDraftCreateDTO request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(checklistExecutionFacade.createDTO(request));
+    private final CreateChecklistExecutionUseCase createUseCase;
+    private final SubmitChecklistExecutionUseCase submitUseCase;
+    private final CancelChecklistExecutionUseCase cancelUseCase;
+    private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase;
+    private final ChecklistExecutionMapper mapper;
+
+    @PostMapping("/drafts")
+    public ResponseEntity<ChecklistExecutionResponseDTO> createDraft(@RequestBody @Valid ChecklistExecutionDraftCreateDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(createUseCase.execute(request)));
     }
 
     @Operation(
@@ -133,7 +150,7 @@ public class ChecklistExecutionController {
             @PathVariable UUID executionId,
             @RequestBody @Valid ChecklistExecutionSubmitDTO request
     ) {
-        return ResponseEntity.ok(checklistExecutionFacade.submit(executionId, request));
+        return ResponseEntity.ok(mapper.toResponse(submitUseCase.execute(executionId, request)));
     }
 
     @Operation(
@@ -183,5 +200,16 @@ public class ChecklistExecutionController {
             @PathVariable UUID executionId
     ) {
         return ResponseEntity.ok(checklistExecutionFacade.cancel(executionId));
+    @PatchMapping("/{executionId}/cancel")
+    public ResponseEntity<ChecklistExecutionResponseDTO> cancel(@PathVariable UUID executionId) {
+        return ResponseEntity.ok(mapper.toResponse(cancelUseCase.execute(executionId)));
+    }
+
+    @GetMapping("/history/class/{classId}")
+    public ResponseEntity<Page<ChecklistExecutionHistoryDTO>> listHistoryByClass(
+            @PathVariable UUID classId,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return ResponseEntity.ok(mapper.toPageHistory(listHistoryByClassUseCase.execute(classId, pageable)));
     }
 }

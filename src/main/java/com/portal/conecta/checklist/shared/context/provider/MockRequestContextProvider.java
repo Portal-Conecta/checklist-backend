@@ -10,6 +10,12 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Provider de contexto autenticado usado em testes.
+ *
+ * <p>Cria um {@link RequestContext} fixo a partir de propriedades mockadas,
+ * evitando dependencia do filtro JWT em testes de aplicacao.</p>
+ */
 @Component
 @Profile("test")
 public class MockRequestContextProvider implements RequestContextProvider {

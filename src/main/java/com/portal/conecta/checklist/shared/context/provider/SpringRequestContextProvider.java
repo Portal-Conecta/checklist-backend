@@ -7,6 +7,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+/**
+ * Provider que resolve o usuario autenticado a partir do Spring Security.
+ *
+ * <p>Le o principal salvo no {@code SecurityContextHolder} pelo filtro JWT e
+ * entrega o {@link RequestContext} para os use cases.</p>
+ */
 @Component
 @Profile("!test")
 public class SpringRequestContextProvider implements RequestContextProvider {

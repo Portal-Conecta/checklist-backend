@@ -1,8 +1,23 @@
 package com.portal.conecta.checklist.shared.hub.provider.room;
 
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.RoomReference;
+
+import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Contrato para validar salas conhecidas pelo Hub.
+ *
+ * <p>Permite que o modulo Checklist dependa apenas de um identificador de sala,
+ * mantendo os dados completos centralizados no Hub.</p>
+ */
 public interface HubRoomProvider {
 
     boolean existsById(UUID roomId);
+
+    default Optional<RoomReference> findById(UUID roomId) {
+        return existsById(roomId)
+                ? Optional.of(new RoomReference(roomId))
+                : Optional.empty();
+    }
 }

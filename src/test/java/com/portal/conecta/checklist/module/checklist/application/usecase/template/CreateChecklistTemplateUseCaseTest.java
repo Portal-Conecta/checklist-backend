@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.template;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.module.checklist.application.mapper.ChecklistTemplateCommandMapper;
+import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistTemplateMapper;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistTemplateCreateRequest;
@@ -32,7 +32,7 @@ class CreateChecklistTemplateUseCaseTest {
     private final ChecklistTemplateRepository templateRepository = mock(ChecklistTemplateRepository.class);
     private final HubRoomProvider hubRoomProvider = mock(HubRoomProvider.class);
     private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
-    private final ChecklistTemplateCommandMapper mapper = new ChecklistTemplateCommandMapper(new ObjectMapper());
+    private final ChecklistTemplateMapper mapper = new ChecklistTemplateMapper(new ObjectMapper());
     private final CreateChecklistTemplateUseCase useCase = new CreateChecklistTemplateUseCase(
             templateRepository,
             hubRoomProvider,

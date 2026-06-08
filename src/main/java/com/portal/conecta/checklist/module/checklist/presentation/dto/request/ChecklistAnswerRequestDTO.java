@@ -6,6 +6,12 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.Instant;
 
+/**
+ * DTO de entrada para a resposta de um item do checklist.
+ *
+ * <p>Representa o valor de conformidade enviado no submit e a observacao
+ * opcional exigida em cenarios de nao conformidade.</p>
+ */
 public record ChecklistAnswerRequestDTO(
         @NotBlank(message = "itemKey e obrigatorio.")
         String itemKey,

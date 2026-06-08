@@ -3,6 +3,12 @@ package com.portal.conecta.checklist.shared.context;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Contexto do usuario autenticado usado pelas regras de autorizacao.
+ *
+ * <p>Concentra o usuario, perfil global e vinculos com turmas recebidos do
+ * token do Hub, oferecendo metodos de permissao para o modulo Checklist.</p>
+ */
 public record RequestContext(
         UUID userId,
         TypeUser userType,

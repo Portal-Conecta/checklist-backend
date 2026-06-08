@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.module.issues.presentation.response;
+package com.portal.conecta.checklist.module.issues.presentation.dto.response;
 
 import com.portal.conecta.checklist.module.issues.domain.enums.IssuePriority;
 import com.portal.conecta.checklist.module.issues.domain.enums.IssueStatus;

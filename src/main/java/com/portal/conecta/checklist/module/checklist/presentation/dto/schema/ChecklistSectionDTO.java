@@ -8,6 +8,12 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
+/**
+ * DTO que representa uma secao do schema de checklist.
+ *
+ * <p>Agrupa itens relacionados por chave e ordem, permitindo construir
+ * formularios de verificacao organizados por blocos.</p>
+ */
 public record ChecklistSectionDTO(
         @NotBlank(message = "section.key e obrigatorio.")
         String key,

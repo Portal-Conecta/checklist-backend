@@ -4,6 +4,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+/**
+ * DTO que descreve um item dentro do schema de checklist.
+ *
+ * <p>Define chave estavel, titulo, descricao, obrigatoriedade e ordem de
+ * exibicao usados durante a execucao.</p>
+ */
 public record ChecklistItemDTO(
         @NotBlank(message = "item.key e obrigatorio.")
         String key,

@@ -67,6 +67,23 @@ class GlobalHandlerExceptionTest {
     }
 
     @Test
+    @DisplayName("should return conflict with duplicate checklist message when unique index fails")
+    void shouldReturnConflictWithDuplicateChecklistMessageWhenUniqueIndexFails() {
+        ResponseEntity<ErrorResponseDTO> response = handler.handleDataIntegrity(
+                new DataIntegrityViolationException(
+                        "duplicate key value violates unique constraint \"uidx_execution_no_duplicate\""
+                )
+        );
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(409, response.getBody().status());
+        assertEquals("Ja existe checklist ativo para esta turma, sala, periodo, dia e tipo.", response.getBody().message());
+        assertNull(response.getBody().errors());
+        assertNotNull(response.getBody().localDateTime());
+    }
+
+    @Test
     @DisplayName("should return conflict when optimistic locking fails")
     void shouldReturnConflictWhenOptimisticLockingFails() {
         ResponseEntity<ErrorResponseDTO> response =

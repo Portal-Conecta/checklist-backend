@@ -4,16 +4,16 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ConformityAnswerValue;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Shift;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistAnswerRequestDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistAnswerResponseDTO;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistAnswersDTO;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionSummaryDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.response.*;
 import com.portal.conecta.checklist.module.issues.presentation.mapper.ChecklistIssueMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -24,6 +24,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Mapper responsável por converter execuções de checklist entre entidades de domínio,
+ * estruturas JSON de respostas e DTOs usados pela camada de apresentação.
+ *
+ * <p>Converte DTOs e entidades, alem de transformar respostas entre objetos
+ * tipados e a representacao JSON persistida.</p>
+ */
 @Component
 public class ChecklistExecutionMapper {
 
@@ -37,11 +44,22 @@ public class ChecklistExecutionMapper {
         this.issueMapper = issueMapper;
     }
 
+    /**
+     * Cria uma entidade de execução em rascunho a partir da requisição inicial.
+     *
+     * @param request dados informados para criar o rascunho.
+     * @param template template de checklist associado à execução.
+     * @param filledBy identificador do usuário responsável pelo preenchimento.
+     * @param startedAt data e hora de início da execução.
+     * @return entidade de execução em rascunho ou {@code null} quando a requisição for nula.
+     */
     public ChecklistExecution toDraftEntity(
             ChecklistExecutionDraftCreateDTO request,
             ChecklistTemplate template,
             UUID filledBy,
-            LocalDateTime startedAt
+            LocalDateTime startedAt,
+            Shift shift,
+            Period period
     ) {
         if (request == null) {
             return null;
@@ -52,7 +70,8 @@ public class ChecklistExecutionMapper {
                 .roomId(request.roomId())
                 .classId(request.classId())
                 .userId(filledBy)
-                .period(request.period())
+                .shift(shift)
+                .period(period)
                 .checklistType(request.checklistType())
                 .status(ChecklistExecutionStatus.DRAFT)
                 .answersJson(toAnswersJson(emptyAnswers()))
@@ -60,6 +79,12 @@ public class ChecklistExecutionMapper {
                 .build();
     }
 
+    /**
+     * Converte uma execução de checklist para o DTO completo de resposta.
+     *
+     * @param execution entidade de execução a ser convertida.
+     * @return DTO completo da execução ou {@code null} quando a entidade for nula.
+     */
     public ChecklistExecutionResponseDTO toResponse(ChecklistExecution execution) {
         if (execution == null) {
             return null;
@@ -87,6 +112,12 @@ public class ChecklistExecutionMapper {
         );
     }
 
+    /**
+     * Converte a requisição de submissão para o JSON estruturado de respostas.
+     *
+     * @param request requisição contendo as respostas enviadas.
+     * @return mapa compatível com o campo JSON de respostas da entidade.
+     */
     public Map<String, Object> toAnswersJson(ChecklistExecutionSubmitDTO request) {
         if (request == null) {
             return toAnswersJson(emptyAnswers());
@@ -100,10 +131,22 @@ public class ChecklistExecutionMapper {
         return toAnswersJson(new ChecklistAnswersDTO(answers, summarize(answers)));
     }
 
+    /**
+     * Converte um DTO de respostas para a estrutura JSON persistível.
+     *
+     * @param answers DTO de respostas e resumo.
+     * @return mapa compatível com o campo JSON de respostas da entidade.
+     */
     public Map<String, Object> toAnswersJson(ChecklistAnswersDTO answers) {
         return objectMapper.convertValue(answers == null ? emptyAnswers() : answers, MAP_TYPE);
     }
 
+    /**
+     * Converte a estrutura JSON persistida para DTO de respostas.
+     *
+     * @param answersJson mapa persistido com itens e resumo das respostas.
+     * @return DTO de respostas ou uma estrutura vazia quando o JSON for nulo ou vazio.
+     */
     public ChecklistAnswersDTO toAnswersDTO(Map<String, Object> answersJson) {
         if (answersJson == null || answersJson.isEmpty()) {
             return emptyAnswers();
@@ -112,6 +155,12 @@ public class ChecklistExecutionMapper {
         return objectMapper.convertValue(answersJson, ChecklistAnswersDTO.class);
     }
 
+    /**
+     * Converte uma resposta recebida na submissão para o DTO usado nas respostas persistidas.
+     *
+     * @param answer resposta informada para um item do checklist.
+     * @return resposta convertida ou {@code null} quando a entrada for nula.
+     */
     public ChecklistAnswerResponseDTO toAnswerResponse(ChecklistAnswerRequestDTO answer) {
         if (answer == null) {
             return null;
@@ -126,6 +175,61 @@ public class ChecklistExecutionMapper {
                 answer.observation(),
                 answer.answeredAt()
         );
+    }
+
+    /**
+     * Converte uma execução para o DTO resumido usado na consulta de histórico.
+     *
+     * @param execution execução de checklist a ser convertida.
+     * @return item de histórico ou {@code null} quando a execução for nula.
+     */
+    public ChecklistExecutionHistoryDTO toHistoryResponse(ChecklistExecution execution) {
+        if (execution == null) {
+            return null;
+        }
+
+        ChecklistTemplate template = execution.getChecklistTemplate();
+        ChecklistAnswersDTO answers = toAnswersDTO(execution.getAnswersJson());
+
+        return new ChecklistExecutionHistoryDTO(
+                execution.getId(),
+                template == null ? null : template.getId(),
+                template == null ? null : template.getVersion(),
+                execution.getRoomId(),
+                execution.getClassId(),
+                execution.getUserId(),
+                execution.getPeriod(),
+                execution.getChecklistType(),
+                execution.getStatus(),
+                execution.getComplianceScore(),
+                toInstant(execution.getStartedAt()),
+                toInstant(execution.getSubmittedAt()),
+                answers == null ? null : answers.summary()
+        );
+    }
+
+    public Page<ChecklistExecutionHistoryDTO> toPageHistory(Page<ChecklistExecution> checklistExecutions) {
+        if (checklistExecutions == null) {
+            return Page.empty();
+        }
+
+        return checklistExecutions.map(this::toHistoryResponse);
+    }
+
+    /**
+     * Converte uma lista de execuções para itens de histórico.
+     *
+     * @param executions execuções retornadas pela consulta.
+     * @return lista de DTOs de histórico ou lista vazia quando a entrada for nula.
+     */
+    public List<ChecklistExecutionHistoryDTO> toHistoryResponseList(List<ChecklistExecution> executions) {
+        if (executions == null) {
+            return List.of();
+        }
+
+        return executions.stream()
+                .map(this::toHistoryResponse)
+                .toList();
     }
 
     private ChecklistAnswersDTO emptyAnswers() {

@@ -11,8 +11,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * consulta no banco dados relacionados á entidade ChecklistTemplate
+ */
 @Repository
 public interface ChecklistTemplateRepository extends JpaRepository<ChecklistTemplate, UUID> {
+    /**
+     * @param roomId indentificação de uma sala
+     * @return conta quantos checklists tem para uma sala
+     */
 
     @Query(value = "SELECT COUNT(*) " +
             "FROM checklist_template" +
@@ -22,6 +29,10 @@ public interface ChecklistTemplateRepository extends JpaRepository<ChecklistTemp
             , nativeQuery = true)
     Long countActiveTemplatesByRoomId(@Param("roomId") UUID roomId);
 
+    /**
+     * @param roomId indentificação de uma sala
+     * @return busca o ID do checklist ativo da sala (mais recente)
+     */
     @Query(value = """
                 SELECT id
                 FROM checklist_template
@@ -33,6 +44,10 @@ public interface ChecklistTemplateRepository extends JpaRepository<ChecklistTemp
             """, nativeQuery = true)
     Optional<UUID> findLatestActiveTemplateByRoomId(@Param("roomId") UUID roomId);
 
+    /**
+     * @param roomId indentificação de uma sala
+     * @return verifica se existe várias checklists ativos na mesma sala
+     */
     @Query(value = """
             SELECT COUNT(id)
             FROM checklist_template
@@ -45,6 +60,10 @@ public interface ChecklistTemplateRepository extends JpaRepository<ChecklistTemp
             """, nativeQuery = true)
     Long countActiveTemplateConflictsByRoomId(@Param("roomId") UUID roomId);
 
+    /**
+     * @param templateId indentificação de uma sala
+     * @return busca uma checklist pelo ID utilizando SQL nativo
+     */
     @Query(value = """
         SELECT *
         FROM checklist_template
@@ -52,5 +71,11 @@ public interface ChecklistTemplateRepository extends JpaRepository<ChecklistTemp
         """, nativeQuery = true)
     Optional<ChecklistTemplate> findTemplateByIdNative(@Param("templateId") UUID templateId);
 
+    /**
+     *
+     * @param roomId indentificação de uma sala
+     * @param status verifica os status da checklist
+     * @return cria a query automaticamente pelo nome do método.
+     */
     List<ChecklistTemplate> findByRoomIdAndActiveTrueAndStatus(UUID roomId, ChecklistTemplateStatus status);
 }

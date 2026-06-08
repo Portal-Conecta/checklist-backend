@@ -6,10 +6,8 @@ import com.portal.conecta.checklist.module.checklist.application.usecase.templat
 import com.portal.conecta.checklist.module.checklist.application.usecase.template.ListChecklistTemplatesUseCase;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistTemplateResponseDTO;
-import com.portal.conecta.checklist.module.checklist.application.facade.ChecklistTemplateFacade;
 import com.portal.conecta.checklist.shared.exception.ErrorResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -120,11 +118,6 @@ public class ChecklistTemplateController {
             )
     })
     @PatchMapping("/{templateId}/activate")
-    public ResponseEntity<ChecklistTemplateResponseDTO> activateTemplate(
-            @Parameter(description = "UUID do template a ser ativado", required = true)
-            @PathVariable UUID templateId
-    ) {
-        return ResponseEntity.ok(checklistTemplateFacade.activateTemplate(templateId));
     public ResponseEntity<ChecklistTemplateResponseDTO> activateTemplate(@PathVariable UUID templateId) {
         return ResponseEntity.ok(mapper.toResponse(activateUseCase.execute(templateId)));
     }
@@ -166,11 +159,6 @@ public class ChecklistTemplateController {
             )
     })
     @GetMapping("/{templateId}")
-    public ResponseEntity<ChecklistTemplateResponseDTO> findTemplateById(
-            @Parameter(description = "UUID do template a ser buscado", required = true)
-            @PathVariable UUID templateId
-    ) {
-        return ResponseEntity.ok(checklistTemplateFacade.findTemplateById(templateId));
     public ResponseEntity<ChecklistTemplateResponseDTO> findTemplateById(@PathVariable UUID templateId) {
         return ResponseEntity.ok(mapper.toResponse(findByIdUseCase.execute(templateId)));
     }

@@ -34,7 +34,11 @@ import java.util.UUID;
 @Tag(name = "Checklist Executions", description = "Endpoints para gerenciamento de execuções de checklist")
 public class ChecklistExecutionController {
 
-    private final ChecklistExecutionFacade checklistExecutionFacade;
+    private final CreateChecklistExecutionUseCase createUseCase;
+    private final SubmitChecklistExecutionUseCase submitUseCase;
+    private final CancelChecklistExecutionUseCase cancelUseCase;
+    private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase;
+    private final ChecklistExecutionMapper mapper;
 
     @Operation(
             summary = "Criar rascunho de execução",
@@ -82,17 +86,6 @@ public class ChecklistExecutionController {
                     content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
             )
     })
-    @PostMapping("/drafts")
-    public ResponseEntity<ChecklistExecutionResponseDTO> createDraft(
-            @RequestBody @Valid ChecklistExecutionDraftCreateDTO request
-    ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(checklistExecutionFacade.createDTO(request));
-    private final CreateChecklistExecutionUseCase createUseCase;
-    private final SubmitChecklistExecutionUseCase submitUseCase;
-    private final CancelChecklistExecutionUseCase cancelUseCase;
-    private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase;
-    private final ChecklistExecutionMapper mapper;
-
     @PostMapping("/drafts")
     public ResponseEntity<ChecklistExecutionResponseDTO> createDraft(@RequestBody @Valid ChecklistExecutionDraftCreateDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(createUseCase.execute(request)));
@@ -194,12 +187,7 @@ public class ChecklistExecutionController {
                     content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
             )
     })
-    @PatchMapping("/{executionId}/cancel")
-    public ResponseEntity<ChecklistExecutionResponseDTO> cancel(
-            @Parameter(description = "UUID da execução a ser cancelada", required = true)
-            @PathVariable UUID executionId
-    ) {
-        return ResponseEntity.ok(checklistExecutionFacade.cancel(executionId));
+
     @PatchMapping("/{executionId}/cancel")
     public ResponseEntity<ChecklistExecutionResponseDTO> cancel(@PathVariable UUID executionId) {
         return ResponseEntity.ok(mapper.toResponse(cancelUseCase.execute(executionId)));

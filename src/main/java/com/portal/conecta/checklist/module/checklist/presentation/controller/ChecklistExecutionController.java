@@ -4,14 +4,6 @@ import com.portal.conecta.checklist.module.checklist.application.facade.Checklis
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
-import com.portal.conecta.checklist.shared.exception.ErrorResponseDTO;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,165 +15,27 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/checklist-executions")
 @RequiredArgsConstructor
-@Tag(name = "Checklist Executions", description = "Endpoints para gerenciamento de execuções de checklist")
 public class ChecklistExecutionController {
 
     private final ChecklistExecutionFacade checklistExecutionFacade;
 
-    @Operation(
-            summary = "Criar rascunho de execução",
-            description = "Inicia uma nova execução de checklist no status DRAFT a partir de um template ativo."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "201",
-                    description = "Rascunho de execução criado com sucesso",
-                    content = @Content(schema = @Schema(implementation = ChecklistExecutionResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Dados inválidos no corpo da requisição (campos obrigatórios ausentes ou JSON malformado)",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Não autenticado — token JWT ausente ou inválido",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Sem permissão para criar execuções de checklist",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Template não encontrado para o ID informado",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "Conflito de estado — o template referenciado não está ativo",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "503",
-                    description = "Serviço externo (Hub) ou banco de dados temporariamente indisponível",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Erro interno inesperado no servidor",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            )
-    })
+
     @PostMapping("/drafts")
-    public ResponseEntity<ChecklistExecutionResponseDTO> createDraft(
-            @RequestBody @Valid ChecklistExecutionDraftCreateDTO request
-    ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(checklistExecutionFacade.createDTO(request));
+    public ResponseEntity<ChecklistExecutionResponseDTO> createDraft(@RequestBody @Valid ChecklistExecutionDraftCreateDTO request) {
+      return ResponseEntity.status(HttpStatus.CREATED).body(checklistExecutionFacade.createDTO(request));
     }
 
-    @Operation(
-            summary = "Submeter execução",
-            description = "Finaliza uma execução em DRAFT, registrando todas as respostas e alterando o status para SUBMITTED."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Execução submetida com sucesso",
-                    content = @Content(schema = @Schema(implementation = ChecklistExecutionResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Dados inválidos no corpo da requisição (respostas ausentes ou JSON malformado)",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Não autenticado — token JWT ausente ou inválido",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Sem permissão para submeter esta execução",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Execução não encontrada para o ID informado",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "Conflito de estado — a execução não está no status DRAFT ou foi alterada por outro usuário (optimistic locking)",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "503",
-                    description = "Serviço externo (Hub) ou banco de dados temporariamente indisponível",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Erro interno inesperado no servidor",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            )
-    })
     @PostMapping("/{executionId}/submit")
     public ResponseEntity<ChecklistExecutionResponseDTO> submit(
-            @Parameter(description = "UUID da execução a ser submetida", required = true)
             @PathVariable UUID executionId,
             @RequestBody @Valid ChecklistExecutionSubmitDTO request
     ) {
         return ResponseEntity.ok(checklistExecutionFacade.submit(executionId, request));
     }
-
-    @Operation(
-            summary = "Cancelar execução",
-            description = "Cancela uma execução em andamento, alterando seu status para CANCELLED. Execuções já submetidas não podem ser canceladas."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Execução cancelada com sucesso",
-                    content = @Content(schema = @Schema(implementation = ChecklistExecutionResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Formato inválido para o executionId (deve ser um UUID válido)",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Não autenticado — token JWT ausente ou inválido",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Sem permissão para cancelar esta execução",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Execução não encontrada para o ID informado",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "Conflito de estado — a execução já foi submetida ou cancelada e não pode ser cancelada novamente",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Erro interno inesperado no servidor",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
-            )
-    })
     @PatchMapping("/{executionId}/cancel")
-    public ResponseEntity<ChecklistExecutionResponseDTO> cancel(
-            @Parameter(description = "UUID da execução a ser cancelada", required = true)
+    public ResponseEntity<ChecklistExecutionResponseDTO>cancel(
             @PathVariable UUID executionId
-    ) {
+    ){
         return ResponseEntity.ok(checklistExecutionFacade.cancel(executionId));
     }
 }

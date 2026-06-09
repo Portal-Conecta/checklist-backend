@@ -35,7 +35,7 @@ class HubJwtTokenProviderTest {
                 "userType", "REPRESENTATIVE",
                 "classes", List.of(Map.of(
                         "classId", classId.toString(),
-                        "role", "REPRESENTATIVE"
+                        "classRole", "REPRESENTATIVE"
                 ))
         ), userId, Instant.now().plusSeconds(3600));
 
@@ -63,11 +63,11 @@ class HubJwtTokenProviderTest {
                 "classes", List.of(
                         Map.of(
                                 "classId", teacherClassId.toString(),
-                                "role", "TEACHER"
+                                "classRole", "TEACHER"
                         ),
                         Map.of(
                                 "classId", studentClassId.toString(),
-                                "role", "STUDENT"
+                                "classRole", "STUDENT"
                         )
                 )
         ), userId, Instant.now().plusSeconds(3600));
@@ -116,7 +116,7 @@ class HubJwtTokenProviderTest {
                 "userType", "REPRESENTATIVE",
                 "classes", List.of(Map.of(
                         "classId", "turma-1",
-                        "role", "REPRESENTATIVE"
+                        "classRole", "REPRESENTATIVE"
                 ))
         ), UUID.randomUUID(), Instant.now().plusSeconds(3600));
 
@@ -130,14 +130,14 @@ class HubJwtTokenProviderTest {
                 "userType", "INVALID_USER_TYPE",
                 "classes", List.of(Map.of(
                         "classId", UUID.randomUUID().toString(),
-                        "role", "REPRESENTATIVE"
+                        "classRole", "REPRESENTATIVE"
                 ))
         ), UUID.randomUUID(), Instant.now().plusSeconds(3600));
         String tokenWithInvalidClassRole = token(Map.of(
                 "userType", "REPRESENTATIVE",
                 "classes", List.of(Map.of(
                         "classId", UUID.randomUUID().toString(),
-                        "role", "INVALID_CLASS_ROLE"
+                        "classRole", "INVALID_CLASS_ROLE"
                 ))
         ), UUID.randomUUID(), Instant.now().plusSeconds(3600));
 

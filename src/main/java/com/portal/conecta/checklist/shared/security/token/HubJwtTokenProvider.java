@@ -36,7 +36,7 @@ import java.util.UUID;
  *   <li>{@code iat} — Timestamp de emissão</li>
  *   <li>{@code exp} — Timestamp de expiração</li>
  *   <li>{@code userType} — Tipo do utilizador (valores de {@link TypeUser})</li>
- *   <li>{@code classes} — lista de vínculos {@code [{classId, role}]} (opcional)</li>
+ *   <li>{@code classes} — lista de vínculos {@code [{classId, classRole}]} (opcional)</li>
  * </ul>
  *
  * <p>Após validar as claims, verifica se o utilizador ainda existe no Hub via
@@ -141,7 +141,7 @@ public class HubJwtTokenProvider {
 
             classLinks.add(new ContextClass(
                     requiredUuid(classLink.get("classId"), "classes[].classId"),
-                    requiredAllowedString(classLink.get("role"), "classes[].role", HUB_CLASS_ROLES)
+                    requiredAllowedString(classLink.get("classRole"), "classes[].classRole", HUB_CLASS_ROLES)
             ));
         }
 

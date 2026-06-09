@@ -3,6 +3,8 @@ package com.portal.conecta.checklist;
 import com.portal.conecta.checklist.shared.config.EnvFileLoader;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator;
 
 /**
  * Ponto de entrada da Checklist API.
@@ -12,6 +14,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * depender de configuracao global da maquina.</p>
  */
 @SpringBootApplication
+@ComponentScan(nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class)
 public class Application {
 
 	public static void main(String[] args) {

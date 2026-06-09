@@ -138,6 +138,6 @@ public class ChecklistExecution {
      */
     public void addIssue(ChecklistIssue issue) {
         issues.add(issue);
-        //issue.setChecklistExecution(this);
+        issue.setChecklistExecution(this);
     }
 }

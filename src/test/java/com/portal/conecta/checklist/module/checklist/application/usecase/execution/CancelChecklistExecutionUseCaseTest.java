@@ -1,6 +1,6 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.execution;
 
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.cancel.CancelChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.cancel.CancelChecklistExecutionCommandUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
@@ -34,7 +34,7 @@ class CancelChecklistExecutionUseCaseTest {
     private RequestContextProvider contextProvider;
 
     @InjectMocks
-    private CancelChecklistExecutionUseCase cancelChecklistExecutionUseCase;
+    private CancelChecklistExecutionCommandUseCase cancelChecklistExecutionUseCase;
 
     @Test
     @DisplayName("deve cancelar execucao com status SUBMITTED com sucesso")

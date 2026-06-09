@@ -24,7 +24,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class CancelChecklistExecutionUseCase {
+public class CancelChecklistExecutionCommandUseCase {
 
 
     private final ChecklistExecutionRepository executionRepository;

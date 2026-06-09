@@ -30,8 +30,8 @@ public class UpdateChecklistExecutionAnswersUseCase {
     @Transactional
     public ChecklistExecution execute(UUID executionId, ChecklistExecutionSubmitDTO request){
 
-        ChecklistExecution execution = repository.findById(executionId).
-                orElseThrow(() -> new EntityNotFoundException("Execucao de checklist não encontrada."));
+        ChecklistExecution execution = repository.findById(executionId)
+                .orElseThrow(() -> new EntityNotFoundException("Execucao de checklist não encontrada: " + executionId));
 
 
         var currentUser = contextProvider.getRequestContext();
@@ -42,7 +42,7 @@ public class UpdateChecklistExecutionAnswersUseCase {
         }
 
         if (execution.getStatus() != ChecklistExecutionStatus.SUBMITTED){
-            throw new IllegalStateException("Somente checklists que forma enviadas podem ser editadas");
+            throw new IllegalStateException("Somente checklists que foram enviadas podem ser editadas.");
 
         }
 

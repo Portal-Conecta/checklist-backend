@@ -1,6 +1,8 @@
 package com.portal.conecta.checklist.module.checklist.application.facade;
 
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.cancel.CancelChecklistExecutionCommandUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.create.CreateChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ListChecklistHistoryByClassUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
@@ -10,7 +12,6 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.response.C
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.cancel.CancelChecklistExecutionUseCase;
 
 import java.util.UUID;
 
@@ -25,13 +26,16 @@ class ChecklistExecutionFacadeTest {
     private final SubmitChecklistExecutionUseCase submitChecklistExecutionUseCase = mock(SubmitChecklistExecutionUseCase.class);
     private final ChecklistExecutionMapper executionMapper = mock(ChecklistExecutionMapper.class);
     private final ListChecklistHistoryByClassUseCase listChecklistHistoryByClassUseCase = mock(ListChecklistHistoryByClassUseCase.class);
-    private final CancelChecklistExecutionUseCase cancelChecklistExecutionUseCase = mock(CancelChecklistExecutionUseCase.class); // ← essa linha estava faltando
+    private final CancelChecklistExecutionCommandUseCase cancelChecklistExecutionUseCase = mock(CancelChecklistExecutionCommandUseCase.class); // ← essa linha estava faltando
+    private final UpdateChecklistExecutionAnswersUseCase updateChecklistExecutionAnswersUseCase = mock(UpdateChecklistExecutionAnswersUseCase.class); // ← ADICIONE ESTA LINHA
     private final ChecklistExecutionFacade facade = new ChecklistExecutionFacade(
             createChecklistExecutionUseCase,
             submitChecklistExecutionUseCase,
             executionMapper,
             cancelChecklistExecutionUseCase,
-            listChecklistHistoryByClassUseCase
+            listChecklistHistoryByClassUseCase,
+            updateChecklistExecutionAnswersUseCase
+
     );
 
     @Test

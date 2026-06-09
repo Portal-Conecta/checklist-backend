@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.module.checklist.application.facade;
 
 
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.cancel.CancelChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.cancel.CancelChecklistExecutionCommandUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.create.CreateChecklistExecutionUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ListChecklistHistoryByClassUseCase;
@@ -32,9 +32,10 @@ public class ChecklistExecutionFacade {
     private final CreateChecklistExecutionUseCase createChecklistExecutionUseCase;
     private final SubmitChecklistExecutionUseCase submitChecklistExecutionUseCase;
     private final ChecklistExecutionMapper executionMapper;
-    private final CancelChecklistExecutionUseCase cancelChecklistExecutionUseCase;
+    private final CancelChecklistExecutionCommandUseCase cancelChecklistExecutionUseCase;
     private final ListChecklistHistoryByClassUseCase listChecklistHistoryByClassUseCase;
     private final UpdateChecklistExecutionAnswersUseCase updateChecklistExecutionAnswersUseCase;
+
 
 
 
@@ -67,7 +68,7 @@ public class ChecklistExecutionFacade {
     /**
      * Cancela uma execução de checklist.
      *
-     * <p>Delega as regras de cancelamento para {@link CancelChecklistExecutionUseCase}
+     * <p>Delega as regras de cancelamento para {@link CancelChecklistExecutionCommandUseCase}
      * e retorna a execução com o status atualizado.</p>
      *
      * @param executionId identificador único da execução do checklist a ser cancelada.

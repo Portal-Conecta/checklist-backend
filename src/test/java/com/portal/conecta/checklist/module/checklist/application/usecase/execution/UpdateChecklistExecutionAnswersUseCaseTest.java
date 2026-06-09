@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.execution;
 
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.core.ChecklistExecutionScoringService;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
@@ -38,6 +39,9 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
     @Mock
     private ChecklistExecutionMapper executionMapper;
 
+    @Mock
+    private ChecklistExecutionScoringService scoringService;
+
     @InjectMocks
     private UpdateChecklistExecutionAnswersUseCase updateChecklistExecutionAnswersUseCase;
 
@@ -62,6 +66,7 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
 
         assertNotNull(resultado);
         verify(executionRepository, times(1)).findById(executionId);
+        verify(scoringService, times(1)).calculateComplianceScore(any());
         verify(executionMapper, times(1)).toAnswersJson(request);
         verify(executionRepository, times(1)).save(execution);
     }

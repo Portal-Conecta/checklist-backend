@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.GetMapping;
 public interface HubUserClient {
 
     @GetMapping("/me/courses")
-    void validateCurrentUser();
+    HubMyListCourseResponse findMyCourses();
 }

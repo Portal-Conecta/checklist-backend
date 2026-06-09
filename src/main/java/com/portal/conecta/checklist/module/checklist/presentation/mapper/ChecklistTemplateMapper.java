@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class ChecklistTemplateMapper {
@@ -36,6 +37,7 @@ public class ChecklistTemplateMapper {
                 .status(ChecklistTemplateStatus.DRAFT)
                 .active(false)
                 .schemaJson(toSchemaJson(request.schemaJson()))
+                .templateGroupId(UUID.randomUUID())
                 .build();
     }
 

@@ -14,10 +14,14 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Caso de uso responsavel por ativar um template de checklist.
+ * Caso de uso responsável por ativar uma versão de um template de checklist.
  *
- * <p>A ativacao e uma acao gerencial: apenas usuarios autorizados para
- * administrar templates podem alterar o status usado pelas execucoes.</p>
+ * <p>A ativação é uma operação administrativa e só pode ser realizada por
+ * usuários com permissão para gerenciar templates.</p>
+ *
+ * <p>Ao ativar um template, qualquer outra versão do mesmo grupo que esteja
+ * com status {@code ACTIVE} é automaticamente marcada como
+ * {@code INACTIVE}, garantindo que exista apenas uma versão ativa por grupo.</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,26 @@ public class ActivateChecklistTemplateUseCase {
     private final ChecklistTemplateRepository templateRepository;
     private final RequestContextProvider contextProvider;
 
+    /**
+     * Ativa um template de checklist.
+     *
+     * <p>Antes da ativação são realizadas as seguintes validações:</p>
+     * <ul>
+     *     <li>Permissão do usuário autenticado;</li>
+     *     <li>Existência do template informado;</li>
+     *     <li>Status do template, que deve ser {@code DRAFT}.</li>
+     * </ul>
+     *
+     * <p>Após a validação, versões ativas anteriores pertencentes ao mesmo
+     * grupo de templates são desativadas e o template informado passa a ser
+     * a versão ativa.</p>
+     *
+     * @param templateId identificador do template a ser ativado
+     * @return template ativado e persistido
+     * @throws AccessDeniedException quando o usuário não possui permissão para ativar templates
+     * @throws EntityNotFoundException quando o template não for encontrado
+     * @throws IllegalStateException quando o template não estiver com status {@code DRAFT}
+     */
     @Transactional
     public ChecklistTemplate execute(UUID templateId) {
         var currentUser = contextProvider.getRequestContext();
@@ -37,7 +61,11 @@ public class ActivateChecklistTemplateUseCase {
         ChecklistTemplate template = templateRepository.findById(templateId)
                 .orElseThrow(() -> new EntityNotFoundException("Template de checklist nao encontrado."));
 
-        deactivateOtherActiveTemplates(template);
+        if (template.getStatus() != ChecklistTemplateStatus.DRAFT) {
+            throw new IllegalStateException("Apenas templates com status DRAFT podem ser ativados. Status atual: " + template.getStatus());
+        }
+
+        inactivatePreviousVersion(template);
 
         template.setStatus(ChecklistTemplateStatus.ACTIVE);
         template.setActive(true);
@@ -45,19 +73,23 @@ public class ActivateChecklistTemplateUseCase {
         return templateRepository.save(template);
     }
 
-    private void deactivateOtherActiveTemplates(ChecklistTemplate template) {
-        var templatesToDeactivate = templateRepository
-                .findByRoomIdAndActiveTrueAndStatus(template.getRoomId(), ChecklistTemplateStatus.ACTIVE)
+    /**
+     * Desativa versões ativas anteriores pertencentes ao mesmo grupo do template informado.
+     *
+     * <p>Essa validação garante que apenas uma versão de cada grupo permaneça
+     * com status {@code ACTIVE}.</p>
+     *
+     * @param template template que será promovido para a versão ativa
+     */
+    private void inactivatePreviousVersion(ChecklistTemplate template) {
+        templateRepository
+                .findByTemplateGroupIdAndStatus(template.getTemplateGroupId(), ChecklistTemplateStatus.ACTIVE)
                 .stream()
-                .filter(activeTemplate -> !Objects.equals(activeTemplate.getId(), template.getId()))
-                .peek(activeTemplate -> {
-                    activeTemplate.setStatus(ChecklistTemplateStatus.INACTIVE);
-                    activeTemplate.setActive(false);
-                })
-                .toList();
-
-        if (!templatesToDeactivate.isEmpty()) {
-            templateRepository.saveAll(templatesToDeactivate);
-        }
+                .filter(active -> !Objects.equals(active.getId(), template.getId()))
+                .forEach(active -> {
+                    active.setStatus(ChecklistTemplateStatus.INACTIVE);
+                    active.setActive(false);
+                    templateRepository.save(active);
+                });
     }
 }

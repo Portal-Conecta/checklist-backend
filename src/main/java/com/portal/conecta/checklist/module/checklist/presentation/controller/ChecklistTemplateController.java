@@ -24,6 +24,7 @@ public class ChecklistTemplateController {
     private final FindChecklistTemplateByIdUseCase findByIdUseCase;
     private final ListChecklistTemplatesUseCase listUseCase;
     private final EditChecklistTemplateUseCase editUseCase;
+    private final CreateChecklistTemplateVersionUseCase createVersionUseCase;
     private final ChecklistTemplateMapper mapper;
 
     @PostMapping
@@ -49,5 +50,12 @@ public class ChecklistTemplateController {
     @PatchMapping("/{templateId}")
     public ResponseEntity<ChecklistTemplateResponseDTO> editTemplate(@PathVariable UUID templateId, @RequestBody @Valid ChecklistTemplateEditRequest request){
         return ResponseEntity.ok(mapper.toResponse(editUseCase.execute(templateId, request)));
+    }
+
+    @PostMapping("/{templateId}/new-version")
+    public ResponseEntity<ChecklistTemplateResponseDTO> createNewVersion(
+            @PathVariable UUID templateId) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(mapper.toResponse(createVersionUseCase.execute(templateId)));
     }
 }

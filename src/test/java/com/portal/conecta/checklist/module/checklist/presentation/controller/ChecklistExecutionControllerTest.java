@@ -21,12 +21,13 @@ import static org.mockito.Mockito.*;
 
 class ChecklistExecutionControllerTest {
 
-    private final ChecklistExecutionFacade facade = mock(ChecklistExecutionFacade.class);
-    private final ChecklistExecutionMapper mapper = mock(ChecklistExecutionMapper.class);
+    private final ChecklistExecutionFacade checklistExecutionFacade = mock(ChecklistExecutionFacade.class);
+    private final ChecklistExecutionMapper checklistExecutionMapper = mock(ChecklistExecutionMapper.class);
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase = mock(ListChecklistHistoryByClassUseCase.class);
+
     private final ChecklistExecutionController controller = new ChecklistExecutionController(
-            facade,
-            mapper,
+            checklistExecutionFacade,
+            checklistExecutionMapper,
             listHistoryByClassUseCase
     );
 
@@ -42,13 +43,13 @@ class ChecklistExecutionControllerTest {
         );
         ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
 
-        when(facade.createDTO(request)).thenReturn(response);
+        when(checklistExecutionFacade.createDTO(request)).thenReturn(response);
 
         ResponseEntity<ChecklistExecutionResponseDTO> result = controller.createDraft(request);
 
         assertEquals(HttpStatus.CREATED, result.getStatusCode());
         assertSame(response, result.getBody());
-        verify(facade).createDTO(request);
+        verify(checklistExecutionFacade).createDTO(request);
     }
 
     @Test
@@ -58,18 +59,14 @@ class ChecklistExecutionControllerTest {
         ChecklistExecutionSubmitDTO request = mock(ChecklistExecutionSubmitDTO.class);
         ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
 
-        when(facade.submit(executionId, request)).thenReturn(response);
+        when(checklistExecutionFacade.submit(executionId, request)).thenReturn(response);
 
         ResponseEntity<ChecklistExecutionResponseDTO> result = controller.submit(executionId, request);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
-        verify(facade).submit(executionId, request);
+        verify(checklistExecutionFacade).submit(executionId, request);
     }
-
-    // -----------------------------------------------
-    // Testes do endpoint cancel
-    // -----------------------------------------------
 
     @Test
     @DisplayName("deve retornar 200 OK ao cancelar execucao com sucesso")
@@ -77,13 +74,13 @@ class ChecklistExecutionControllerTest {
         UUID executionId = UUID.randomUUID();
         ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
 
-        when(facade.cancel(executionId)).thenReturn(response);
+        when(checklistExecutionFacade.cancel(executionId)).thenReturn(response);
 
         ResponseEntity<ChecklistExecutionResponseDTO> result = controller.cancel(executionId);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
-        verify(facade).cancel(executionId);
+        verify(checklistExecutionFacade).cancel(executionId);
     }
 
     @Test
@@ -91,14 +88,14 @@ class ChecklistExecutionControllerTest {
     void devePropagar404QuandoExecucaoNaoExiste() {
         UUID executionId = UUID.randomUUID();
 
-        when(facade.cancel(executionId))
+        when(checklistExecutionFacade.cancel(executionId))
                 .thenThrow(new EntityNotFoundException("Execucao de checklist nao encontrada."));
 
         EntityNotFoundException excecao = assertThrows(EntityNotFoundException.class,
                 () -> controller.cancel(executionId));
 
         assertEquals("Execucao de checklist nao encontrada.", excecao.getMessage());
-        verify(facade).cancel(executionId);
+        verify(checklistExecutionFacade).cancel(executionId);
     }
 
     @Test
@@ -106,13 +103,29 @@ class ChecklistExecutionControllerTest {
     void devePropagar400QuandoStatusInvalido() {
         UUID executionId = UUID.randomUUID();
 
-        when(facade.cancel(executionId))
+        when(checklistExecutionFacade.cancel(executionId))
                 .thenThrow(new IllegalStateException("Somente checklists enviados podem ser cancelados."));
 
         IllegalStateException excecao = assertThrows(IllegalStateException.class,
                 () -> controller.cancel(executionId));
 
         assertEquals("Somente checklists enviados podem ser cancelados.", excecao.getMessage());
-        verify(facade).cancel(executionId);
+        verify(checklistExecutionFacade).cancel(executionId);
+    }
+
+    @Test
+    @DisplayName("deve retornar ok ao atualizar respostas do checklist via patch")
+    void deveRetornarOkAoAtualizarRespostas() {
+        UUID executionId = UUID.randomUUID();
+        ChecklistExecutionSubmitDTO request = mock(ChecklistExecutionSubmitDTO.class);
+        ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
+
+        when(checklistExecutionFacade.updateAnswers(executionId, request)).thenReturn(response);
+
+        ResponseEntity<ChecklistExecutionResponseDTO> result = controller.updateAnswers(executionId, request);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(response, result.getBody());
+        verify(checklistExecutionFacade).updateAnswers(executionId, request);
     }
 }

@@ -157,11 +157,11 @@ https://jwt.io
   "classes": [
     {
       "classId": "8f8e8d8c-8b8a-8f8e-8d8c-8b8a8f8e8d8c",
-      "role": "TEACHER"
+      "classRole": "TEACHER"
     },
     {
       "classId": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
-      "role": "STUDENT"
+      "classRole": "STUDENT"
     }
   ],
   "iat": 1779835463,
@@ -209,8 +209,8 @@ exp      data de expiracao
 Dentro de `classes`, cada item precisa ter:
 
 ```text
-classId UUID da turma
-role    STUDENT, TEACHER ou REPRESENTATIVE
+classId   UUID da turma
+classRole STUDENT, TEACHER ou REPRESENTATIVE
 ```
 
 Se `exp` ficar no passado, gere outro token com uma data futura.
@@ -498,7 +498,7 @@ O token e valido, mas o usuario nao tem permissao para a acao.
 
 Exemplo:
 
-- tentar criar draft com uma turma em que o usuario tem role `STUDENT`;
+- tentar criar draft com uma turma em que o usuario tem `classRole` `STUDENT`;
 - tentar criar template com `userType` sem permissao.
 
 ### 404 Not Found

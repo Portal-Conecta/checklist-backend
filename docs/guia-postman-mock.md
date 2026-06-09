@@ -104,11 +104,11 @@ Use este payload:
   "classes": [
     {
       "classId": "8f8e8d8c-8b8a-8f8e-8d8c-8b8a8f8e8d8c",
-      "role": "TEACHER"
+      "classRole": "TEACHER"
     },
     {
       "classId": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
-      "role": "STUDENT"
+      "classRole": "STUDENT"
     }
   ],
   "iat": 1779835463,
@@ -372,7 +372,7 @@ No draft, troque `classId` para:
 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
 ```
 
-No token base, essa turma tem `role` `STUDENT`. Esse papel nao pode criar draft.
+No token base, essa turma tem `classRole` `STUDENT`. Esse papel nao pode criar draft.
 
 Resultado esperado:
 

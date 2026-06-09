@@ -1,11 +1,9 @@
 package com.portal.conecta.checklist.module.checklist.presentation.controller;
 
-import com.portal.conecta.checklist.module.checklist.application.usecase.template.ActivateChecklistTemplateUseCase;
-import com.portal.conecta.checklist.module.checklist.application.usecase.template.CreateChecklistTemplateUseCase;
-import com.portal.conecta.checklist.module.checklist.application.usecase.template.FindChecklistTemplateByIdUseCase;
-import com.portal.conecta.checklist.module.checklist.application.usecase.template.ListChecklistTemplatesUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.*;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistTemplateResponseDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.update.ChecklistTemplateEditRequest;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistTemplateMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +23,7 @@ public class ChecklistTemplateController {
     private final ActivateChecklistTemplateUseCase activateUseCase;
     private final FindChecklistTemplateByIdUseCase findByIdUseCase;
     private final ListChecklistTemplatesUseCase listUseCase;
+    private final EditChecklistTemplateUseCase editUseCase;
     private final ChecklistTemplateMapper mapper;
 
     @PostMapping
@@ -45,5 +44,10 @@ public class ChecklistTemplateController {
     @GetMapping
     public ResponseEntity<List<ChecklistTemplateResponseDTO>> listTemplates() {
         return ResponseEntity.ok(mapper.toResponseList(listUseCase.execute()));
+    }
+
+    @PatchMapping("/{templateId}")
+    public ResponseEntity<ChecklistTemplateResponseDTO> editTemplate(@PathVariable UUID templateId, @RequestBody @Valid ChecklistTemplateEditRequest request){
+        return ResponseEntity.ok(mapper.toResponse(editUseCase.execute(templateId, request)));
     }
 }

@@ -16,18 +16,17 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ChecklistExecutionFacadeTest {
 
     private final CreateChecklistExecutionUseCase createChecklistExecutionUseCase = mock(CreateChecklistExecutionUseCase.class);
     private final SubmitChecklistExecutionUseCase submitChecklistExecutionUseCase = mock(SubmitChecklistExecutionUseCase.class);
     private final ChecklistExecutionMapper executionMapper = mock(ChecklistExecutionMapper.class);
+    private final CancelChecklistExecutionCommandUseCase cancelChecklistExecutionUseCase = mock(CancelChecklistExecutionCommandUseCase.class);
     private final ListChecklistHistoryByClassUseCase listChecklistHistoryByClassUseCase = mock(ListChecklistHistoryByClassUseCase.class);
-    private final CancelChecklistExecutionCommandUseCase cancelChecklistExecutionUseCase = mock(CancelChecklistExecutionCommandUseCase.class); // ← essa linha estava faltando
-    private final UpdateChecklistExecutionAnswersUseCase updateChecklistExecutionAnswersUseCase = mock(UpdateChecklistExecutionAnswersUseCase.class); // ← ADICIONE ESTA LINHA
+    private final UpdateChecklistExecutionAnswersUseCase updateChecklistExecutionAnswersUseCase = mock(UpdateChecklistExecutionAnswersUseCase.class);
+
     private final ChecklistExecutionFacade facade = new ChecklistExecutionFacade(
             createChecklistExecutionUseCase,
             submitChecklistExecutionUseCase,
@@ -35,7 +34,6 @@ class ChecklistExecutionFacadeTest {
             cancelChecklistExecutionUseCase,
             listChecklistHistoryByClassUseCase,
             updateChecklistExecutionAnswersUseCase
-
     );
 
     @Test
@@ -74,6 +72,26 @@ class ChecklistExecutionFacadeTest {
 
         assertSame(response, result);
         verify(submitChecklistExecutionUseCase).execute(executionId, request);
+        verify(executionMapper).toResponse(execution);
+    }
+
+    @Test
+    @DisplayName("deve atualizar respostas da execucao e retornar dto mapeado")
+    void deveAtualizarRespostasERetornarDtoMapeado() {
+        UUID executionId = UUID.randomUUID();
+        ChecklistExecutionSubmitDTO request = mock(ChecklistExecutionSubmitDTO.class);
+        ChecklistExecution execution = ChecklistExecution.builder()
+                .id(executionId)
+                .build();
+        ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
+
+        when(updateChecklistExecutionAnswersUseCase.execute(executionId, request)).thenReturn(execution);
+        when(executionMapper.toResponse(execution)).thenReturn(response);
+
+        ChecklistExecutionResponseDTO result = facade.updateAnswers(executionId, request);
+
+        assertSame(response, result);
+        verify(updateChecklistExecutionAnswersUseCase).execute(executionId, request);
         verify(executionMapper).toResponse(execution);
     }
 }

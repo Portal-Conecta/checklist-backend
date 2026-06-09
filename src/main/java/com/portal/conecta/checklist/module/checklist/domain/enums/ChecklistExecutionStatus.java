@@ -3,5 +3,5 @@
     public enum ChecklistExecutionStatus {
         DRAFT,
         SUBMITTED,
-        CANCELED
+        CANCELED,
     }

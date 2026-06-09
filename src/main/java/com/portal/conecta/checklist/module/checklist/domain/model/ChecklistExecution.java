@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.module.checklist.domain.model;
 
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistApprovalStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
@@ -130,6 +131,17 @@ public class ChecklistExecution {
     @Enumerated(EnumType.STRING)
     @Column(name = "period", nullable = false, length = 20)
     private Period period;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "approval_status")
+    private ChecklistApprovalStatus checklistApprovalStatus;
+
+    @Column(name = "approved_by")
+    private UUID approvedBy;
+
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
+
 
     /**
      * Adiciona uma pendência à execução do checklist.

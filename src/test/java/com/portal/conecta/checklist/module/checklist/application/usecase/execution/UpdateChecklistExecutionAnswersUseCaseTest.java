@@ -5,6 +5,7 @@ import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecu
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
@@ -34,6 +35,9 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
     @Mock
     private RequestContextProvider contextProvider;
 
+    @Mock
+    private ChecklistExecutionMapper executionMapper;
+
     @InjectMocks
     private UpdateChecklistExecutionAnswersUseCase updateChecklistExecutionAnswersUseCase;
 
@@ -58,6 +62,7 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
 
         assertNotNull(resultado);
         verify(executionRepository, times(1)).findById(executionId);
+        verify(executionMapper, times(1)).toAnswersJson(request);
         verify(executionRepository, times(1)).save(execution);
     }
 
@@ -89,7 +94,6 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
 
-        // Simula um payload inválido de estudante tentando acessar
         RequestContext contextComRoleInvalida = new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.REPRESENTATIVE,

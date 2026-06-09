@@ -34,7 +34,7 @@ public class HttpHubUserProvider implements HubUserProvider {
     @Override
     public Optional<UserReference> findById(UUID userId) {
         try {
-            hubUserClient.validateCurrentUser();
+            hubUserClient.findMyCourses();
             return Optional.of(new UserReference(userId));
         } catch (FeignException.NotFound | FeignException.Unauthorized | FeignException.Forbidden exception) {
             return Optional.empty();

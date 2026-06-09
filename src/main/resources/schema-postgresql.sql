@@ -10,3 +10,13 @@ CHECK (status IN ('DRAFT', 'ACTIVE', 'INACTIVE'));
 CREATE UNIQUE INDEX IF NOT EXISTS uidx_execution_no_duplicate
 ON checklist_execution (class_id, room_id, period, checklist_type, (started_at::date))
 WHERE status <> 'CANCELED';
+
+ALTER TABLE IF EXISTS checklist_submission_window
+ADD COLUMN IF NOT EXISTS class_id UUID;
+
+ALTER TABLE IF EXISTS checklist_submission_window
+DROP CONSTRAINT IF EXISTS uq_window_shift_type;
+
+CREATE UNIQUE INDEX IF NOT EXISTS uidx_window_class_type
+ON checklist_submission_window (class_id, checklist_type)
+WHERE class_id IS NOT NULL;

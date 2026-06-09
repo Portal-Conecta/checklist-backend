@@ -76,7 +76,7 @@ public class CreateChecklistExecutionUseCase {
         Shift shift   = classReference.getShift();
         Period period = PeriodResolver.resolve(shift, request.checklistType());
 
-        submissionWindowValidator.validate(shift, request.checklistType());
+        submissionWindowValidator.validate(request.classId(), request.checklistType());
 
         var now        = LocalDateTime.now(ZoneId.of(timezone));
         var startOfDay = now.toLocalDate().atStartOfDay();

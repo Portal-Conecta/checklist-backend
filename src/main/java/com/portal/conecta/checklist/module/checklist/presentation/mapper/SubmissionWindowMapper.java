@@ -12,6 +12,7 @@ public class SubmissionWindowMapper {
     public SubmissionWindowResponseDTO toResponse(ChecklistSubmissionWindow window) {
         return new SubmissionWindowResponseDTO(
                 window.getId(),
+                window.getClassId(),
                 window.getShift(),
                 window.getChecklistType(),
                 window.getOpenAt(),

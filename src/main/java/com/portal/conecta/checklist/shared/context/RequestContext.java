@@ -83,4 +83,14 @@ public record RequestContext(
     private boolean isLinkedTeacher(ContextClass contextClass) {
         return contextClass.hasClassRole("TEACHER");
     }
+
+    public boolean isTeacherOfClass(UUID classId) {
+        if (classId == null) {
+            return false;
+        }
+
+        return classes.stream().anyMatch(c ->
+                c.matchesClass(classId) && isLinkedTeacher(c)
+        );
+
 }

@@ -1,7 +1,9 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.template;
 
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
+import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +28,23 @@ public class FindChecklistTemplateByIdUseCase {
 
     @Transactional(readOnly = true)
     public ChecklistTemplate execute(UUID templateId) {
-        var currentUser = contextProvider.getRequestContext();
+        RequestContext currentUser = contextProvider.getRequestContext();
 
         if (!currentUser.canAccessChecklistModule()) {
             throw new AccessDeniedException("Usuario nao tem permissao para acessar o modulo Checklist.");
         }
 
-        return templateRepository.findById(templateId)
+        ChecklistTemplate template = templateRepository.findById(templateId)
                 .orElseThrow(() -> new EntityNotFoundException("Template de checklist nao encontrado."));
+
+        if (!currentUser.canManageChecklistTemplates() && !isActiveTemplate(template)) {
+            throw new AccessDeniedException("Usuario nao tem permissao para acessar este template de checklist.");
+        }
+
+        return template;
+    }
+
+    private boolean isActiveTemplate(ChecklistTemplate template) {
+        return template.isActive() && template.getStatus() == ChecklistTemplateStatus.ACTIVE;
     }
 }

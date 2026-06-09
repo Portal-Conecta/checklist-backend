@@ -1,13 +1,16 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.template;
 
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
+import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,9 +41,13 @@ class FindChecklistTemplateByIdUseCaseTest {
     }
 
     @Test
-    void shouldAllowNonApprenticeAccess() {
+    void shouldAllowManagementAccessToAnyTemplateStatus() {
         UUID templateId = UUID.randomUUID();
-        ChecklistTemplate template = ChecklistTemplate.builder().id(templateId).build();
+        ChecklistTemplate template = ChecklistTemplate.builder()
+                .id(templateId)
+                .active(false)
+                .status(ChecklistTemplateStatus.DRAFT)
+                .build();
         when(contextProvider.getRequestContext()).thenReturn(senai());
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
 
@@ -50,11 +57,52 @@ class FindChecklistTemplateByIdUseCaseTest {
         verify(templateRepository).findById(templateId);
     }
 
+    @Test
+    void shouldAllowOperationalAccessToActiveTemplate() {
+        UUID templateId = UUID.randomUUID();
+        ChecklistTemplate template = ChecklistTemplate.builder()
+                .id(templateId)
+                .active(true)
+                .status(ChecklistTemplateStatus.ACTIVE)
+                .build();
+        when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID()));
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
+
+        ChecklistTemplate result = useCase.execute(templateId);
+
+        assertSame(template, result);
+        verify(templateRepository).findById(templateId);
+    }
+
+    @Test
+    void shouldRejectOperationalAccessToInactiveTemplate() {
+        UUID templateId = UUID.randomUUID();
+        ChecklistTemplate template = ChecklistTemplate.builder()
+                .id(templateId)
+                .active(false)
+                .status(ChecklistTemplateStatus.INACTIVE)
+                .build();
+        when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID()));
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
+
+        assertThrows(AccessDeniedException.class, () -> useCase.execute(templateId));
+
+        verify(templateRepository).findById(templateId);
+    }
+
     private RequestContext apprentice() {
         return new RequestContext(UUID.randomUUID(), TypeUser.STUDENT);
     }
 
     private RequestContext senai() {
         return new RequestContext(UUID.randomUUID(), TypeUser.SENAI);
+    }
+
+    private RequestContext representative(UUID classId) {
+        return new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.REPRESENTATIVE,
+                List.of(new ContextClass(classId, "REPRESENTATIVE"))
+        );
     }
 }

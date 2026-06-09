@@ -78,4 +78,6 @@ public interface ChecklistTemplateRepository extends JpaRepository<ChecklistTemp
      * @return cria a query automaticamente pelo nome do método.
      */
     List<ChecklistTemplate> findByRoomIdAndActiveTrueAndStatus(UUID roomId, ChecklistTemplateStatus status);
+
+    List<ChecklistTemplate> findAllByActiveTrueAndStatus(ChecklistTemplateStatus status);
 }

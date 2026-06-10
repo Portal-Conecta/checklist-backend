@@ -63,7 +63,7 @@ Contains cross-cutting code used by the service, such as security configuration,
 
 ## Access Rules
 
-The service follows the Hub token contract. Global user access comes from `userType`, and class-specific access is read from `classes[].classRole`:
+The service follows the Hub token contract. Global user access comes from `userType`, and class-specific access is read from `classes[].role`:
 
 - `STUDENT`
 - `REPRESENTATIVE`
@@ -241,7 +241,7 @@ Expected token claims:
   "classes": [
     {
       "classId": "22222222-2222-2222-2222-222222222222",
-      "classRole": "REPRESENTATIVE"
+      "role": "REPRESENTATIVE"
     }
   ],
   "iat": 1710000000,
@@ -280,7 +280,7 @@ Checklist API validates:
 - required claims: `jti`, `sub`, `userType`, `iat`, `exp`;
 - `sub` as a valid user UUID;
 - `classes[].classId` as valid class UUIDs;
-- `classes[].classRole` as `STUDENT`, `TEACHER`, or `REPRESENTATIVE`;
+- `classes[].role` as `STUDENT`, `TEACHER`, or `REPRESENTATIVE`;
 - user existence through `HubUserProvider`;
 - room/class existence through Hub providers when the endpoint needs it.
 
@@ -483,7 +483,7 @@ USER_TYPE=STUDENT
 TEACHER_CLASS_ROLE=TEACHER
 ```
 
-The example user can create a checklist for `TEACHER_CLASS_ID` because the token says this user has `classRole: TEACHER` in that class.
+The example user can create a checklist for `TEACHER_CLASS_ID` because the token says this user has `role: TEACHER` in that class.
 
 Request:
 
@@ -563,7 +563,7 @@ Rules validated here:
 
 `403 Acesso negado.`
 
-- Token is valid, but `userType` or `classes[].classRole` does not allow the action.
+- Token is valid, but `userType` or `classes[].role` does not allow the action.
 - Example: `STUDENT` without `TEACHER` or `REPRESENTATIVE` class role trying to create a checklist draft.
 - Example: `STUDENT` trying to create or activate checklist templates.
 

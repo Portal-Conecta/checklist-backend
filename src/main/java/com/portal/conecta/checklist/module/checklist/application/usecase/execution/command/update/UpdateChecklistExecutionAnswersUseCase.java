@@ -3,17 +3,18 @@ package com.portal.conecta.checklist.module.checklist.application.usecase.execut
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.core.ChecklistExecutionScoringService;
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.core.ChecklistIssueService;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistAnswerRequestDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistAnswersDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistItemDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistSchemaDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import java.util.LinkedHashMap;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +37,7 @@ public class UpdateChecklistExecutionAnswersUseCase {
     private final ChecklistExecutionScoringService scoringService;
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
-    private  final
+    private  final ChecklistIssueService issueService;
 
 
     @Transactional
@@ -56,7 +59,14 @@ public class UpdateChecklistExecutionAnswersUseCase {
 
         }
 
+        ChecklistSchemaDTO schema = objectMapper.convertValue(
+                execution.getChecklistTemplate().getSchemaJson(),
+                ChecklistSchemaDTO.class
+        );
 
+        Map<String, ChecklistItemDTO> itemsByKey = itemsByKey(schema);
+
+        issueService.createIssuesForNonCompliantAnswers(execution, request.answers(), itemsByKey);
 
         execution.setAnswersJson(executionMapper.toAnswersJson(request));
         execution.setComplianceScore(scoringService.calculateComplianceScore(request.answers()));
@@ -65,6 +75,11 @@ public class UpdateChecklistExecutionAnswersUseCase {
         return repository.save(execution);
 
 
+    }
+    private Map<String, ChecklistItemDTO> itemsByKey(ChecklistSchemaDTO schema) {
+        return schema.sections().stream()
+                .flatMap(section -> section.items().stream())
+                .collect(Collectors.toMap(ChecklistItemDTO::key, Function.identity(), (f, d) -> f, LinkedHashMap::new));
     }
 
 

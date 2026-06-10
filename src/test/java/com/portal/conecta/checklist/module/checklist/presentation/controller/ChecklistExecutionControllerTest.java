@@ -4,6 +4,7 @@ import com.portal.conecta.checklist.module.checklist.application.usecase.executi
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.CreateChecklistExecutionUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.ListChecklistHistoryByClassUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.SubmitChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
@@ -34,12 +35,14 @@ class ChecklistExecutionControllerTest {
     private final SubmitChecklistExecutionUseCase submitUseCase = mock(SubmitChecklistExecutionUseCase.class);
     private final CancelChecklistExecutionUseCase cancelUseCase = mock(CancelChecklistExecutionUseCase.class);
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase = mock(ListChecklistHistoryByClassUseCase.class);
+    private final UpdateChecklistExecutionAnswersUseCase updateAnswersUseCase = mock(UpdateChecklistExecutionAnswersUseCase.class);
     private final ChecklistExecutionMapper mapper = mock(ChecklistExecutionMapper.class);
     private final ChecklistExecutionController controller = new ChecklistExecutionController(
             createUseCase,
             submitUseCase,
             cancelUseCase,
             listHistoryByClassUseCase,
+            updateAnswersUseCase,
             mapper
     );
 
@@ -100,6 +103,25 @@ class ChecklistExecutionControllerTest {
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
         verify(cancelUseCase).execute(executionId);
+        verify(mapper).toResponse(execution);
+    }
+
+    @Test
+    @DisplayName("deve retornar ok ao atualizar respostas de checklist enviado")
+    void deveRetornarOkAoAtualizarRespostas() {
+        UUID executionId = UUID.randomUUID();
+        ChecklistExecutionSubmitDTO request = mock(ChecklistExecutionSubmitDTO.class);
+        ChecklistExecution execution = mock(ChecklistExecution.class);
+        ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
+
+        when(updateAnswersUseCase.execute(executionId, request)).thenReturn(execution);
+        when(mapper.toResponse(execution)).thenReturn(response);
+
+        ResponseEntity<ChecklistExecutionResponseDTO> result = controller.updateAnswers(executionId, request);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(response, result.getBody());
+        verify(updateAnswersUseCase).execute(executionId, request);
         verify(mapper).toResponse(execution);
     }
 

@@ -4,6 +4,7 @@ import com.portal.conecta.checklist.module.checklist.application.usecase.executi
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.CreateChecklistExecutionUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.ListChecklistHistoryByClassUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.SubmitChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionHistoryDTO;
@@ -38,6 +39,7 @@ public class ChecklistExecutionController {
     private final SubmitChecklistExecutionUseCase submitUseCase;
     private final CancelChecklistExecutionUseCase cancelUseCase;
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase;
+    private final UpdateChecklistExecutionAnswersUseCase updateAnswersUseCase;
     private final ChecklistExecutionMapper mapper;
 
     @Operation(
@@ -199,5 +201,55 @@ public class ChecklistExecutionController {
             @PageableDefault(size = 20) Pageable pageable
     ) {
         return ResponseEntity.ok(mapper.toPageHistory(listHistoryByClassUseCase.execute(classId, pageable)));
+    }
+
+    @Operation(
+            summary = "Atualizar respostas de um checklist enviado",
+            description = "Permite que um usuário autorizado (ex: professor da turma ou administrador) atualize as respostas de uma execução de checklist cujo status seja SUBMITTED. Recalcula a nota de conformidade e gera novas pendências (issues) se houverem itens não conformes."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Respostas atualizadas com sucesso",
+                    content = @Content(schema = @Schema(implementation = ChecklistExecutionResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Dados inválidos no corpo da requisição (respostas ausentes ou JSON malformado)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Não autenticado — token JWT ausente ou inválido",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Sem permissão para editar esta execução",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Execução não encontrada para o ID informado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Conflito de estado — a execução não está no status SUBMITTED",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno inesperado no servidor",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+            )
+    })
+    @PatchMapping("/{executionId}/answers")
+    public ResponseEntity<ChecklistExecutionResponseDTO> updateAnswers(
+            @Parameter(description = "UUID da execução a ser editada", required = true)
+            @PathVariable UUID executionId,
+            @RequestBody @Valid ChecklistExecutionSubmitDTO request
+    ) {
+        return ResponseEntity.ok(mapper.toResponse(updateAnswersUseCase.execute(executionId, request)));
     }
 }

@@ -57,7 +57,10 @@ class SubmitChecklistExecutionUseCaseTest {
                 executionMapper,
                 objectMapper,
                 contextProvider,
-                submissionWindowValidator
+                submissionWindowValidator,
+                new ChecklistIssueService(),
+                new ChecklistExecutionScoringService(),
+                new ChecklistExecutionAnswerValidationService()
         );
         ReflectionTestUtils.setField(useCase, "timezone", "America/Sao_Paulo");
     }

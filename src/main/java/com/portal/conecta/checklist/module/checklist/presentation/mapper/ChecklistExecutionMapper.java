@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ConformityAnswerValue;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Shift;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistAnswerRequestDTO;
@@ -55,7 +57,9 @@ public class ChecklistExecutionMapper {
             ChecklistExecutionDraftCreateDTO request,
             ChecklistTemplate template,
             UUID filledBy,
-            LocalDateTime startedAt
+            LocalDateTime startedAt,
+            Shift shift,
+            Period period
     ) {
         if (request == null) {
             return null;
@@ -66,7 +70,8 @@ public class ChecklistExecutionMapper {
                 .roomId(request.roomId())
                 .classId(request.classId())
                 .userId(filledBy)
-                .period(request.period())
+                .shift(shift)
+                .period(period)
                 .checklistType(request.checklistType())
                 .status(ChecklistExecutionStatus.DRAFT)
                 .answersJson(toAnswersJson(emptyAnswers()))

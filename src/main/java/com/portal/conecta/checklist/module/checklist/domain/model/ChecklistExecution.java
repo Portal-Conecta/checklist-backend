@@ -3,6 +3,7 @@ package com.portal.conecta.checklist.module.checklist.domain.model;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Shift;
 import com.portal.conecta.checklist.module.issues.domain.model.ChecklistIssue;
 import jakarta.persistence.*;
 import lombok.*;
@@ -130,6 +131,13 @@ public class ChecklistExecution {
     @Enumerated(EnumType.STRING)
     @Column(name = "period", nullable = false, length = 20)
     private Period period;
+
+    /**
+     * Turno da turma no momento da criacao — snapshot para evitar chamada extra ao Hub no submit.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "shift", nullable = false, length = 20)
+    private Shift shift;
 
     /**
      * Adiciona uma pendência à execução do checklist.

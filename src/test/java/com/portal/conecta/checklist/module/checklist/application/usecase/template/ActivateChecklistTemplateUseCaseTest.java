@@ -1,6 +1,5 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.template;
 
-import com.portal.conecta.checklist.module.checklist.application.usecase.template.command.ActivateChecklistTemplateUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
@@ -16,105 +15,103 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ActivateChecklistTemplateUseCaseTest {
 
     private final ChecklistTemplateRepository templateRepository = mock(ChecklistTemplateRepository.class);
     private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
-    private final ActivateChecklistTemplateUseCase useCase = new ActivateChecklistTemplateUseCase(templateRepository, contextProvider);
+    private final ActivateChecklistTemplateUseCase useCase = new ActivateChecklistTemplateUseCase(
+            templateRepository, contextProvider);
 
     @Test
-    @DisplayName("deve ativar template e desativar outros templates ativos da mesma sala")
-    void deveAtivarTemplateEDesativarOutrosTemplatesAtivosDaMesmaSala() {
+    @DisplayName("deve ativar template DRAFT e inativar versão anterior do mesmo grupo")
+    void deveAtivarTemplateDraftEInativarVersaoAnterior() {
+        UUID groupId = UUID.randomUUID();
         UUID templateId = UUID.randomUUID();
-        UUID roomId = UUID.randomUUID();
-        ChecklistTemplate template = template(templateId, roomId, ChecklistTemplateStatus.DRAFT, false);
-        ChecklistTemplate activeTemplate = template(UUID.randomUUID(), roomId, ChecklistTemplateStatus.ACTIVE, true);
+
+        ChecklistTemplate draft = template(templateId, groupId, ChecklistTemplateStatus.DRAFT, false);
+        ChecklistTemplate active = template(UUID.randomUUID(), groupId, ChecklistTemplateStatus.ACTIVE, true);
 
         when(contextProvider.getRequestContext()).thenReturn(senai());
-        when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
-        when(templateRepository.findByRoomIdAndActiveTrueAndStatus(roomId, ChecklistTemplateStatus.ACTIVE))
-                .thenReturn(List.of(activeTemplate));
-        when(templateRepository.save(template)).thenReturn(template);
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(draft));
+        when(templateRepository.findByTemplateGroupIdAndStatus(groupId, ChecklistTemplateStatus.ACTIVE))
+                .thenReturn(List.of(active));
+        when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         ChecklistTemplate result = useCase.execute(templateId);
 
-        assertSame(template, result);
-        assertEquals(ChecklistTemplateStatus.ACTIVE, template.getStatus());
-        assertTrue(template.isActive());
-        assertEquals(ChecklistTemplateStatus.INACTIVE, activeTemplate.getStatus());
-        assertFalse(activeTemplate.isActive());
-        verify(templateRepository).saveAll(List.of(activeTemplate));
-        verify(templateRepository).save(template);
+        assertEquals(ChecklistTemplateStatus.ACTIVE, result.getStatus());
+        assertTrue(result.isActive());
+        assertEquals(ChecklistTemplateStatus.INACTIVE, active.getStatus());
+        assertFalse(active.isActive());
+        verify(templateRepository, times(2)).save(any());
     }
 
     @Test
-    @DisplayName("deve manter idempotente quando template ja esta ativo")
-    void deveManterIdempotenteQuandoTemplateJaEstaAtivo() {
+    @DisplayName("deve ativar template DRAFT sem versão anterior no grupo")
+    void deveAtivarTemplateDraftSemVersaoAnterior() {
+        UUID groupId = UUID.randomUUID();
         UUID templateId = UUID.randomUUID();
-        UUID roomId = UUID.randomUUID();
-        ChecklistTemplate template = template(templateId, roomId, ChecklistTemplateStatus.ACTIVE, true);
+
+        ChecklistTemplate draft = template(templateId, groupId, ChecklistTemplateStatus.DRAFT, false);
 
         when(contextProvider.getRequestContext()).thenReturn(senai());
-        when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
-        when(templateRepository.findByRoomIdAndActiveTrueAndStatus(roomId, ChecklistTemplateStatus.ACTIVE))
-                .thenReturn(List.of(template));
-        when(templateRepository.save(template)).thenReturn(template);
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(draft));
+        when(templateRepository.findByTemplateGroupIdAndStatus(groupId, ChecklistTemplateStatus.ACTIVE))
+                .thenReturn(List.of());
+        when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         ChecklistTemplate result = useCase.execute(templateId);
 
-        assertSame(template, result);
-        assertEquals(ChecklistTemplateStatus.ACTIVE, template.getStatus());
-        assertTrue(template.isActive());
-        verify(templateRepository, never()).saveAll(any());
-        verify(templateRepository).save(template);
+        assertEquals(ChecklistTemplateStatus.ACTIVE, result.getStatus());
+        assertTrue(result.isActive());
+        verify(templateRepository, times(1)).save(any());
     }
 
     @Test
-    @DisplayName("deve rejeitar quando template nao existe")
+    @DisplayName("deve rejeitar quando template não está em DRAFT")
+    void deveRejeitarQuandoTemplateNaoEstaDraft() {
+        UUID groupId = UUID.randomUUID();
+        UUID templateId = UUID.randomUUID();
+
+        ChecklistTemplate active = template(templateId, groupId, ChecklistTemplateStatus.ACTIVE, true);
+
+        when(contextProvider.getRequestContext()).thenReturn(senai());
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(active));
+
+        assertThrows(IllegalStateException.class, () -> useCase.execute(templateId));
+
+        verify(templateRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("deve rejeitar quando template não existe")
     void deveRejeitarQuandoTemplateNaoExiste() {
-        UUID templateId = UUID.randomUUID();
-
         when(contextProvider.getRequestContext()).thenReturn(senai());
-        when(templateRepository.findById(templateId)).thenReturn(Optional.empty());
+        when(templateRepository.findById(any())).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> useCase.execute(templateId));
+        assertThrows(EntityNotFoundException.class, () -> useCase.execute(UUID.randomUUID()));
 
-        verify(templateRepository, never()).findByRoomIdAndActiveTrueAndStatus(any(UUID.class), eq(ChecklistTemplateStatus.ACTIVE));
+        verify(templateRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("deve rejeitar quando usuario nao gerencia templates")
+    @DisplayName("deve rejeitar quando usuario não gerencia templates")
     void deveRejeitarQuandoUsuarioNaoGerenciaTemplates() {
-        UUID templateId = UUID.randomUUID();
-
         when(contextProvider.getRequestContext()).thenReturn(student());
 
-        assertThrows(AccessDeniedException.class, () -> useCase.execute(templateId));
+        assertThrows(AccessDeniedException.class, () -> useCase.execute(UUID.randomUUID()));
 
-        verify(templateRepository, never()).findById(templateId);
+        verify(templateRepository, never()).findById(any());
     }
 
-    private ChecklistTemplate template(
-            UUID templateId,
-            UUID roomId,
-            ChecklistTemplateStatus status,
-            boolean active
-    ) {
+    private ChecklistTemplate template(UUID id, UUID groupId, ChecklistTemplateStatus status, boolean active) {
         return ChecklistTemplate.builder()
-                .id(templateId)
-                .roomId(roomId)
+                .id(id)
+                .templateGroupId(groupId)
                 .status(status)
                 .active(active)
                 .build();

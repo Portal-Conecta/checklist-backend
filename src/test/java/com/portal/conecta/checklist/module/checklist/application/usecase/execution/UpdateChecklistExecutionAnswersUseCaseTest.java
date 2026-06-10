@@ -1,9 +1,6 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.execution;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.core.ChecklistIssueService; // Import adicionado
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.core.ChecklistExecutionScoringService;
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
@@ -29,8 +26,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UpdateChecklistExecutionAnswersUseCaseTest {
@@ -48,7 +52,7 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
     private ChecklistExecutionScoringService scoringService;
 
     @Mock
-    private ChecklistIssueService issueService; // Mock adicionado para corrigir o NullPointerException
+    private ChecklistIssueService issueService;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -75,7 +79,6 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
         execution.setChecklistTemplate(template);
 
         ChecklistSchemaDTO schema = mock(ChecklistSchemaDTO.class);
-        // Retorna uma lista mutável vazia para evitar problemas internos do stream de seções
         when(schema.sections()).thenReturn(new ArrayList<>());
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
@@ -90,7 +93,7 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
         verify(objectMapper, times(1)).convertValue(any(), eq(ChecklistSchemaDTO.class));
         verify(scoringService, times(1)).calculateComplianceScore(any());
         verify(executionMapper, times(1)).toAnswersJson(request);
-        verify(issueService, times(1)).createIssuesForNonCompliantAnswers(any(), any(), any()); // Verifica se o serviço de issues foi invocado
+        verify(issueService, times(1)).createIssuesForNonCompliantAnswers(any(), any(), any());
         verify(executionRepository, times(1)).save(execution);
     }
 
@@ -130,6 +133,28 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
         when(contextProvider.getRequestContext()).thenReturn(contextComRoleInvalida);
 
         assertThrows(AccessDeniedException.class,
+                () -> updateChecklistExecutionAnswersUseCase.execute(executionId, request));
+
+        verify(executionRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("deve rejeitar atualizacao quando execucao nao estiver no status SUBMITTED")
+    void deveRejeitarAtualizacaoQuandoStatusNaoForSubmitted() {
+        UUID executionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+
+        ChecklistExecutionSubmitDTO request = mock(ChecklistExecutionSubmitDTO.class);
+        ChecklistExecution execution = new ChecklistExecution();
+        execution.setUserId(userId);
+        execution.setClassId(classId);
+        execution.setStatus(ChecklistExecutionStatus.DRAFT);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(teacherContext(userId, classId));
+
+        assertThrows(IllegalStateException.class,
                 () -> updateChecklistExecutionAnswersUseCase.execute(executionId, request));
 
         verify(executionRepository, never()).save(any());

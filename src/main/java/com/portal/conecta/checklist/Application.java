@@ -3,8 +3,7 @@ package com.portal.conecta.checklist;
 import com.portal.conecta.checklist.shared.config.EnvFileLoader;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * Ponto de entrada da Checklist API.
@@ -14,7 +13,7 @@ import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGe
  * depender de configuracao global da maquina.</p>
  */
 @SpringBootApplication
-@ComponentScan(nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class)
+@EnableFeignClients(basePackages = "com.portal.conecta.checklist.shared.hub.client")
 public class Application {
 
 	public static void main(String[] args) {

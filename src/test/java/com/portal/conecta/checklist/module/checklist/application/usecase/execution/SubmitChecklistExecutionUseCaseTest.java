@@ -1,9 +1,10 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.execution;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.core.ChecklistIssueService;
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.window.SubmissionWindowValidator;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Shift;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ConformityAnswerValue;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
@@ -19,12 +20,9 @@ import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -35,43 +33,38 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class SubmitChecklistExecutionUseCaseTest {
 
-    @Mock
-    private ChecklistExecutionRepository executionRepository;
-
-    @Mock
-    private RequestContextProvider contextProvider;
-
-
+    private final ChecklistExecutionRepository executionRepository    = mock(ChecklistExecutionRepository.class);
+    private final RequestContextProvider contextProvider              = mock(RequestContextProvider.class);
+    private final SubmissionWindowValidator submissionWindowValidator = mock(SubmissionWindowValidator.class);
+    private final ObjectMapper objectMapper                           = new ObjectMapper().findAndRegisterModules();
+    private final ChecklistExecutionMapper executionMapper            = new ChecklistExecutionMapper(
+            objectMapper, new ChecklistIssueMapper()
+    );
 
     private SubmitChecklistExecutionUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-        ChecklistExecutionMapper executionMapper = new ChecklistExecutionMapper(
-                objectMapper,
-                new ChecklistIssueMapper()
-        );
-
-        // Instancia do novo serviço compartilhado para rodar a lógica real de criação de issues no teste
-        ChecklistIssueService issueService = new ChecklistIssueService();
-
         useCase = new SubmitChecklistExecutionUseCase(
                 executionRepository,
                 executionMapper,
                 objectMapper,
                 contextProvider,
-                issueService // Nova dependência injetada no construtor
+                submissionWindowValidator,
+                new ChecklistIssueService(),
+                new ChecklistExecutionScoringService()
         );
+        ReflectionTestUtils.setField(useCase, "timezone", "America/Sao_Paulo");
     }
 
     @Test
-    @DisplayName("Deve submeter checklist e criar issue para resposta não conforme")
     void shouldSubmitChecklistAndCreateIssueForNonCompliantAnswer() {
         UUID executionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -91,8 +84,6 @@ class SubmitChecklistExecutionUseCaseTest {
         assertThat(result.getStatus()).isEqualTo(ChecklistExecutionStatus.SUBMITTED);
         assertThat(result.getSubmittedAt()).isNotNull();
         assertThat(result.getComplianceScore()).isEqualByComparingTo(new BigDecimal("50.00"));
-
-        // Garante que a integração com o ChecklistIssueService funcionou perfeitamente
         assertThat(result.getIssues()).hasSize(1);
         assertThat(result.getIssues().getFirst().getItemKey()).isEqualTo("iluminacao");
         assertThat(result.getIssues().getFirst().getItemTitleSnapshot()).isEqualTo("Iluminacao adequada?");
@@ -104,7 +95,6 @@ class SubmitChecklistExecutionUseCaseTest {
     }
 
     @Test
-    @DisplayName("Deve rejeitar resposta não conforme quando não houver observação")
     void shouldRejectNonCompliantAnswerWithoutObservation() {
         UUID executionId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
@@ -124,7 +114,6 @@ class SubmitChecklistExecutionUseCaseTest {
     }
 
     @Test
-    @DisplayName("Deve rejeitar submissão quando faltar resposta obrigatória")
     void shouldRejectMissingRequiredAnswer() {
         UUID executionId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
@@ -143,7 +132,6 @@ class SubmitChecklistExecutionUseCaseTest {
     }
 
     @Test
-    @DisplayName("Deve rejeitar submissão de checklist que não está em rascunho")
     void shouldRejectSubmittingChecklistThatIsNotDraft() {
         UUID executionId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
@@ -164,7 +152,6 @@ class SubmitChecklistExecutionUseCaseTest {
     }
 
     @Test
-    @DisplayName("Deve rejeitar submissão de execução pertencente a outro usuário")
     void shouldRejectSubmittingExecutionFromAnotherUser() {
         UUID executionId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
@@ -183,7 +170,6 @@ class SubmitChecklistExecutionUseCaseTest {
     }
 
     @Test
-    @DisplayName("Deve rejeitar submissão vinda de perfil de gestão mesmo se for o dono")
     void shouldRejectSubmittingExecutionFromManagementProfileEvenWhenOwner() {
         UUID executionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -211,6 +197,8 @@ class SubmitChecklistExecutionUseCaseTest {
                 .id(executionId)
                 .userId(userId)
                 .classId(classId)
+                .shift(Shift.FULL_AM_PM)
+                .checklistType(ChecklistType.ARRIVAL)
                 .status(ChecklistExecutionStatus.DRAFT)
                 .checklistTemplate(ChecklistTemplate.builder()
                         .id(UUID.randomUUID())

@@ -1,38 +1,49 @@
 package com.portal.conecta.checklist.module.checklist.presentation.controller;
 
-import com.portal.conecta.checklist.module.checklist.application.facade.ChecklistExecutionFacade;
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ListChecklistHistoryByClassUseCase;
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.CancelChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.CreateChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.ListChecklistHistoryByClassUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.SubmitChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
-import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionHistoryDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ChecklistExecutionControllerTest {
 
-    private final ChecklistExecutionFacade checklistExecutionFacade = mock(ChecklistExecutionFacade.class);
-    private final ChecklistExecutionMapper checklistExecutionMapper = mock(ChecklistExecutionMapper.class);
+    private final CreateChecklistExecutionUseCase createUseCase = mock(CreateChecklistExecutionUseCase.class);
+    private final SubmitChecklistExecutionUseCase submitUseCase = mock(SubmitChecklistExecutionUseCase.class);
+    private final CancelChecklistExecutionUseCase cancelUseCase = mock(CancelChecklistExecutionUseCase.class);
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase = mock(ListChecklistHistoryByClassUseCase.class);
-    private final UpdateChecklistExecutionAnswersUseCase updateChecklistExecutionAnswersUseCase = mock(UpdateChecklistExecutionAnswersUseCase.class);
-
+    private final UpdateChecklistExecutionAnswersUseCase updateAnswersUseCase = mock(UpdateChecklistExecutionAnswersUseCase.class);
+    private final ChecklistExecutionMapper mapper = mock(ChecklistExecutionMapper.class);
     private final ChecklistExecutionController controller = new ChecklistExecutionController(
-            checklistExecutionFacade,
-            checklistExecutionMapper,
+            createUseCase,
+            submitUseCase,
+            cancelUseCase,
             listHistoryByClassUseCase,
-            updateChecklistExecutionAnswersUseCase
+            updateAnswersUseCase,
+            mapper
     );
 
     @Test
@@ -42,18 +53,20 @@ class ChecklistExecutionControllerTest {
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                Period.MORNING,
                 ChecklistType.ARRIVAL
         );
+        ChecklistExecution execution = mock(ChecklistExecution.class);
         ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
 
-        when(checklistExecutionFacade.createDTO(request)).thenReturn(response);
+        when(createUseCase.execute(request)).thenReturn(execution);
+        when(mapper.toResponse(execution)).thenReturn(response);
 
         ResponseEntity<ChecklistExecutionResponseDTO> result = controller.createDraft(request);
 
         assertEquals(HttpStatus.CREATED, result.getStatusCode());
         assertSame(response, result.getBody());
-        verify(checklistExecutionFacade).createDTO(request);
+        verify(createUseCase).execute(request);
+        verify(mapper).toResponse(execution);
     }
 
     @Test
@@ -61,77 +74,75 @@ class ChecklistExecutionControllerTest {
     void deveRetornarOkAoEnviarChecklist() {
         UUID executionId = UUID.randomUUID();
         ChecklistExecutionSubmitDTO request = mock(ChecklistExecutionSubmitDTO.class);
+        ChecklistExecution execution = mock(ChecklistExecution.class);
         ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
 
-        when(checklistExecutionFacade.submit(executionId, request)).thenReturn(response);
+        when(submitUseCase.execute(executionId, request)).thenReturn(execution);
+        when(mapper.toResponse(execution)).thenReturn(response);
 
         ResponseEntity<ChecklistExecutionResponseDTO> result = controller.submit(executionId, request);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
-        verify(checklistExecutionFacade).submit(executionId, request);
+        verify(submitUseCase).execute(executionId, request);
+        verify(mapper).toResponse(execution);
     }
 
     @Test
-    @DisplayName("deve retornar ok ao atualizar respostas do checklist via patch")
-    void deveRetornarOkAoAtualizarRespostas() {
-
+    @DisplayName("deve retornar ok ao cancelar checklist")
+    void deveRetornarOkAoCancelarChecklist() {
         UUID executionId = UUID.randomUUID();
-        ChecklistExecutionSubmitDTO request = mock(ChecklistExecutionSubmitDTO.class);
         ChecklistExecution execution = mock(ChecklistExecution.class);
         ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
 
-        when(updateChecklistExecutionAnswersUseCase.execute(executionId, request)).thenReturn(execution);
-        when(checklistExecutionMapper.toResponse(execution)).thenReturn(response);
-        ResponseEntity<ChecklistExecutionResponseDTO> result = controller.updateAnswers(executionId, request);
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertSame(response, result.getBody());
-
-        verify(updateChecklistExecutionAnswersUseCase).execute(executionId, request);
-        verify(checklistExecutionMapper).toResponse(execution);
-    }
-    @Test
-    @DisplayName("deve retornar 200 OK ao cancelar execucao com sucesso")
-    void deveRetornarOkAoCancelarExecucao() {
-        UUID executionId = UUID.randomUUID();
-        ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
-
-        when(checklistExecutionFacade.cancel(executionId)).thenReturn(response);
+        when(cancelUseCase.execute(executionId)).thenReturn(execution);
+        when(mapper.toResponse(execution)).thenReturn(response);
 
         ResponseEntity<ChecklistExecutionResponseDTO> result = controller.cancel(executionId);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
-        verify(checklistExecutionFacade).cancel(executionId);
+        verify(cancelUseCase).execute(executionId);
+        verify(mapper).toResponse(execution);
     }
 
     @Test
-    @DisplayName("deve propagar EntityNotFoundException quando execucao nao existe")
-    void devePropagar404QuandoExecucaoNaoExiste() {
+    @DisplayName("deve retornar ok ao atualizar respostas de checklist enviado")
+    void deveRetornarOkAoAtualizarRespostas() {
         UUID executionId = UUID.randomUUID();
+        ChecklistExecutionSubmitDTO request = mock(ChecklistExecutionSubmitDTO.class);
+        ChecklistExecution execution = mock(ChecklistExecution.class);
+        ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
 
-        when(checklistExecutionFacade.cancel(executionId))
-                .thenThrow(new EntityNotFoundException("Execucao de checklist nao encontrada."));
+        when(updateAnswersUseCase.execute(executionId, request)).thenReturn(execution);
+        when(mapper.toResponse(execution)).thenReturn(response);
 
-        EntityNotFoundException excecao = assertThrows(EntityNotFoundException.class,
-                () -> controller.cancel(executionId));
+        ResponseEntity<ChecklistExecutionResponseDTO> result = controller.updateAnswers(executionId, request);
 
-        assertEquals("Execucao de checklist nao encontrada.", excecao.getMessage());
-        verify(checklistExecutionFacade).cancel(executionId);
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(response, result.getBody());
+        verify(updateAnswersUseCase).execute(executionId, request);
+        verify(mapper).toResponse(execution);
     }
 
     @Test
-    @DisplayName("deve propagar IllegalStateException quando status nao permite cancelamento")
-    void devePropagar400QuandoStatusInvalido() {
-        UUID executionId = UUID.randomUUID();
+    @DisplayName("deve retornar historico paginado por turma")
+    void deveRetornarHistoricoPaginadoPorTurma() {
+        UUID classId = UUID.randomUUID();
+        PageRequest pageable = PageRequest.of(0, 20);
+        ChecklistExecution execution = mock(ChecklistExecution.class);
+        ChecklistExecutionHistoryDTO history = mock(ChecklistExecutionHistoryDTO.class);
+        Page<ChecklistExecution> executions = new PageImpl<>(List.of(execution), pageable, 1);
+        Page<ChecklistExecutionHistoryDTO> response = new PageImpl<>(List.of(history), pageable, 1);
 
-        when(checklistExecutionFacade.cancel(executionId))
-                .thenThrow(new IllegalStateException("Somente checklists enviados podem ser cancelados."));
+        when(listHistoryByClassUseCase.execute(classId, pageable)).thenReturn(executions);
+        when(mapper.toPageHistory(executions)).thenReturn(response);
 
-        IllegalStateException excecao = assertThrows(IllegalStateException.class,
-                () -> controller.cancel(executionId));
+        ResponseEntity<Page<ChecklistExecutionHistoryDTO>> result = controller.listHistoryByClass(classId, pageable);
 
-        assertEquals("Somente checklists enviados podem ser cancelados.", excecao.getMessage());
-        verify(checklistExecutionFacade).cancel(executionId);
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(response, result.getBody());
+        verify(listHistoryByClassUseCase).execute(classId, pageable);
+        verify(mapper).toPageHistory(executions);
     }
 }

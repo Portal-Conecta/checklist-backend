@@ -11,7 +11,6 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.update.Che
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
-import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
@@ -28,31 +27,25 @@ import static org.mockito.Mockito.*;
 class EditChecklistTemplateUseCaseTest {
 
     private final ChecklistTemplateRepository templateRepository = mock(ChecklistTemplateRepository.class);
-    private final HubRoomProvider hubRoomProvider = mock(HubRoomProvider.class);
     private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final EditChecklistTemplateUseCase useCase = new EditChecklistTemplateUseCase(
             templateRepository,
-            hubRoomProvider,
             contextProvider,
             objectMapper
     );
 
     @Test
-    void shouldEditTemplateWhenDraftAndManagerAndRoomExists() {
+    void shouldEditTemplateWhenDraftAndManager() {
         UUID templateId = UUID.randomUUID();
-        UUID newRoomId = UUID.randomUUID();
-        ChecklistTemplateEditRequest request = requestFull(newRoomId);
 
         when(contextProvider.getRequestContext()).thenReturn(user(TypeUser.SENAI));
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(draftTemplate()));
-        when(hubRoomProvider.existsById(newRoomId)).thenReturn(true);
         when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        ChecklistTemplate result = useCase.execute(templateId, request);
+        ChecklistTemplate result = useCase.execute(templateId, requestFull());
 
         assertThat(result.getTitle()).isEqualTo("Novo título");
-        assertThat(result.getRoomId()).isEqualTo(newRoomId);
         verify(templateRepository).save(any());
     }
 
@@ -69,7 +62,6 @@ class EditChecklistTemplateUseCaseTest {
         ChecklistTemplate result = useCase.execute(templateId, requestOnlySchema());
 
         assertThat(result.getTitle()).isEqualTo(originalTitle);
-        verify(hubRoomProvider, never()).existsById(any());
     }
 
     @Test
@@ -77,7 +69,7 @@ class EditChecklistTemplateUseCaseTest {
         when(contextProvider.getRequestContext()).thenReturn(user(TypeUser.STUDENT));
 
         assertThrows(AccessDeniedException.class,
-                () -> useCase.execute(UUID.randomUUID(), requestFull(UUID.randomUUID())));
+                () -> useCase.execute(UUID.randomUUID(), requestFull()));
 
         verify(templateRepository, never()).findById(any());
         verify(templateRepository, never()).save(any());
@@ -89,7 +81,7 @@ class EditChecklistTemplateUseCaseTest {
         when(templateRepository.findById(any())).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class,
-                () -> useCase.execute(UUID.randomUUID(), requestFull(UUID.randomUUID())));
+                () -> useCase.execute(UUID.randomUUID(), requestFull()));
 
         verify(templateRepository, never()).save(any());
     }
@@ -104,22 +96,7 @@ class EditChecklistTemplateUseCaseTest {
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(active));
 
         assertThrows(IllegalStateException.class,
-                () -> useCase.execute(templateId, requestFull(UUID.randomUUID())));
-
-        verify(templateRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldRejectWhenRoomDoesNotExistInHub() {
-        UUID templateId = UUID.randomUUID();
-        UUID newRoomId = UUID.randomUUID();
-
-        when(contextProvider.getRequestContext()).thenReturn(user(TypeUser.SENAI));
-        when(templateRepository.findById(templateId)).thenReturn(Optional.of(draftTemplate()));
-        when(hubRoomProvider.existsById(newRoomId)).thenReturn(false);
-
-        assertThrows(EntityNotFoundException.class,
-                () -> useCase.execute(templateId, requestFull(newRoomId)));
+                () -> useCase.execute(templateId, requestFull()));
 
         verify(templateRepository, never()).save(any());
     }
@@ -137,9 +114,8 @@ class EditChecklistTemplateUseCaseTest {
         verify(templateRepository, never()).save(any());
     }
 
-    private ChecklistTemplateEditRequest requestFull(UUID roomId) {
+    private ChecklistTemplateEditRequest requestFull() {
         return new ChecklistTemplateEditRequest(
-                roomId,
                 "Novo título",
                 "Nova descrição",
                 schema("secao-1", "item-1")
@@ -147,12 +123,12 @@ class EditChecklistTemplateUseCaseTest {
     }
 
     private ChecklistTemplateEditRequest requestOnlySchema() {
-        return new ChecklistTemplateEditRequest(null, null, null, schema("secao-1", "item-1"));
+        return new ChecklistTemplateEditRequest(null, null, schema("secao-1", "item-1"));
     }
 
     private ChecklistTemplateEditRequest requestDuplicateKeys() {
         return new ChecklistTemplateEditRequest(
-                null, null, null,
+                null, null,
                 new ChecklistSchemaDTO(List.of(
                         new ChecklistSectionDTO("secao-1", "Seção 1", 1, List.of(
                                 new ChecklistItemDTO("item-1", "Item 1", "", true, 1),

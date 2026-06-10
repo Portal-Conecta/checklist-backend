@@ -5,20 +5,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistItemDTO;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistSchemaDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.update.ChecklistTemplateEditRequest;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
-import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
 import com.portal.conecta.checklist.shared.utils.ChecklistSchemaValidator;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-import java.util.HashSet;
+
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -38,7 +34,6 @@ public class EditChecklistTemplateUseCase {
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>(){};
 
     private final ChecklistTemplateRepository templateRepository;
-    private final HubRoomProvider hubRoomProvider;
     private final RequestContextProvider contextProvider;
     private final ObjectMapper objectMapper;
 
@@ -75,13 +70,6 @@ public class EditChecklistTemplateUseCase {
 
         if (template.getStatus() != ChecklistTemplateStatus.DRAFT){
             throw new IllegalStateException("Apenas templates com status DRAFT podem ser editados. Status atual: "  + template.getStatus());
-        }
-
-        if (request.roomId() != null){
-            if (!hubRoomProvider.existsById(request.roomId())){
-                throw new EntityNotFoundException("Sala não encontrada no Hub.");
-            }
-            template.setRoomId(request.roomId());
         }
 
         if (request.title() != null){

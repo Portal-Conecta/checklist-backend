@@ -15,17 +15,12 @@ import java.util.UUID;
  * <p>Todos os campos são opcionais. Quando um campo é informado como
  * {@code null}, o valor atualmente armazenado no template é mantido.</p>
  *
- * @param roomId identificador da sala associada ao template
  * @param title título do template
  * @param description descrição do template
  * @param schemaJson estrutura do checklist contendo seções, campos e regras de validação
  */
 public record ChecklistTemplateEditRequest(
 
-        UUID roomId,
-        /**
-         *
-         */
         @Pattern(
                 regexp = "^(?!\\s*$).+",
                 message = "title não pode ser vazio ou conter apenas espaços."

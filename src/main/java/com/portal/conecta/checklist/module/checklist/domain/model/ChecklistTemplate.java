@@ -35,6 +35,12 @@ public class ChecklistTemplate {
     private UUID id;
 
     /**
+     * Agrupa todas as versões do mesmo template.
+     * Gerado na criação e herdado por todas as versões subsequentes.
+     */
+    private UUID templateGroupId;
+
+    /**
      * Identificador da sala à qual este template pertence.
      * <br>
      * <b>Não pode ser nulo.</b>

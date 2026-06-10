@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,70 +18,43 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class ActivateChecklistTemplateUseCaseTest {
+class CreateChecklistTemplateVersionUseCaseTest {
 
     private final ChecklistTemplateRepository templateRepository = mock(ChecklistTemplateRepository.class);
     private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
-    private final ActivateChecklistTemplateUseCase useCase = new ActivateChecklistTemplateUseCase(
+    private final CreateChecklistTemplateVersionUseCase useCase = new CreateChecklistTemplateVersionUseCase(
             templateRepository, contextProvider);
 
     @Test
-    @DisplayName("deve ativar template DRAFT e inativar versão anterior do mesmo grupo")
-    void deveAtivarTemplateDraftEInativarVersaoAnterior() {
+    @DisplayName("deve criar nova versão DRAFT copiando template ACTIVE")
+    void deveCriarNovaVersaoDraftCopiandoTemplateActive() {
         UUID groupId = UUID.randomUUID();
-        UUID templateId = UUID.randomUUID();
-
-        ChecklistTemplate draft = template(templateId, groupId, ChecklistTemplateStatus.DRAFT, false);
-        ChecklistTemplate active = template(UUID.randomUUID(), groupId, ChecklistTemplateStatus.ACTIVE, true);
+        ChecklistTemplate origin = template(UUID.randomUUID(), groupId, ChecklistTemplateStatus.ACTIVE, 1);
 
         when(contextProvider.getRequestContext()).thenReturn(senai());
-        when(templateRepository.findById(templateId)).thenReturn(Optional.of(draft));
-        when(templateRepository.findByTemplateGroupIdAndStatus(groupId, ChecklistTemplateStatus.ACTIVE))
-                .thenReturn(List.of(active));
+        when(templateRepository.findById(origin.getId())).thenReturn(Optional.of(origin));
         when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        ChecklistTemplate result = useCase.execute(templateId);
+        ChecklistTemplate result = useCase.execute(origin.getId());
 
-        assertEquals(ChecklistTemplateStatus.ACTIVE, result.getStatus());
-        assertTrue(result.isActive());
-        assertEquals(ChecklistTemplateStatus.INACTIVE, active.getStatus());
-        assertFalse(active.isActive());
-        verify(templateRepository, times(2)).save(any());
+        assertEquals(ChecklistTemplateStatus.DRAFT, result.getStatus());
+        assertFalse(result.isActive());
+        assertEquals(groupId, result.getTemplateGroupId());
+        assertEquals(2, result.getVersion());
+        assertNull(result.getId()); // novo registro, id ainda não gerado
+        verify(templateRepository).save(any());
     }
 
     @Test
-    @DisplayName("deve ativar template DRAFT sem versão anterior no grupo")
-    void deveAtivarTemplateDraftSemVersaoAnterior() {
+    @DisplayName("deve rejeitar quando template não está ACTIVE")
+    void deveRejeitarQuandoTemplateNaoEstaActive() {
         UUID groupId = UUID.randomUUID();
-        UUID templateId = UUID.randomUUID();
-
-        ChecklistTemplate draft = template(templateId, groupId, ChecklistTemplateStatus.DRAFT, false);
+        ChecklistTemplate draft = template(UUID.randomUUID(), groupId, ChecklistTemplateStatus.DRAFT, 1);
 
         when(contextProvider.getRequestContext()).thenReturn(senai());
-        when(templateRepository.findById(templateId)).thenReturn(Optional.of(draft));
-        when(templateRepository.findByTemplateGroupIdAndStatus(groupId, ChecklistTemplateStatus.ACTIVE))
-                .thenReturn(List.of());
-        when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(templateRepository.findById(draft.getId())).thenReturn(Optional.of(draft));
 
-        ChecklistTemplate result = useCase.execute(templateId);
-
-        assertEquals(ChecklistTemplateStatus.ACTIVE, result.getStatus());
-        assertTrue(result.isActive());
-        verify(templateRepository, times(1)).save(any());
-    }
-
-    @Test
-    @DisplayName("deve rejeitar quando template não está em DRAFT")
-    void deveRejeitarQuandoTemplateNaoEstaDraft() {
-        UUID groupId = UUID.randomUUID();
-        UUID templateId = UUID.randomUUID();
-
-        ChecklistTemplate active = template(templateId, groupId, ChecklistTemplateStatus.ACTIVE, true);
-
-        when(contextProvider.getRequestContext()).thenReturn(senai());
-        when(templateRepository.findById(templateId)).thenReturn(Optional.of(active));
-
-        assertThrows(IllegalStateException.class, () -> useCase.execute(templateId));
+        assertThrows(IllegalStateException.class, () -> useCase.execute(draft.getId()));
 
         verify(templateRepository, never()).save(any());
     }
@@ -108,12 +80,16 @@ class ActivateChecklistTemplateUseCaseTest {
         verify(templateRepository, never()).findById(any());
     }
 
-    private ChecklistTemplate template(UUID id, UUID groupId, ChecklistTemplateStatus status, boolean active) {
+    private ChecklistTemplate template(UUID id, UUID groupId, ChecklistTemplateStatus status, int version) {
         return ChecklistTemplate.builder()
                 .id(id)
                 .templateGroupId(groupId)
+                .roomId(UUID.randomUUID())
+                .title("Template teste")
+                .description("Descricao teste")
+                .version(version)
                 .status(status)
-                .active(active)
+                .active(status == ChecklistTemplateStatus.ACTIVE)
                 .build();
     }
 

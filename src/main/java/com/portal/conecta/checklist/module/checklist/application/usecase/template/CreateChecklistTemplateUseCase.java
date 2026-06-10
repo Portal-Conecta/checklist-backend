@@ -8,6 +8,7 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.Che
 import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistSchemaDTO;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
+import com.portal.conecta.checklist.shared.utils.ChecklistSchemaValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -45,28 +46,11 @@ public class CreateChecklistTemplateUseCase {
             throw new EntityNotFoundException("Sala nao encontrada no Hub.");
         }
 
-        validateStableKeys(request.schemaJson());
+        ChecklistSchemaValidator.validateStableKeys(request.schemaJson());
 
         var template = templateMapper.toEntity(request);
         return templateRepository.save(template);
     }
 
-    private void validateStableKeys(ChecklistSchemaDTO schema) {
-        Set<String> sectionKeys = new HashSet<>();
-        Set<String> itemKeys = new HashSet<>();
 
-        schema.sections().forEach(section -> {
-            if (!sectionKeys.add(section.key())) {
-                throw new IllegalArgumentException("section.key duplicado: " + section.key());
-            }
-
-            section.items().stream()
-                    .map(ChecklistItemDTO::key)
-                    .forEach(itemKey -> {
-                        if (!itemKeys.add(itemKey)) {
-                            throw new IllegalArgumentException("item.key duplicado: " + itemKey);
-                        }
-                    });
-        });
-    }
 }

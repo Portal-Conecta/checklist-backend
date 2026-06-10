@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.module.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.module.checklist.application.facade.ChecklistExecutionFacade;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ListChecklistHistoryByClassUseCase;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
@@ -26,6 +27,7 @@ public class ChecklistExecutionController {
     private final ChecklistExecutionFacade checklistExecutionFacade;
     private final ChecklistExecutionMapper checklistExecutionMapper;
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase;
+    private  final UpdateChecklistExecutionAnswersUseCase updateChecklistExecutionAnswersUseCase;
 
     @PostMapping("/drafts")
     public ResponseEntity<ChecklistExecutionResponseDTO> createDraft(@RequestBody @Valid ChecklistExecutionDraftCreateDTO request) {
@@ -64,6 +66,7 @@ public class ChecklistExecutionController {
             @PathVariable UUID executionId,
             @RequestBody @Valid ChecklistExecutionSubmitDTO request
     ) {
-        return ResponseEntity.ok(checklistExecutionFacade.updateAnswers(executionId, request));
+        var execution = updateChecklistExecutionAnswersUseCase.execute(executionId, request);
+        return ResponseEntity.ok(checklistExecutionMapper.toResponse(execution));
     }
 }

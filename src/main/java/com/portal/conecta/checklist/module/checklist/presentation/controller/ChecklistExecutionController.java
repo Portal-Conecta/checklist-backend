@@ -8,6 +8,10 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.request.Ch
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionHistoryDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -60,6 +64,33 @@ public class ChecklistExecutionController {
                 )
         );
     }
+
+    @Operation(
+            summary = "Atualiza as respostas de um checklist enviado",
+            description = "Permite que um usuário autorizado (ex: professor da turma ou administrador) atualize as respostas de uma execução de checklist cujo status seja SUBMITTED. Recalcula a nota de conformidade e gera novas pendências (issues) se houverem itens não conformes.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Respostas atualizadas com sucesso.",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ChecklistExecutionResponseDTO.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Requisição inválida ou o status atual do checklist não permite edição (deve ser SUBMITTED).",
+                            content = @Content(mediaType = "application/json")
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Usuário não possui permissão/perfil para gerenciar esta execução ou turma.",
+                            content = @Content(mediaType = "application/json")
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Execução de checklist não encontrada para o UUID fornecido.",
+                            content = @Content(mediaType = "application/json")
+                    )
+            }
+    )
 
     @PatchMapping("/{executionId}/answers")
     public ResponseEntity<ChecklistExecutionResponseDTO> updateAnswers(

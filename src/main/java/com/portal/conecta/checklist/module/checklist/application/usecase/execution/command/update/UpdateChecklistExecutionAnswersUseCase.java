@@ -26,6 +26,10 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Caso de Uso responsável por atualizar as respostas de um Checklist já submetido.
+ * Orquestra as regras de negócio de segurança, validação de estado, cálculo de score e geração de pendências adicionais.
+ */
 @Service
 @RequiredArgsConstructor
 public class UpdateChecklistExecutionAnswersUseCase {
@@ -39,6 +43,17 @@ public class UpdateChecklistExecutionAnswersUseCase {
     private final ObjectMapper objectMapper;
     private  final ChecklistIssueService issueService;
 
+
+    /**
+     * Executa o fluxo de re-submissão e edição das respostas de um determinado checklist.
+     *
+     * @param executionId O ID identificador único da execução do checklist.
+     * @param request     O DTO contendo a lista atualizada com as novas respostas.
+     * @return            A entidade {@link ChecklistExecution} atualizada e persistida.
+     * @throws EntityNotFoundException  Se a execução informada não for localizada no banco de dados.
+     * @throws AccessDeniedException    Se o usuário atual não possuir permissões administrativas ou de docência na turma correspondente.
+     * @throws IllegalStateException    Se o status atual da execução for diferente de SUBMITTED.
+     */
 
     @Transactional
     public ChecklistExecution execute(UUID executionId, ChecklistExecutionSubmitDTO request){
@@ -76,6 +91,9 @@ public class UpdateChecklistExecutionAnswersUseCase {
 
 
     }
+    /**
+     * Transforma a árvore hierárquica do Schema (Seções -> Itens) em um mapa linear indexado pela chave única do item.
+     */
     private Map<String, ChecklistItemDTO> itemsByKey(ChecklistSchemaDTO schema) {
         return schema.sections().stream()
                 .flatMap(section -> section.items().stream())

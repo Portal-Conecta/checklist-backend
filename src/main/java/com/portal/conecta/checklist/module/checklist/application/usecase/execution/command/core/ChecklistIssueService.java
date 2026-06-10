@@ -19,7 +19,20 @@ import java.util.stream.Collectors;
 @Service
 public class ChecklistIssueService {
 
+    /**
+     * Serviço responsável pelo gerenciamento de não-conformidades (Issues) originadas de execuções de checklists.
+     */
+
     private static final int ISSUE_DUE_DAYS = 7;
+
+    /**
+     * Analisa as respostas fornecidas e cria novas pendências (Issues) para cada resposta marcada como 'NON_COMPLIANT'.
+     * Possui inteligência para evitar a geração de pendências duplicadas para chaves de itens que já possuem issues associadas.
+     *
+     * @param execution   A entidade de execução do checklist atual que receberá as pendências.
+     * @param answers     Lista de respostas enviadas na requisição.
+     * @param itemsByKey  Mapa de mapeamento dos itens de schema originais para captura de metadados (como o título).
+     */
 
     public void createIssuesForNonCompliantAnswers(
             ChecklistExecution execution,
@@ -52,7 +65,9 @@ public class ChecklistIssueService {
                     }
                 });
     }
-
+    /**
+     * Método utilitário para garantir que os textos não estourem o limite de caracteres das colunas do banco de dados.
+     */
     private String truncate(String value, int maxLength) {
         if (value == null || value.length() <= maxLength) {
             return value;

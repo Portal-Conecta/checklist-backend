@@ -10,6 +10,7 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.Che
 import com.portal.conecta.checklist.module.checklist.presentation.dto.update.ChecklistTemplateEditRequest;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
+import com.portal.conecta.checklist.shared.utils.ChecklistSchemaValidator;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -92,38 +93,13 @@ public class EditChecklistTemplateUseCase {
         }
 
         if (request.schemaJson() != null){
-            validateStableKeys(request.schemaJson());
+            ChecklistSchemaValidator.validateStableKeys(request.schemaJson());
             template.setSchemaJson(objectMapper.convertValue(request.schemaJson(), MAP_TYPE));
         }
 
         return  templateRepository.save(template);
     }
 
-    /**
-     * Valida a unicidade das chaves estáveis do schema.
-     *
-     * <p>Não é permitido que duas seções possuam a mesma {@code key}
-     * nem que dois itens possuam a mesma {@code key}, independentemente
-     * da seção em que estejam.</p>
-     *
-     * @param schema schema do checklist a ser validado
-     * @throws IllegalArgumentException quando uma chave duplicada for encontrada
-     */
-    private void validateStableKeys(ChecklistSchemaDTO schema) {
-        Set<String> sectionKeys = new HashSet<>();
-        Set<String> itemKeys = new HashSet<>();
 
-        schema.sections().forEach(section -> {
-            if (!sectionKeys.add(section.key())) {
-                throw new IllegalArgumentException("section.key duplicado: " + section.key());
-            }
-            section.items().stream()
-                    .map(ChecklistItemDTO::key)
-                    .forEach(itemKey -> {
-                        if (!itemKeys.add(itemKey)) {
-                            throw new IllegalArgumentException("item.key duplicado: " + itemKey);
-                        }
-                    });
-        });
-    }
+
 }

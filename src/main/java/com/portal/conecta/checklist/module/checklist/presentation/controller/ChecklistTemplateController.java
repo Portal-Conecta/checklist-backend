@@ -5,6 +5,9 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.request.Ch
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.update.ChecklistTemplateEditRequest;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistTemplateMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -47,11 +50,27 @@ public class ChecklistTemplateController {
         return ResponseEntity.ok(mapper.toResponseList(listUseCase.execute()));
     }
 
+    @Operation(summary = "Editar Template", description = "Atualiza parcialmente um template com status DRAFT. Campos não informados são mantidos.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Template atualizado com sucesso."),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos na requisição."),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para editar templates"),
+            @ApiResponse(responseCode = "404", description = "Template não encontrado."),
+            @ApiResponse(responseCode = "422", description = "Template não está em status DRAFT.")
+
+    })
     @PatchMapping("/{templateId}")
     public ResponseEntity<ChecklistTemplateResponseDTO> editTemplate(@PathVariable UUID templateId, @RequestBody @Valid ChecklistTemplateEditRequest request){
         return ResponseEntity.ok(mapper.toResponse(editUseCase.execute(templateId, request)));
     }
 
+    @Operation(summary = "Criar nova versão", description = "Cria uma nova versão em DRAFT a partir de um template ACTIVE, preservando o histórico")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Nova versão criada com sucesso."),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para versionar templates."),
+            @ApiResponse(responseCode = "404", description = "Template não encontrado"),
+            @ApiResponse(responseCode = "422", description = "Template não está em status ACTIVE.")
+    })
     @PostMapping("/{templateId}/new-version")
     public ResponseEntity<ChecklistTemplateResponseDTO> createNewVersion(
             @PathVariable UUID templateId) {

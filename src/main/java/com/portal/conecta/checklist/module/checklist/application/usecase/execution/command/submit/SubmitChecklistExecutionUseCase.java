@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.core.ChecklistIssueService;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ConformityAnswerValue;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
@@ -48,7 +49,7 @@ public class SubmitChecklistExecutionUseCase {
     private final ChecklistExecutionMapper executionMapper;
     private final ObjectMapper objectMapper;
     private final RequestContextProvider contextProvider;
-
+    private final ChecklistIssueService issueService;
     /**
      * Submete e processa a execução de um checklist.
      * <p>
@@ -100,6 +101,8 @@ public class SubmitChecklistExecutionUseCase {
         execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
         execution.setSubmittedAt(LocalDateTime.now());
         createIssuesForNonCompliantAnswers(execution, request.answers(), itemsByKey);
+
+        issueService.createIssuesForNonCompliantAnswers(execution, request.answers(), itemsByKey);
 
         return executionRepository.save(execution);
     }
@@ -214,41 +217,8 @@ public class SubmitChecklistExecutionUseCase {
         return value == null || value.isBlank();
     }
 
-    /**
-     * Cria automaticamente pendências (Issues) para todas as respostas avaliadas como não conformes.
-     * <p>
-     * A data de vencimento (Due Date) é calculada adicionando um número predefinido de dias
-     * (ISSUE_DUE_DAYS) a partir da data de submissão atual.
-     * </p>
-     *
-     * @param execution  a execução de checklist à qual as pendências serão atreladas.
-     * @param answers    a lista de respostas fornecidas pelo usuário.
-     * @param itemsByKey o mapa de itens do template para obter o título de cada item.
-     */
-    private void createIssuesForNonCompliantAnswers(
-            ChecklistExecution execution,
-            List<ChecklistAnswerRequestDTO> answers,
-            Map<String, ChecklistItemDTO> itemsByKey
-    ) {
-        Instant dueAt = Instant.now().plusSeconds(ISSUE_DUE_DAYS * 24L * 60L * 60L);
 
-        answers.stream()
-                .filter(answer -> answer.value() == ConformityAnswerValue.NON_COMPLIANT)
-                .forEach(answer -> {
-                    ChecklistItemDTO item = itemsByKey.get(answer.itemKey());
 
-                    execution.addIssue(ChecklistIssue.builder()
-                            .assignedUserReference(new UserReference(execution.getUserId()))
-                            .itemKey(answer.itemKey())
-                            .itemTitleSnapshot(truncate(item.title(), 150))
-                            .title(truncate("Pendencia: " + item.title(), 100))
-                            .description(truncate(answer.observation(), 500))
-                            .status(IssueStatus.OPEN)
-                            .priority(IssuePriority.MEDIUM)
-                            .dueAt(dueAt)
-                            .build());
-                });
-    }
 
     /**
      * Trunca uma String para garantir que não exceda um tamanho máximo estipulado.

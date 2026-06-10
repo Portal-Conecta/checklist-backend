@@ -15,15 +15,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
- * Caso de uso responsável por atualizar as respostas de um checklist já submetido.
- * Orquestra as regras de negócio de segurança, validação de estado, cálculo de score e geração de pendências adicionais.
+ * Caso de uso responsavel por atualizar respostas de um checklist submetido.
  */
 @Service
 @RequiredArgsConstructor
@@ -35,17 +31,8 @@ public class UpdateChecklistExecutionAnswersUseCase {
     private final ChecklistExecutionScoringService scoringService;
     private final ChecklistIssueService issueService;
     private final ObjectMapper objectMapper;
+    private final ChecklistExecutionAnswerValidationService answerValidationService;
 
-    /**
-     * Executa o fluxo de edição das respostas de um determinado checklist.
-     *
-     * @param executionId o identificador único da execução do checklist.
-     * @param request     o DTO contendo a lista atualizada com as novas respostas.
-     * @return            a entidade {@link ChecklistExecution} atualizada e persistida.
-     * @throws EntityNotFoundException se a execução informada não for localizada no banco de dados.
-     * @throws AccessDeniedException   se o usuário atual não possuir permissões administrativas ou de docência na turma correspondente.
-     * @throws IllegalStateException   se o status atual da execução for diferente de SUBMITTED.
-     */
     @Transactional
     public ChecklistExecution execute(UUID executionId, ChecklistExecutionSubmitDTO request) {
         ChecklistExecution execution = repository.findById(executionId)
@@ -67,22 +54,12 @@ public class UpdateChecklistExecutionAnswersUseCase {
                 ChecklistSchemaDTO.class
         );
 
-        Map<String, ChecklistItemDTO> itemsByKey = itemsByKey(schema);
+        Map<String, ChecklistItemDTO> itemsByKey = answerValidationService.validate(schema, request.answers());
 
         issueService.createIssuesForNonCompliantAnswers(execution, request.answers(), itemsByKey);
-
         execution.setAnswersJson(executionMapper.toAnswersJson(request));
         execution.setComplianceScore(scoringService.calculateComplianceScore(request.answers()));
 
         return repository.save(execution);
-    }
-
-    /**
-     * Transforma a árvore hierárquica do schema (seções -> itens) em um mapa linear indexado pela chave única do item.
-     */
-    private Map<String, ChecklistItemDTO> itemsByKey(ChecklistSchemaDTO schema) {
-        return schema.sections().stream()
-                .flatMap(section -> section.items().stream())
-                .collect(Collectors.toMap(ChecklistItemDTO::key, Function.identity(), (first, duplicated) -> first, LinkedHashMap::new));
     }
 }

@@ -21,8 +21,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -57,6 +57,9 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private ChecklistExecutionAnswerValidationService answerValidationService;
+
     @InjectMocks
     private UpdateChecklistExecutionAnswersUseCase updateChecklistExecutionAnswersUseCase;
 
@@ -79,11 +82,11 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
         execution.setChecklistTemplate(template);
 
         ChecklistSchemaDTO schema = mock(ChecklistSchemaDTO.class);
-        when(schema.sections()).thenReturn(new ArrayList<>());
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
         when(contextProvider.getRequestContext()).thenReturn(teacherContext(userId, classId));
         when(objectMapper.convertValue(any(), eq(ChecklistSchemaDTO.class))).thenReturn(schema);
+        when(answerValidationService.validate(schema, request.answers())).thenReturn(Map.of());
         when(executionRepository.save(execution)).thenReturn(execution);
 
         ChecklistExecution resultado = updateChecklistExecutionAnswersUseCase.execute(executionId, request);
@@ -91,10 +94,45 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
         assertNotNull(resultado);
         verify(executionRepository, times(1)).findById(executionId);
         verify(objectMapper, times(1)).convertValue(any(), eq(ChecklistSchemaDTO.class));
+        verify(answerValidationService, times(1)).validate(schema, request.answers());
         verify(scoringService, times(1)).calculateComplianceScore(any());
         verify(executionMapper, times(1)).toAnswersJson(request);
         verify(issueService, times(1)).createIssuesForNonCompliantAnswers(any(), any(), any());
         verify(executionRepository, times(1)).save(execution);
+    }
+
+    @Test
+    @DisplayName("deve rejeitar atualizacao quando respostas violarem o schema")
+    void deveRejeitarAtualizacaoQuandoRespostasForemInvalidas() {
+        UUID executionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+
+        ChecklistExecutionSubmitDTO request = mock(ChecklistExecutionSubmitDTO.class);
+        when(request.answers()).thenReturn(List.of());
+
+        ChecklistExecution execution = new ChecklistExecution();
+        execution.setUserId(userId);
+        execution.setClassId(classId);
+        execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
+
+        ChecklistTemplate template = mock(ChecklistTemplate.class);
+        execution.setChecklistTemplate(template);
+
+        ChecklistSchemaDTO schema = mock(ChecklistSchemaDTO.class);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(teacherContext(userId, classId));
+        when(objectMapper.convertValue(any(), eq(ChecklistSchemaDTO.class))).thenReturn(schema);
+        when(answerValidationService.validate(schema, request.answers()))
+                .thenThrow(new IllegalArgumentException("Item obrigatorio sem resposta: quadro"));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> updateChecklistExecutionAnswersUseCase.execute(executionId, request));
+
+        verify(answerValidationService, times(1)).validate(schema, request.answers());
+        verify(issueService, never()).createIssuesForNonCompliantAnswers(any(), any(), any());
+        verify(executionRepository, never()).save(any());
     }
 
     @Test

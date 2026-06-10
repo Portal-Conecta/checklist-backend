@@ -1,7 +1,9 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.core.ChecklistExecutionScoringService;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
@@ -30,8 +32,9 @@ public class UpdateChecklistExecutionAnswersUseCase {
     private final ChecklistExecutionMapper executionMapper;
     private final RequestContextProvider contextProvider;
     private final ChecklistExecutionScoringService scoringService;
-
     private final ApplicationEventPublisher eventPublisher;
+    private final ObjectMapper objectMapper;
+    private  final
 
 
     @Transactional

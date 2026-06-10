@@ -100,8 +100,6 @@ public class SubmitChecklistExecutionUseCase {
         execution.setComplianceScore(calculateComplianceScore(request.answers()));
         execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
         execution.setSubmittedAt(LocalDateTime.now());
-        createIssuesForNonCompliantAnswers(execution, request.answers(), itemsByKey);
-
         issueService.createIssuesForNonCompliantAnswers(execution, request.answers(), itemsByKey);
 
         return executionRepository.save(execution);

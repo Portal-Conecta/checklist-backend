@@ -2,6 +2,7 @@ package com.portal.conecta.checklist.shared.hub.provider.user;
 
 import com.portal.conecta.checklist.module.checklist.domain.valueobject.UserReference;
 import com.portal.conecta.checklist.shared.hub.client.user.HubUserClient;
+import com.portal.conecta.checklist.shared.hub.client.user.HubUserResponse;
 import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +16,7 @@ import java.util.UUID;
  * Provider HTTP para consultar usuarios no Hub real.
  *
  * <p>Usado na validacao do token para garantir que o usuario autenticado ainda
- * existe na fonte central da plataforma. Como a develop atual do Hub ainda nao
- * expoe {@code GET /users/{id}}, a validacao usa {@code GET /me/courses}, que
- * identifica o usuario pelo proprio JWT recebido.</p>
+ * existe e esta ativo na fonte central da plataforma.</p>
  */
 @Component
 @Profile("!mock & !test")
@@ -34,8 +33,14 @@ public class HttpHubUserProvider implements HubUserProvider {
     @Override
     public Optional<UserReference> findById(UUID userId) {
         try {
-            hubUserClient.findMyCourses();
-            return Optional.of(new UserReference(userId));
+            HubUserResponse response = hubUserClient.findById(userId);
+
+            if (response == null || !response.active()) {
+                return Optional.empty();
+            }
+
+            UUID resolvedUserId = response.id() == null ? userId : response.id();
+            return Optional.of(new UserReference(resolvedUserId));
         } catch (FeignException.NotFound | FeignException.Unauthorized | FeignException.Forbidden exception) {
             return Optional.empty();
         } catch (FeignException exception) {

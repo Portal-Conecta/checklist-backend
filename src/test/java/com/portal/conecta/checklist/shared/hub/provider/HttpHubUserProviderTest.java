@@ -1,11 +1,11 @@
 package com.portal.conecta.checklist.shared.hub.provider;
 
-import com.portal.conecta.checklist.shared.hub.client.user.HubMyListCourseResponse;
 import com.portal.conecta.checklist.shared.hub.client.user.HubUserClient;
+import com.portal.conecta.checklist.shared.hub.client.user.HubUserResponse;
 import com.portal.conecta.checklist.shared.hub.provider.user.HttpHubUserProvider;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,14 +20,21 @@ class HttpHubUserProviderTest {
     private final HttpHubUserProvider provider = new HttpHubUserProvider(hubUserClient);
 
     @Test
-    void shouldValidateCurrentUserWithMeCoursesEndpoint() {
+    void shouldFindActiveUserById() {
         UUID userId = UUID.randomUUID();
-        when(hubUserClient.findMyCourses()).thenReturn(new HubMyListCourseResponse(List.of()));
+        when(hubUserClient.findById(userId)).thenReturn(new HubUserResponse(
+                userId,
+                "Usuario Teste",
+                "usuario@estudante.sesisenai.org.br",
+                "TEACHER",
+                true,
+                Instant.now()
+        ));
 
         var reference = provider.findById(userId);
 
         assertTrue(reference.isPresent());
         assertEquals(userId, reference.orElseThrow().getUserId());
-        verify(hubUserClient).findMyCourses();
+        verify(hubUserClient).findById(userId);
     }
 }

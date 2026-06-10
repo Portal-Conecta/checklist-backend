@@ -3,9 +3,8 @@ package com.portal.conecta.checklist.module.checklist.presentation.controller;
 import com.portal.conecta.checklist.module.checklist.application.usecase.template.*;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistTemplateResponseDTO;
-<<<<<<< feature/#97-edicao-templates
 import com.portal.conecta.checklist.module.checklist.presentation.dto.update.ChecklistTemplateEditRequest;
-=======
+import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistTemplateMapper;
 import com.portal.conecta.checklist.shared.exception.ErrorResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,11 +12,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
->>>>>>> develop
-import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistTemplateMapper;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

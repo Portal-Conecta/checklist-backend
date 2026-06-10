@@ -85,4 +85,6 @@ public interface ChecklistTemplateRepository extends JpaRepository<ChecklistTemp
      * @return lista de templates do mesmo grupo com o status informado
      */
     List<ChecklistTemplate> findByTemplateGroupIdAndStatus(UUID templateGroupId, ChecklistTemplateStatus status);
+           
+    List<ChecklistTemplate> findAllByActiveTrueAndStatus(ChecklistTemplateStatus status);
 }

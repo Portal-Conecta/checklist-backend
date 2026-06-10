@@ -92,7 +92,7 @@ public class SubmitChecklistExecutionUseCase {
             throw new IllegalStateException("Somente checklists em rascunho podem ser enviados.");
         }
 
-        submissionWindowValidator.validate(execution.getShift(), execution.getChecklistType());
+        submissionWindowValidator.validate(execution.getClassId(), execution.getChecklistType());
 
         ChecklistSchemaDTO schema = objectMapper.convertValue(
                 execution.getChecklistTemplate().getSchemaJson(),

@@ -5,15 +5,20 @@ import com.portal.conecta.checklist.module.checklist.application.usecase.executi
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistAnswerRequestDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistAnswersDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -25,6 +30,8 @@ public class UpdateChecklistExecutionAnswersUseCase {
     private final ChecklistExecutionMapper executionMapper;
     private final RequestContextProvider contextProvider;
     private final ChecklistExecutionScoringService scoringService;
+
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @Transactional
@@ -45,6 +52,8 @@ public class UpdateChecklistExecutionAnswersUseCase {
             throw new IllegalStateException("Somente checklists que foram enviadas podem ser editadas.");
 
         }
+
+
 
         execution.setAnswersJson(executionMapper.toAnswersJson(request));
         execution.setComplianceScore(scoringService.calculateComplianceScore(request.answers()));

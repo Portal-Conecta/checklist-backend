@@ -209,8 +209,8 @@ exp      data de expiracao
 Dentro de `classes`, cada item precisa ter:
 
 ```text
-classId UUID da turma
-role    STUDENT, TEACHER ou REPRESENTATIVE
+classId   UUID da turma
+role     STUDENT, TEACHER ou REPRESENTATIVE
 ```
 
 Se `exp` ficar no passado, gere outro token com uma data futura.
@@ -498,7 +498,7 @@ O token e valido, mas o usuario nao tem permissao para a acao.
 
 Exemplo:
 
-- tentar criar draft com uma turma em que o usuario tem role `STUDENT`;
+- tentar criar draft com uma turma em que o usuario tem `role` `STUDENT`;
 - tentar criar template com `userType` sem permissao.
 
 ### 404 Not Found

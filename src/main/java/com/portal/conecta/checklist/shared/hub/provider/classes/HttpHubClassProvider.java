@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.shared.hub.provider.classes;
 
 import com.portal.conecta.checklist.module.checklist.domain.valueobject.ClassReference;
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.CourseReference;
 import com.portal.conecta.checklist.shared.hub.client.classes.HubClassClient;
 import com.portal.conecta.checklist.shared.hub.client.classes.HubClassResponse;
 import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
@@ -35,11 +36,25 @@ public class HttpHubClassProvider implements HubClassProvider {
         try {
             HubClassResponse response = hubClassClient.findById(classId);
 
-            return response == null ? Optional.empty() : Optional.of(response.toReference(classId));
+            return response == null ? Optional.empty() : Optional.of(toReference(response, classId));
         } catch (FeignException.NotFound exception) {
             return Optional.empty();
         } catch (FeignException exception) {
             throw new HubIntegrationException("Servico de turmas do Hub indisponivel.", exception);
         }
+    }
+
+    private ClassReference toReference(HubClassResponse response, UUID requestedClassId) {
+        UUID classId = response.id() == null ? requestedClassId : response.id();
+        CourseReference courseReference = response.courseId() == null ? null : new CourseReference(response.courseId());
+
+        return new ClassReference(
+                classId,
+                response.name(),
+                response.number(),
+                response.shift(),
+                courseReference,
+                response.createdAt()
+        );
     }
 }

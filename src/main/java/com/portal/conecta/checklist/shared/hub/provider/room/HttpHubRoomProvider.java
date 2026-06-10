@@ -35,11 +35,16 @@ public class HttpHubRoomProvider implements HubRoomProvider {
         try {
             HubRoomResponse response = hubRoomClient.findById(roomId);
 
-            return response == null ? Optional.empty() : Optional.of(response.toReference(roomId));
+            return response == null ? Optional.empty() : Optional.of(toReference(response, roomId));
         } catch (FeignException.NotFound exception) {
             return Optional.empty();
         } catch (FeignException exception) {
             throw new HubIntegrationException("Servico de salas do Hub indisponivel.", exception);
         }
+    }
+
+    private RoomReference toReference(HubRoomResponse response, UUID requestedRoomId) {
+        UUID roomId = response.id() == null ? requestedRoomId : response.id();
+        return new RoomReference(roomId, response.number(), response.typeRoom(), response.status());
     }
 }

@@ -251,6 +251,11 @@ Expected token claims:
 
 Current persistence uses UUIDs for users and classes, so `sub` and `classes[].classId` must be UUID strings. The Checklist API validates the token locally with the shared Base64 HS256 secret and then applies module authorization rules from the authenticated context.
 
+The Hub currently uses two names for class role data depending on the contract surface:
+
+- JWT access token: `classes[].role`;
+- `/me/courses` response: `classes[].classRole`.
+
 The current Hub token generator does not emit `permissionVersion`. If the Hub later adds that claim or an authorization-check endpoint, that flow should be introduced as a new integration decision instead of being assumed by this service.
 
 ### Testing With Postman

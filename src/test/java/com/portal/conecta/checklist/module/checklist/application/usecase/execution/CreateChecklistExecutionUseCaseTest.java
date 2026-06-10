@@ -12,6 +12,7 @@ import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
+import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
@@ -266,7 +267,7 @@ class CreateChecklistExecutionUseCaseTest {
         when(contextProvider.getRequestContext()).thenReturn(new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.SENAI,
-                List.of(new ContextClass(classId, "TEACHER"))
+                List.of(new ContextClass(classId, ClassRole.TEACHER))
         ));
 
         assertThrows(AccessDeniedException.class, () -> useCase.execute(request));
@@ -297,7 +298,7 @@ class CreateChecklistExecutionUseCaseTest {
         return new RequestContext(
                 userId,
                 TypeUser.REPRESENTATIVE,
-                List.of(new ContextClass(classId, "REPRESENTATIVE"))
+                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
         );
     }
 }

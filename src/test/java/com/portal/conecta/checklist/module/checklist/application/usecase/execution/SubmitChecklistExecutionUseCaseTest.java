@@ -15,6 +15,7 @@ import com.portal.conecta.checklist.module.checklist.presentation.mapper.Checkli
 import com.portal.conecta.checklist.module.issues.domain.enums.IssuePriority;
 import com.portal.conecta.checklist.module.issues.domain.enums.IssueStatus;
 import com.portal.conecta.checklist.module.issues.presentation.mapper.ChecklistIssueMapper;
+import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
@@ -185,7 +186,7 @@ class SubmitChecklistExecutionUseCaseTest {
         when(contextProvider.getRequestContext()).thenReturn(new RequestContext(
                 userId,
                 TypeUser.SENAI,
-                List.of(new ContextClass(classId, "TEACHER"))
+                List.of(new ContextClass(classId, ClassRole.TEACHER))
         ));
 
         assertThrows(AccessDeniedException.class, () -> useCase.execute(executionId, request));
@@ -213,7 +214,7 @@ class SubmitChecklistExecutionUseCaseTest {
         return new RequestContext(
                 userId,
                 TypeUser.REPRESENTATIVE,
-                List.of(new ContextClass(classId, "REPRESENTATIVE"))
+                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
         );
     }
 

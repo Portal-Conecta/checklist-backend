@@ -16,7 +16,7 @@ class RequestContextTest {
         RequestContext user = new RequestContext(
                 userId,
                 TypeUser.REPRESENTATIVE,
-                List.of(new ContextClass(classId, "REPRESENTATIVE"))
+                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
@@ -33,7 +33,7 @@ class RequestContextTest {
         RequestContext user = new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.STUDENT,
-                List.of(new ContextClass(classId, "STUDENT"))
+                List.of(new ContextClass(classId, ClassRole.STUDENT))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isFalse();
@@ -46,7 +46,7 @@ class RequestContextTest {
         RequestContext user = new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.TEACHER,
-                List.of(new ContextClass(classId, "TEACHER"))
+                List.of(new ContextClass(classId, ClassRole.TEACHER))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
@@ -75,17 +75,17 @@ class RequestContextTest {
         RequestContext senai = new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.SENAI,
-                List.of(new ContextClass(classId, "TEACHER"))
+                List.of(new ContextClass(classId, ClassRole.TEACHER))
         );
         RequestContext weg = new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.WEG,
-                List.of(new ContextClass(classId, "REPRESENTATIVE"))
+                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
         );
         RequestContext admin = new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.ADMIN,
-                List.of(new ContextClass(classId, "TEACHER"))
+                List.of(new ContextClass(classId, ClassRole.TEACHER))
         );
 
         assertThat(senai.canCreateChecklistExecutionForClass(classId)).isFalse();

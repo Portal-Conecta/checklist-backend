@@ -4,6 +4,7 @@ import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecu
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import com.portal.conecta.checklist.module.issues.domain.model.ChecklistIssue;
 import com.portal.conecta.checklist.module.issues.infrastructure.persistence.ChecklistIssueRepository;
+import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
@@ -103,7 +104,7 @@ class ListIssuesByExecutionUseCaseTest {
         return new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.REPRESENTATIVE,
-                List.of(new ContextClass(classId, "REPRESENTATIVE"))
+                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
         );
     }
 }

@@ -35,11 +35,16 @@ public class HttpHubCourseProvider implements HubCourseProvider {
         try {
             HubCourseResponse response = hubCourseClient.findById(courseId);
 
-            return response == null ? Optional.empty() : Optional.of(response.toReference(courseId));
+            return response == null ? Optional.empty() : Optional.of(toReference(response, courseId));
         } catch (FeignException.NotFound exception) {
             return Optional.empty();
         } catch (FeignException exception) {
             throw new HubIntegrationException("Servico de cursos do Hub indisponivel.", exception);
         }
+    }
+
+    private CourseReference toReference(HubCourseResponse response, UUID requestedCourseId) {
+        UUID courseId = response.id() == null ? requestedCourseId : response.id();
+        return new CourseReference(courseId, response.name(), response.code());
     }
 }

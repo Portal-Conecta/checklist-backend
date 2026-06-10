@@ -2,8 +2,10 @@ package com.portal.conecta.checklist.module.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.module.checklist.application.facade.ChecklistExecutionFacade;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ListChecklistHistoryByClassUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
@@ -24,11 +26,13 @@ class ChecklistExecutionControllerTest {
     private final ChecklistExecutionFacade checklistExecutionFacade = mock(ChecklistExecutionFacade.class);
     private final ChecklistExecutionMapper checklistExecutionMapper = mock(ChecklistExecutionMapper.class);
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase = mock(ListChecklistHistoryByClassUseCase.class);
+    private final UpdateChecklistExecutionAnswersUseCase updateChecklistExecutionAnswersUseCase = mock(UpdateChecklistExecutionAnswersUseCase.class);
 
     private final ChecklistExecutionController controller = new ChecklistExecutionController(
             checklistExecutionFacade,
             checklistExecutionMapper,
-            listHistoryByClassUseCase
+            listHistoryByClassUseCase,
+            updateChecklistExecutionAnswersUseCase
     );
 
     @Test
@@ -68,6 +72,24 @@ class ChecklistExecutionControllerTest {
         verify(checklistExecutionFacade).submit(executionId, request);
     }
 
+    @Test
+    @DisplayName("deve retornar ok ao atualizar respostas do checklist via patch")
+    void deveRetornarOkAoAtualizarRespostas() {
+
+        UUID executionId = UUID.randomUUID();
+        ChecklistExecutionSubmitDTO request = mock(ChecklistExecutionSubmitDTO.class);
+        ChecklistExecution execution = mock(ChecklistExecution.class);
+        ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
+
+        when(updateChecklistExecutionAnswersUseCase.execute(executionId, request)).thenReturn(execution);
+        when(checklistExecutionMapper.toResponse(execution)).thenReturn(response);
+        ResponseEntity<ChecklistExecutionResponseDTO> result = controller.updateAnswers(executionId, request);
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(response, result.getBody());
+
+        verify(updateChecklistExecutionAnswersUseCase).execute(executionId, request);
+        verify(checklistExecutionMapper).toResponse(execution);
+    }
     @Test
     @DisplayName("deve retornar 200 OK ao cancelar execucao com sucesso")
     void deveRetornarOkAoCancelarExecucao() {
@@ -111,21 +133,5 @@ class ChecklistExecutionControllerTest {
 
         assertEquals("Somente checklists enviados podem ser cancelados.", excecao.getMessage());
         verify(checklistExecutionFacade).cancel(executionId);
-    }
-
-    @Test
-    @DisplayName("deve retornar ok ao atualizar respostas do checklist via patch")
-    void deveRetornarOkAoAtualizarRespostas() {
-        UUID executionId = UUID.randomUUID();
-        ChecklistExecutionSubmitDTO request = mock(ChecklistExecutionSubmitDTO.class);
-        ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
-
-        when(checklistExecutionFacade.updateAnswers(executionId, request)).thenReturn(response);
-
-        ResponseEntity<ChecklistExecutionResponseDTO> result = controller.updateAnswers(executionId, request);
-
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertSame(response, result.getBody());
-        verify(checklistExecutionFacade).updateAnswers(executionId, request);
     }
 }

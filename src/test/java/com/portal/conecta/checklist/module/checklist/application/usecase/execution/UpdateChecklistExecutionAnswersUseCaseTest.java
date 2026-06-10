@@ -1,11 +1,15 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.execution;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.core.ChecklistIssueService; // Import adicionado
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.core.ChecklistExecutionScoringService;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistSchemaDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
@@ -20,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,6 +47,12 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
     @Mock
     private ChecklistExecutionScoringService scoringService;
 
+    @Mock
+    private ChecklistIssueService issueService; // Mock adicionado para corrigir o NullPointerException
+
+    @Mock
+    private ObjectMapper objectMapper;
+
     @InjectMocks
     private UpdateChecklistExecutionAnswersUseCase updateChecklistExecutionAnswersUseCase;
 
@@ -53,21 +64,33 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
         UUID classId = UUID.randomUUID();
 
         ChecklistExecutionSubmitDTO request = mock(ChecklistExecutionSubmitDTO.class);
+        when(request.answers()).thenReturn(List.of());
+
         ChecklistExecution execution = new ChecklistExecution();
         execution.setUserId(userId);
         execution.setClassId(classId);
         execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
 
+        ChecklistTemplate template = mock(ChecklistTemplate.class);
+        execution.setChecklistTemplate(template);
+
+        ChecklistSchemaDTO schema = mock(ChecklistSchemaDTO.class);
+        // Retorna uma lista mutável vazia para evitar problemas internos do stream de seções
+        when(schema.sections()).thenReturn(new ArrayList<>());
+
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
         when(contextProvider.getRequestContext()).thenReturn(teacherContext(userId, classId));
+        when(objectMapper.convertValue(any(), eq(ChecklistSchemaDTO.class))).thenReturn(schema);
         when(executionRepository.save(execution)).thenReturn(execution);
 
         ChecklistExecution resultado = updateChecklistExecutionAnswersUseCase.execute(executionId, request);
 
         assertNotNull(resultado);
         verify(executionRepository, times(1)).findById(executionId);
+        verify(objectMapper, times(1)).convertValue(any(), eq(ChecklistSchemaDTO.class));
         verify(scoringService, times(1)).calculateComplianceScore(any());
         verify(executionMapper, times(1)).toAnswersJson(request);
+        verify(issueService, times(1)).createIssuesForNonCompliantAnswers(any(), any(), any()); // Verifica se o serviço de issues foi invocado
         verify(executionRepository, times(1)).save(execution);
     }
 

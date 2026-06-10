@@ -77,10 +77,10 @@ public record RequestContext(
     }
 
     private boolean isClassRepresentative(ContextClass contextClass) {
-        return contextClass.hasClassRole("REPRESENTATIVE");
+        return contextClass.hasRole(ClassRole.REPRESENTATIVE);
     }
 
     private boolean isLinkedTeacher(ContextClass contextClass) {
-        return contextClass.hasClassRole("TEACHER");
+        return contextClass.hasRole(ClassRole.TEACHER);
     }
 }

@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.shared.security.token;
 
+import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.TypeUser;
 import com.portal.conecta.checklist.shared.hub.provider.user.HubUserProvider;
@@ -25,7 +26,7 @@ class HubJwtTokenProviderTest {
 
     private static final String SECRET = "dGVzdC1vbmx5LWp3dC1zZWNyZXQtMzItYnl0ZXMtbm90LXJlYWw=";
 
-    private final HubJwtTokenProvider tokenProvider = new HubJwtTokenProvider(new HubJwtProperties(SECRET), id -> true);
+    private final HubJwtTokenProvider tokenProvider = tokenProvider(id -> true);
 
     @Test
     void shouldCreateAuthenticationFromValidHubToken() {
@@ -35,7 +36,7 @@ class HubJwtTokenProviderTest {
                 "userType", "REPRESENTATIVE",
                 "classes", List.of(Map.of(
                         "classId", classId.toString(),
-                        "classRole", "REPRESENTATIVE"
+                        "role", "REPRESENTATIVE"
                 ))
         ), userId, Instant.now().plusSeconds(3600));
 
@@ -50,7 +51,7 @@ class HubJwtTokenProviderTest {
         assertThat(principal.userType()).isEqualTo(TypeUser.REPRESENTATIVE);
         assertThat(principal.classes()).hasSize(1);
         assertThat(principal.classes().getFirst().classId()).isEqualTo(classId);
-        assertThat(principal.classes().getFirst().role()).isEqualTo("REPRESENTATIVE");
+        assertThat(principal.classes().getFirst().role()).isEqualTo(ClassRole.REPRESENTATIVE);
     }
 
     @Test
@@ -63,11 +64,11 @@ class HubJwtTokenProviderTest {
                 "classes", List.of(
                         Map.of(
                                 "classId", teacherClassId.toString(),
-                                "classRole", "TEACHER"
+                                "role", "TEACHER"
                         ),
                         Map.of(
                                 "classId", studentClassId.toString(),
-                                "classRole", "STUDENT"
+                                "role", "STUDENT"
                         )
                 )
         ), userId, Instant.now().plusSeconds(3600));
@@ -79,9 +80,9 @@ class HubJwtTokenProviderTest {
         assertThat(principal.userType()).isEqualTo(TypeUser.STUDENT);
         assertThat(principal.classes()).hasSize(2);
         assertThat(principal.classes().get(0).classId()).isEqualTo(teacherClassId);
-        assertThat(principal.classes().get(0).role()).isEqualTo("TEACHER");
+        assertThat(principal.classes().get(0).role()).isEqualTo(ClassRole.TEACHER);
         assertThat(principal.classes().get(1).classId()).isEqualTo(studentClassId);
-        assertThat(principal.classes().get(1).role()).isEqualTo("STUDENT");
+        assertThat(principal.classes().get(1).role()).isEqualTo(ClassRole.STUDENT);
     }
 
     @Test
@@ -116,7 +117,7 @@ class HubJwtTokenProviderTest {
                 "userType", "REPRESENTATIVE",
                 "classes", List.of(Map.of(
                         "classId", "turma-1",
-                        "classRole", "REPRESENTATIVE"
+                        "role", "REPRESENTATIVE"
                 ))
         ), UUID.randomUUID(), Instant.now().plusSeconds(3600));
 
@@ -130,14 +131,14 @@ class HubJwtTokenProviderTest {
                 "userType", "INVALID_USER_TYPE",
                 "classes", List.of(Map.of(
                         "classId", UUID.randomUUID().toString(),
-                        "classRole", "REPRESENTATIVE"
+                        "role", "REPRESENTATIVE"
                 ))
         ), UUID.randomUUID(), Instant.now().plusSeconds(3600));
         String tokenWithInvalidClassRole = token(Map.of(
                 "userType", "REPRESENTATIVE",
                 "classes", List.of(Map.of(
                         "classId", UUID.randomUUID().toString(),
-                        "classRole", "INVALID_CLASS_ROLE"
+                        "role", "INVALID_CLASS_ROLE"
                 ))
         ), UUID.randomUUID(), Instant.now().plusSeconds(3600));
 
@@ -151,7 +152,7 @@ class HubJwtTokenProviderTest {
     void shouldValidateUserExistenceWhenHubProviderIsAvailable() {
         UUID userId = UUID.randomUUID();
         HubUserProvider userProvider = id -> id.equals(userId);
-        HubJwtTokenProvider tokenProvider = new HubJwtTokenProvider(new HubJwtProperties(SECRET), userProvider);
+        HubJwtTokenProvider tokenProvider = tokenProvider(userProvider);
         String token = token(Map.of("userType", "STUDENT"), userId, Instant.now().plusSeconds(3600));
 
         Authentication authentication = tokenProvider.getAuthentication(token);
@@ -163,7 +164,7 @@ class HubJwtTokenProviderTest {
     @Test
     void shouldRejectTokenWhenUserDoesNotExistInHub() {
         HubUserProvider userProvider = id -> false;
-        HubJwtTokenProvider tokenProvider = new HubJwtTokenProvider(new HubJwtProperties(SECRET), userProvider);
+        HubJwtTokenProvider tokenProvider = tokenProvider(userProvider);
         String token = token(Map.of("userType", "STUDENT"), UUID.randomUUID(), Instant.now().plusSeconds(3600));
 
         assertThatThrownBy(() -> tokenProvider.getAuthentication(token))
@@ -184,5 +185,13 @@ class HubJwtTokenProviderTest {
         }
 
         return builder.signWith(key).compact();
+    }
+
+    private HubJwtTokenProvider tokenProvider(HubUserProvider userProvider) {
+        return new HubJwtTokenProvider(
+                new HubJwtProperties(SECRET),
+                new HubJwtClaimsMapper(),
+                userProvider
+        );
     }
 }

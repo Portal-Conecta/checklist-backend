@@ -2,7 +2,7 @@ package com.portal.conecta.checklist.shared.security.token;
 
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
-import com.portal.conecta.checklist.shared.hub.provider.user.HubUserProvider;
+import com.portal.conecta.checklist.shared.hub.provider.me.HubMeProvider;
 import com.portal.conecta.checklist.shared.security.config.HubJwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -30,16 +30,16 @@ public class HubJwtTokenProvider {
 
     private final SecretKey secretKey;
     private final HubJwtClaimsMapper claimsMapper;
-    private final HubUserProvider hubUserProvider;
+    private final HubMeProvider hubMeProvider;
 
     public HubJwtTokenProvider(
             HubJwtProperties properties,
             HubJwtClaimsMapper claimsMapper,
-            HubUserProvider hubUserProvider
+            HubMeProvider hubMeProvider
     ) {
         this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(properties.secret()));
         this.claimsMapper = claimsMapper;
-        this.hubUserProvider = hubUserProvider;
+        this.hubMeProvider = hubMeProvider;
     }
 
     /**
@@ -52,7 +52,7 @@ public class HubJwtTokenProvider {
      */
     public Authentication getAuthentication(String token) {
         RequestContext principal = claimsMapper.toRequestContext(parseClaims(token));
-        validateUserExists(principal.userId());
+        validateAuthenticatedUser(principal.userId());
 
         return new UsernamePasswordAuthenticationToken(
                 principal,
@@ -73,8 +73,8 @@ public class HubJwtTokenProvider {
         }
     }
 
-    private void validateUserExists(UUID userId) {
-        if (!hubUserProvider.existsById(userId)) {
+    private void validateAuthenticatedUser(UUID userId) {
+        if (!hubMeProvider.existsAuthenticatedUser(userId)) {
             throw new BadCredentialsException("Usuario do token nao encontrado no Hub.");
         }
     }

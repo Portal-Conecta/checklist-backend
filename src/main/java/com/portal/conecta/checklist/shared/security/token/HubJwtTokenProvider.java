@@ -1,8 +1,8 @@
 package com.portal.conecta.checklist.shared.security.token;
 
 import com.portal.conecta.checklist.shared.context.RequestContext;
-import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
-import com.portal.conecta.checklist.shared.hub.provider.me.HubMeProvider;
+import com.portal.conecta.checklist.shared.integration.hub.exception.HubIntegrationException;
+import com.portal.conecta.checklist.shared.integration.hub.adapter.me.HubMeProvider;
 import com.portal.conecta.checklist.shared.security.config.HubJwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

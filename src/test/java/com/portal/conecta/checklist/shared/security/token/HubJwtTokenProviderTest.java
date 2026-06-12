@@ -3,7 +3,7 @@ package com.portal.conecta.checklist.shared.security.token;
 import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.TypeUser;
-import com.portal.conecta.checklist.shared.hub.provider.me.HubMeProvider;
+import com.portal.conecta.checklist.shared.integration.hub.adapter.me.HubMeProvider;
 import com.portal.conecta.checklist.shared.security.config.HubJwtProperties;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;

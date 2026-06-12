@@ -202,7 +202,7 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
     private RequestContext teacherContext(UUID userId, UUID classId) {
         return new RequestContext(
                 userId,
-                TypeUser.REPRESENTATIVE,
+                TypeUser.TEACHER,
                 List.of(new ContextClass(classId, ClassRole.TEACHER))
         );
     }

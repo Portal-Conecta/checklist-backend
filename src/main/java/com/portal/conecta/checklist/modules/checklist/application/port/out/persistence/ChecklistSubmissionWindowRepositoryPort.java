@@ -3,11 +3,13 @@ package com.portal.conecta.checklist.modules.checklist.application.port.out.pers
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistSubmissionWindow;
 import org.springframework.data.repository.ListCrudRepository;
+import org.springframework.data.repository.NoRepositoryBean;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@NoRepositoryBean
 public interface ChecklistSubmissionWindowRepositoryPort
         extends ListCrudRepository<ChecklistSubmissionWindow, UUID> {
 

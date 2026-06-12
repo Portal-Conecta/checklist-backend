@@ -2,6 +2,8 @@ package com.portal.conecta.checklist.module.checklist.infrastructure.persistence
 
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -53,4 +55,6 @@ public interface ChecklistTemplateRepository extends JpaRepository<ChecklistTemp
     Optional<ChecklistTemplate> findTemplateByIdNative(@Param("templateId") UUID templateId);
 
     List<ChecklistTemplate> findByRoomIdAndActiveTrueAndStatus(UUID roomId, ChecklistTemplateStatus status);
+
+    Page<ChecklistTemplate> findByActiveTrueAndStatus(ChecklistTemplateStatus status, Pageable pageable);
 }

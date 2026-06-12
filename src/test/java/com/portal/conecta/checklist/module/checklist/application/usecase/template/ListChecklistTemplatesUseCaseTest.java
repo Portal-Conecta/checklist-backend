@@ -1,6 +1,8 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.template;
 
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
+import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
@@ -60,6 +62,25 @@ class ListChecklistTemplatesUseCaseTest {
                 .findAll(pageable);
     }
 
+    @Test
+    void shouldFilterActiveAndActiveStatusTemplatesForOperationalUser() {
+        Pageable pageable = PageRequest.of(0, 10);
+        UUID classId = UUID.randomUUID();
+
+        when(contextProvider.getRequestContext())
+                .thenReturn(teacher(classId));
+
+        when(templateRepository.findByActiveTrueAndStatus(eq(ChecklistTemplateStatus.ACTIVE), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        useCase.execute(pageable);
+
+        verify(templateRepository)
+                .findByActiveTrueAndStatus(ChecklistTemplateStatus.ACTIVE, pageable);
+        verify(templateRepository, never())
+                .findAll(any(Pageable.class));
+    }
+
     private RequestContext apprentice() {
         return new RequestContext(
                 UUID.randomUUID(),
@@ -71,6 +92,14 @@ class ListChecklistTemplatesUseCaseTest {
         return new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.SENAI
+        );
+    }
+
+    private RequestContext teacher(UUID classId) {
+        return new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.TEACHER,
+                List.of(new ContextClass(classId, "TEACHER"))
         );
     }
 }

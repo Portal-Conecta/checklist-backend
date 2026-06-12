@@ -25,8 +25,17 @@ public class FindChecklistExecutionByIdUseCase {
         if (!currentUser.canAccessChecklistModule()){
             throw new AccessDeniedException("Usuario nao tem permissao para acessar o modulo Checklist.");
         }
-        return executionRepository.findById(executionId)
+        ChecklistExecution execution = executionRepository.findById(executionId)
                 .orElseThrow(() -> new EntityNotFoundException("Execução de checklist nao encontrado."));
+
+        if (!currentUser.canManageChecklistTemplates()) {
+            if (!execution.getUserId().equals(currentUser.userId())
+                    || !currentUser.canOperateChecklistExecutionForClass(execution.getClassId())) {
+                throw new AccessDeniedException("Usuario nao tem permissao para acessar esta execucao de checklist.");
+            }
+        }
+
+        return execution;
     }
 
 

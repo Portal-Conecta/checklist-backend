@@ -1,6 +1,8 @@
 package com.portal.conecta.checklist.module.checklist.infrastructure.persistence;
 
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -83,6 +85,17 @@ public interface ChecklistExecutionRepository extends JpaRepository<ChecklistExe
             @Param("executionId") UUID executionId
     );
 
-
+    @Query("""
+        SELECT ce
+        FROM ChecklistExecution ce
+        JOIN ce.checklistTemplate ct
+        WHERE ce.classId IN :classIds
+          AND ct.active = true
+          AND ct.status = com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus.ACTIVE
+    """)
+    Page<ChecklistExecution> findAllAllowedForOperational(
+            @Param("classIds") List<UUID> classIds,
+            Pageable pageable
+    );
 
 }

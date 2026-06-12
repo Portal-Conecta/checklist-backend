@@ -4,6 +4,8 @@ package com.portal.conecta.checklist.module.checklist.application.usecase.execut
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +30,15 @@ public class ListChecklistExecutionUseCase {
             );
         }
 
-        return executionRepository.findAll(pageable);
+        if (currentUser.canManageChecklistTemplates()) {
+            return executionRepository.findAll(pageable);
+        }
+
+        List<UUID> classIds = currentUser.getOperableClassIds();
+        if (classIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        return executionRepository.findAllAllowedForOperational(classIds, pageable);
     }
 }

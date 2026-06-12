@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.template;
 
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
@@ -25,6 +26,10 @@ public class ListChecklistTemplatesUseCase {
             throw new AccessDeniedException("Usuario nao tem permissao para acessar o modulo Checklist.");
         }
 
-        return templateRepository.findAll(pageable);
+        if (currentUser.canManageChecklistTemplates()) {
+            return templateRepository.findAll(pageable);
+        }
+
+        return templateRepository.findByActiveTrueAndStatus(ChecklistTemplateStatus.ACTIVE, pageable);
     }
 }

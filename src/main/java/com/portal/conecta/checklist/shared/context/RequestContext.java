@@ -66,6 +66,13 @@ public record RequestContext(
         );
     }
 
+    public List<UUID> getOperableClassIds() {
+        return classes.stream()
+                .filter(c -> c.hasClassRole("REPRESENTATIVE") || c.hasClassRole("TEACHER"))
+                .map(ContextClass::classId)
+                .toList();
+    }
+
     private boolean hasOperationalProfile() {
         return userType == TypeUser.REPRESENTATIVE || userType == TypeUser.TEACHER;
     }

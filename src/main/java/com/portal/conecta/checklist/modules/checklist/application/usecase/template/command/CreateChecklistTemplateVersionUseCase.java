@@ -4,6 +4,7 @@ import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemp
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
+import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -25,7 +26,7 @@ public class CreateChecklistTemplateVersionUseCase {
 
     private final ChecklistTemplateRepositoryPort templateRepository;
     private final RequestContextProvider contextProvider;
-
+    private final HubRoomProvider hubRoomProvider;
     /**
      * Cria uma nova versão de um template de checklist.
      *
@@ -63,6 +64,10 @@ public class CreateChecklistTemplateVersionUseCase {
                             + origin.getStatus()
             );
         }
+
+        hubRoomProvider.findById(origin.getRoomId())
+                .orElseThrow(() -> new IllegalStateException("A sala vinculada a este template foi removida do Hub. Não é possível criar uma nova versão."));
+
 
         ChecklistTemplate newVersion = ChecklistTemplate.builder()
                 .templateGroupId(origin.getTemplateGroupId())

@@ -1,8 +1,10 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.mapper;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
 import org.springframework.stereotype.Component;
 
@@ -48,4 +50,28 @@ public class ChecklistTemplateMapper {
                 ? new ChecklistSchema(List.of())
                 : objectMapper.convertValue(schemaJson, ChecklistSchema.class);
     }
+
+    public ChecklistTemplate toEntity(ChecklistTemplateCreateRequest request) {
+        if (request == null) {
+            return null;
+        }
+
+        ChecklistTemplate template = new ChecklistTemplate();
+        template.setRoomId(request.roomId());
+        template.setTitle(request.title());
+        template.setDescription(request.description());
+
+        if (request.schemaJson() != null) {
+            Map<String, Object> mappedSchema = objectMapper.convertValue(
+                    request.schemaJson(),
+                    new TypeReference<Map<String, Object>>() {}
+            );
+            template.setSchemaJson(mappedSchema);
+        }
+
+        template.setActive(true);
+
+        return template;
+    }
+
 }

@@ -25,6 +25,8 @@ public class HttpHubRoomProvider implements HubRoomProvider {
 
     private final HubRoomClient hubRoomClient;
 
+
+
     @Override
     public boolean existsById(UUID roomId) {
         return findById(roomId).isPresent();

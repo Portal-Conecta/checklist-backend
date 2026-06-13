@@ -4,6 +4,7 @@ import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTempl
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
+import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -29,7 +30,7 @@ public class ActivateChecklistTemplateUseCase {
 
     private final ChecklistTemplateRepository templateRepository;
     private final RequestContextProvider contextProvider;
-
+    private final HubRoomProvider hubRoomProvider;
     /**
      * Ativa um template de checklist.
      *
@@ -64,6 +65,9 @@ public class ActivateChecklistTemplateUseCase {
         if (template.getStatus() != ChecklistTemplateStatus.DRAFT) {
             throw new IllegalStateException("Apenas templates com status DRAFT podem ser ativados. Status atual: " + template.getStatus());
         }
+
+        hubRoomProvider.findById(template.getRoomId())
+                .orElseThrow(() -> new IllegalStateException("A sala vinculada a este template foi removida do Hub. Não é possível ativar o template."));
 
         inactivatePreviousVersion(template);
 

@@ -42,9 +42,8 @@ public class CreateChecklistTemplateUseCase {
             throw new AccessDeniedException("Usuario nao tem permissao para criar templates de checklist.");
         }
 
-        if (!hubRoomProvider.existsById(request.roomId())) {
-            throw new EntityNotFoundException("Sala nao encontrada no Hub.");
-        }
+        var room = hubRoomProvider.findById(request.roomId())
+                .orElseThrow(() -> new EntityNotFoundException("Sala nao encontrada no Hub."));
 
         ChecklistSchemaValidator.validateStableKeys(request.schemaJson());
 

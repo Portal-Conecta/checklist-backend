@@ -3,6 +3,7 @@ package com.portal.conecta.checklist;
 import com.portal.conecta.checklist.shared.config.EnvFileLoader;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * Ponto de entrada da Checklist API.
@@ -12,11 +13,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * depender de configuracao global da maquina.</p>
  */
 @SpringBootApplication
+@EnableFeignClients(basePackages = "com.portal.conecta.checklist.shared.integration.hub.client")
 public class Application {
 
 	public static void main(String[] args) {
 		EnvFileLoader.loadFromWorkingDirectory();
 		SpringApplication.run(Application.class, args);
 	}
-
 }

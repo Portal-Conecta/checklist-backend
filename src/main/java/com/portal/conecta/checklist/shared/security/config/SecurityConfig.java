@@ -1,6 +1,6 @@
 package com.portal.conecta.checklist.shared.security.config;
 
-import com.portal.conecta.checklist.shared.hub.properties.HubApiProperties;
+import com.portal.conecta.checklist.shared.integration.hub.config.HubApiProperties;
 import com.portal.conecta.checklist.shared.security.error.SecurityErrorResponseWriter;
 import com.portal.conecta.checklist.shared.security.filter.HubJwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +56,13 @@ public class SecurityConfig {
         return registration;
     }
 
+    private static final String[] SWAGGER_PATHS = {
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/v3/api-docs",
+            "/v3/api-docs/**"
+    };
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -84,7 +91,9 @@ public class SecurityConfig {
                     authorize.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll();
 
                     if (swaggerPublic) {
-                        authorize.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll();
+                        authorize.requestMatchers(SWAGGER_PATHS).permitAll();
+                    } else {
+                        authorize.requestMatchers(SWAGGER_PATHS).denyAll();
                     }
 
                     authorize.anyRequest().authenticated();

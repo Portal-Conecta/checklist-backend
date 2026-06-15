@@ -1,6 +1,7 @@
-    package com.portal.conecta.checklist.shared.exception;
+package com.portal.conecta.checklist.shared.exception;
 
-    import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
+    import com.portal.conecta.checklist.modules.checklist.domain.exception.SubmissionWindowViolationException;
+    import com.portal.conecta.checklist.shared.integration.hub.exception.HubIntegrationException;
     import jakarta.persistence.EntityNotFoundException;
     import org.springframework.dao.DataAccessResourceFailureException;
     import org.springframework.dao.DataIntegrityViolationException;
@@ -29,6 +30,8 @@
      */
     @RestControllerAdvice
     public class GlobalHandlerException {
+        private static final String DUPLICATE_CHECKLIST_INDEX = "uidx_execution_no_duplicate";
+
         /**
          * Trata erros de validação de campos ( anotações como {@code @NotNull}, {@code @@size}, etc.)
          * <p><b>Status HTTP:</b> 400 - Bad Request</p>
@@ -56,6 +59,14 @@
          */
         @ExceptionHandler(DataIntegrityViolationException.class)
         public ResponseEntity<ErrorResponseDTO> handleDataIntegrity(DataIntegrityViolationException ex) {
+            if (containsIgnoreCase(ex, DUPLICATE_CHECKLIST_INDEX)) {
+                return buildResponse(
+                        HttpStatus.CONFLICT,
+                        "Ja existe checklist ativo para esta turma, sala, periodo, dia e tipo.",
+                        null
+                );
+            }
+
             return buildResponse(HttpStatus.CONFLICT, "Conflito de integridade: o registro já existe ou viola regras de negócio.", null);
         }
         /**
@@ -110,6 +121,11 @@
          * @param ex A exceção {@link IllegalStateException}.
          * @return Resposta indicando a quebra da regra de negócio atual.
          */
+        @ExceptionHandler(SubmissionWindowViolationException.class)
+        public ResponseEntity<ErrorResponseDTO> handleWindowViolation(SubmissionWindowViolationException ex) {
+            return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), null);
+        }
+
         @ExceptionHandler(IllegalStateException.class)
         public ResponseEntity<ErrorResponseDTO> handleIllegalState(IllegalStateException ex) {
             return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), null);
@@ -210,5 +226,19 @@
                     errors
             );
             return ResponseEntity.status(status).body(errorResponseDTO);
+        }
+
+        private boolean containsIgnoreCase(Throwable throwable, String expected) {
+            Throwable current = throwable;
+
+            while (current != null) {
+                String message = current.getMessage();
+                if (message != null && message.toLowerCase().contains(expected.toLowerCase())) {
+                    return true;
+                }
+                current = current.getCause();
+            }
+
+            return false;
         }
     }

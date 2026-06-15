@@ -16,7 +16,7 @@ class RequestContextTest {
         RequestContext user = new RequestContext(
                 userId,
                 TypeUser.REPRESENTATIVE,
-                List.of(new ContextClass(classId, "REPRESENTATIVE"))
+                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
@@ -28,15 +28,47 @@ class RequestContextTest {
     }
 
     @Test
+    void studentWithRepresentativeClassRoleCanOperateChecklistForOwnClassOnly() {
+        UUID userId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        RequestContext user = new RequestContext(
+                userId,
+                TypeUser.STUDENT,
+                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
+        );
+
+        assertThat(user.canAccessChecklistModule()).isTrue();
+        assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canOperateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canSubmitChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canCancelChecklistExecution(userId, classId)).isTrue();
+        assertThat(user.canCreateChecklistExecutionForClass(UUID.randomUUID())).isFalse();
+    }
+
+    @Test
     void regularStudentCannotCreateChecklistExecution() {
         UUID classId = UUID.randomUUID();
         RequestContext user = new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.STUDENT,
-                List.of(new ContextClass(classId, "STUDENT"))
+                List.of(new ContextClass(classId, ClassRole.STUDENT))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(user.canAccessChecklistModule()).isFalse();
+    }
+
+    @Test
+    void studentWithTeacherClassRoleCannotOperateChecklist() {
+        UUID classId = UUID.randomUUID();
+        RequestContext user = new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.STUDENT,
+                List.of(new ContextClass(classId, ClassRole.TEACHER))
+        );
+
+        assertThat(user.canCreateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(user.canOperateChecklistExecutionForClass(classId)).isFalse();
         assertThat(user.canAccessChecklistModule()).isFalse();
     }
 
@@ -46,7 +78,7 @@ class RequestContextTest {
         RequestContext user = new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.TEACHER,
-                List.of(new ContextClass(classId, "TEACHER"))
+                List.of(new ContextClass(classId, ClassRole.TEACHER))
         );
 
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
@@ -75,17 +107,17 @@ class RequestContextTest {
         RequestContext senai = new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.SENAI,
-                List.of(new ContextClass(classId, "TEACHER"))
+                List.of(new ContextClass(classId, ClassRole.TEACHER))
         );
         RequestContext weg = new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.WEG,
-                List.of(new ContextClass(classId, "REPRESENTATIVE"))
+                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
         );
         RequestContext admin = new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.ADMIN,
-                List.of(new ContextClass(classId, "TEACHER"))
+                List.of(new ContextClass(classId, ClassRole.TEACHER))
         );
 
         assertThat(senai.canCreateChecklistExecutionForClass(classId)).isFalse();

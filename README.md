@@ -24,28 +24,38 @@ The service must keep its own business rules and data ownership. The Hub remains
 
 ## Architecture
 
-The project follows a business-module structure.
+The project follows a modular layered architecture. Business capabilities are
+grouped by module, while dependencies flow from presentation and infrastructure
+toward application and domain contracts.
 
 ```text
-src/main/java/br/senai/centroweg/checklist
-|- ChecklistApplication.java
-|- module
+src/main/java/com/portal/conecta/checklist
+|- Application.java
+|- modules
 |  |- checklist
-|  |  |- domain
-|  |  |- application
-|  |  |- presentation
-|  |  |- infrastructure
-|  |- issue
-|     |- domain
 |     |- application
-|     |- presentation
+|     |  |- port/out
+|     |  |- service
+|     |  |- usecase
+|     |- domain
+|     |  |- enums
+|     |  |- exception
+|     |  |- model
+|     |  |- schema
+|     |  |- service
+|     |  |- valueobject
 |     |- infrastructure
+|     |- issues
+|     |- presentation
 |- shared
-   |- config
-   |- exception
-   |- security
    |- context
+   |- exception
+   |- integration
+   |- security
 ```
+
+See [ADR-0001](docs/adr/0001-modular-layered-architecture.md) for the
+architectural boundaries and dependency rules.
 
 ### Modules
 
@@ -103,7 +113,7 @@ DB_NAME=checklist_db
 DB_USER=your_db_user
 DB_PASSWORD=your_db_password
 JWT_SECRET=your_base64_hs256_secret
-HUB_API_URL=http://localhost:8081
+HUB_API_URL=http://localhost:8080
 ```
 
 `JWT_SECRET` must use the same Base64-encoded HS256 secret configured for Checklist token validation. For local development, generate a temporary value and keep it only in `.env` or in your shell environment.
@@ -251,17 +261,17 @@ Expected token claims:
 
 Current persistence uses UUIDs for users and classes, so `sub` and `classes[].classId` must be UUID strings. The Checklist API validates the token locally with the shared Base64 HS256 secret and then applies module authorization rules from the authenticated context.
 
+The Hub currently uses two names for class role data depending on the contract surface:
+
+- JWT access token: `classes[].role`;
+- `/me/courses` response: `classes[].classRole`.
+
 The current Hub token generator does not emit `permissionVersion`. If the Hub later adds that claim or an authorization-check endpoint, that flow should be introduced as a new integration decision instead of being assumed by this service.
 
 ### Testing With Postman
 
-For a complete step-by-step guide with mock IDs and ready-to-use JSON bodies, see:
-
-```text
-docs/guia-postman-mock.md
-```
-
-Use this flow while the Hub is not available. The Checklist API still validates a real JWT, but user, room, and class existence can be validated through mock providers.
+The Checklist API uses only data returned by the Hub. Start the Hub before the
+Checklist API and use identifiers that exist in the Hub database.
 
 #### What Is Being Tested
 
@@ -281,30 +291,23 @@ Checklist API validates:
 - `sub` as a valid user UUID;
 - `classes[].classId` as valid class UUIDs;
 - `classes[].role` as `STUDENT`, `TEACHER`, or `REPRESENTATIVE`;
-- user existence through `HubUserProvider`;
+- authenticated user context through `HubMeProvider` using the Hub `/me/courses` contract;
 - room/class existence through Hub providers when the endpoint needs it.
 
-#### Run API With Mock Hub Providers
+#### Run API With The Hub
 
-Start PostgreSQL:
+Start PostgreSQL and the Hub, then run the Checklist API:
 
 ```powershell
 docker compose up -d
 ```
 
-Run the API with the `mock` profile:
-
 ```powershell
-$env:SPRING_PROFILES_ACTIVE="mock"
+$env:SPRING_PROFILES_ACTIVE="local"
 $env:SERVER_PORT="8083"
 $env:JWT_SECRET="<BASE64_HS256_SECRET>"
+$env:HUB_API_URL="http://localhost:8080"
 mvn spring-boot:run
-```
-
-If your machine has Maven Wrapper configured, use:
-
-```powershell
-.\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=mock
 ```
 
 Health check does not require token:
@@ -313,35 +316,15 @@ Health check does not require token:
 GET http://localhost:8083/actuator/health
 ```
 
-#### Mock Data Used By The API
-
-The `mock` profile reads mock Hub data from `src/main/resources/application-mock.properties`.
-
-The example user and classes below are already configured there:
-
-```text
-USER_ID=a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d
-TEACHER_CLASS_ID=8f8e8d8c-8b8a-8f8e-8d8c-8b8a8f8e8d8c
-STUDENT_CLASS_ID=1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
-ROOM_ID=11111111-1111-1111-1111-111111111111
-```
-
-If Postman sends a `sub`, `classId`, or `roomId` that is not in the mock properties, the API must reject the request.
-
 #### Create A Postman Environment
 
 Create an environment called `Checklist Local` with:
 
 ```text
 BASE_URL=http://localhost:8083
-JWT_SECRET=<BASE64_HS256_SECRET>
-USER_ID=a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d
-TEACHER_CLASS_ID=8f8e8d8c-8b8a-8f8e-8d8c-8b8a8f8e8d8c
-STUDENT_CLASS_ID=1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
-ROOM_ID=11111111-1111-1111-1111-111111111111
-USER_TYPE=STUDENT
-TEACHER_CLASS_ROLE=TEACHER
-STUDENT_CLASS_ROLE=STUDENT
+HUB_URL=http://localhost:8080
+ROOM_ID=<room UUID returned by the Hub>
+TEACHER_CLASS_ID=<class UUID linked to the authenticated user>
 ```
 
 #### Configure Authorization
@@ -353,9 +336,9 @@ Type: Bearer Token
 Token: {{hubToken}}
 ```
 
-Generate the JWT manually with a JWT tool such as `jwt.io`, then paste the full token into the `hubToken` environment variable.
-
-Use algorithm `HS256` and the same `JWT_SECRET` configured in the API. If the tool has a `secret base64 encoded` option, enable it.
+Authenticate through the Hub login endpoint and save the returned access token
+in the `hubToken` environment variable. The Checklist API does not issue tokens
+and does not maintain a fallback user list.
 
 The token sent to Postman must be the full signed JWT in this format:
 
@@ -398,11 +381,8 @@ If the token is valid but the user does not have permission for the action:
 
 #### Create A Template
 
-Template management is allowed for `SENAI` or `WEG`. Before this request, change the environment variable:
-
-```text
-USER_TYPE=SENAI
-```
+Template management is allowed for `SENAI` or `WEG`. Use a token issued by the
+Hub for a user with one of these types.
 
 Request:
 
@@ -455,12 +435,6 @@ TEMPLATE_ID=<id returned by API>
 
 #### Activate The Template
 
-Keep:
-
-```text
-USER_TYPE=SENAI
-```
-
 Request:
 
 ```text
@@ -476,14 +450,8 @@ Expected result:
 
 #### Create A Checklist Draft
 
-Now switch back to the operational user from the example token:
-
-```text
-USER_TYPE=STUDENT
-TEACHER_CLASS_ROLE=TEACHER
-```
-
-The example user can create a checklist for `TEACHER_CLASS_ID` because the token says this user has `role: TEACHER` in that class.
+Use a Hub token whose authenticated user has `TEACHER` or `REPRESENTATIVE` in
+`TEACHER_CLASS_ID`.
 
 Request:
 
@@ -500,7 +468,6 @@ Body:
   "templateId": "{{TEMPLATE_ID}}",
   "roomId": "{{ROOM_ID}}",
   "classId": "{{TEACHER_CLASS_ID}}",
-  "period": "MORNING",
   "checklistType": "ARRIVAL"
 }
 ```
@@ -559,7 +526,7 @@ Rules validated here:
 - `JWT_SECRET` in Postman is different from the API.
 - `exp` is in the past.
 - `sub`, `jti`, or `classes[].classId` is not a UUID.
-- User from `sub` does not exist in mock Hub properties.
+- The Hub rejects the authenticated user or the token cannot access `/me/courses`.
 
 `403 Acesso negado.`
 
@@ -569,13 +536,13 @@ Rules validated here:
 
 `404` or `Sala/Turma nao encontrada no Hub.`
 
-- `ROOM_ID` is not listed in `checklist.mock.hub.room-ids`.
-- `classId` is not listed in `checklist.mock.hub.class-ids`.
+- `ROOM_ID` does not exist in the Hub.
+- `classId` does not exist in the Hub or is not linked to the authenticated user.
 
 Duplicate checklist error.
 
 - The API does not allow duplicated checklist for the same class, room, period, day, and type.
-- To test again, change `period`, `checklistType`, class, or reset the local database.
+- To test again, change `checklistType`, class, or reset the local database.
 
 Initial authorization rules implemented:
 

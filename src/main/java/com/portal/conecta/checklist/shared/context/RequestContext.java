@@ -25,7 +25,7 @@ public record RequestContext(
 
     public boolean canAccessChecklistModule() {
         return canManageChecklistTemplates()
-                || hasOperationalProfile() && classes.stream().anyMatch(c -> isClassRepresentative(c) || isLinkedTeacher(c));
+                || hasOperationalProfile() && classes.stream().anyMatch(c -> canActAsRepresentative(c) || canActAsTeacher(c));
     }
 
     public boolean canManageChecklistTemplates() {
@@ -63,24 +63,31 @@ public record RequestContext(
             return false;
         }
 
-        if (!hasOperationalProfile()) {
-            return false;
-        }
-
         return classes.stream().anyMatch(c ->
-                c.matchesClass(classId) && (isClassRepresentative(c) || isLinkedTeacher(c))
+                c.matchesClass(classId) && (canActAsRepresentative(c) || canActAsTeacher(c))
         );
     }
 
     private boolean hasOperationalProfile() {
-        return userType == TypeUser.REPRESENTATIVE || userType == TypeUser.TEACHER;
+        return userType == TypeUser.STUDENT
+                || userType == TypeUser.REPRESENTATIVE
+                || userType == TypeUser.TEACHER;
+    }
+
+    private boolean canActAsRepresentative(ContextClass contextClass) {
+        return (userType == TypeUser.STUDENT || userType == TypeUser.REPRESENTATIVE)
+                && isClassRepresentative(contextClass);
+    }
+
+    private boolean canActAsTeacher(ContextClass contextClass) {
+        return userType == TypeUser.TEACHER && isLinkedTeacher(contextClass);
     }
 
     private boolean isClassRepresentative(ContextClass contextClass) {
-        return contextClass.hasClassRole("REPRESENTATIVE");
+        return contextClass.hasRole(ClassRole.REPRESENTATIVE);
     }
 
     private boolean isLinkedTeacher(ContextClass contextClass) {
-        return contextClass.hasClassRole("TEACHER");
+        return contextClass.hasRole(ClassRole.TEACHER);
     }
 }

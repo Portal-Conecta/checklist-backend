@@ -32,7 +32,7 @@ class EnvFileLoaderTest {
 
     @Test
     void shouldLoadValidEnvFileEntries() throws IOException {
-        Path envFile = tempDir.resolve(".env");
+        Path envFile = tempDir.resolve("..env");
         Files.writeString(envFile, """
                 # ignored
                 CHECKLIST_ENV_FILE_LOADER_SAMPLE=loaded
@@ -48,9 +48,9 @@ class EnvFileLoaderTest {
 
     @Test
     void shouldNotOverridePreviouslyDefinedProperties() throws IOException {
-        Path envFile = tempDir.resolve(".env");
+        Path envFile = tempDir.resolve("..env");
         System.setProperty(EXISTING_KEY, "already-defined");
-        Files.writeString(envFile, "CHECKLIST_ENV_FILE_LOADER_EXISTING=from-env-file");
+        Files.writeString(envFile, "CHECKLIST_ENV_FILE_LOADER_EXISTING=from-.env-file");
 
         EnvFileLoader.load(envFile);
 
@@ -59,7 +59,7 @@ class EnvFileLoaderTest {
 
     @Test
     void shouldMapSpringProfilesActiveToSpringBootProperty() throws IOException {
-        Path envFile = tempDir.resolve(".env");
+        Path envFile = tempDir.resolve("..env");
         Files.writeString(envFile, "SPRING_PROFILES_ACTIVE=mock");
 
         EnvFileLoader.load(envFile);

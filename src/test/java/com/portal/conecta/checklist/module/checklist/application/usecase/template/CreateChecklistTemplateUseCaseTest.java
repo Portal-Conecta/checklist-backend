@@ -3,6 +3,7 @@ package com.portal.conecta.checklist.module.checklist.application.usecase.templa
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistTemplateMapper;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.RoomReference;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistItemDTO;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,7 +48,8 @@ class CreateChecklistTemplateUseCaseTest {
         ChecklistTemplateCreateRequest request = request(roomId);
 
         when(contextProvider.getRequestContext()).thenReturn(user(TypeUser.SENAI));
-        when(hubRoomProvider.existsById(roomId)).thenReturn(true);
+        // Ajustado para o novo método findById
+        when(hubRoomProvider.findById(roomId)).thenReturn(Optional.of(mock(RoomReference.class)));
         when(templateRepository.save(any(ChecklistTemplate.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ChecklistTemplate result = useCase.execute(request);
@@ -64,7 +67,7 @@ class CreateChecklistTemplateUseCaseTest {
 
         assertThrows(AccessDeniedException.class, () -> useCase.execute(request));
 
-        verify(hubRoomProvider, never()).existsById(any());
+        verify(hubRoomProvider, never()).findById(any());
         verify(templateRepository, never()).save(any());
     }
 
@@ -74,7 +77,8 @@ class CreateChecklistTemplateUseCaseTest {
         ChecklistTemplateCreateRequest request = request(roomId);
 
         when(contextProvider.getRequestContext()).thenReturn(user(TypeUser.SENAI));
-        when(hubRoomProvider.existsById(roomId)).thenReturn(false);
+        // Ajustado para simular que o Core não encontrou a sala
+        when(hubRoomProvider.findById(roomId)).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> useCase.execute(request));
 

@@ -60,11 +60,11 @@ class EnvFileLoaderTest {
     @Test
     void shouldMapSpringProfilesActiveToSpringBootProperty() throws IOException {
         Path envFile = tempDir.resolve(".env");
-        Files.writeString(envFile, "SPRING_PROFILES_ACTIVE=mock");
+        Files.writeString(envFile, "SPRING_PROFILES_ACTIVE=local");
 
         EnvFileLoader.load(envFile);
 
-        assertThat(System.getProperty(SPRING_PROFILES_ACTIVE_KEY)).isEqualTo("mock");
-        assertThat(System.getProperty(SPRING_PROFILES_ACTIVE_ALIAS)).isEqualTo("mock");
+        assertThat(System.getProperty(SPRING_PROFILES_ACTIVE_KEY)).isEqualTo("local");
+        assertThat(System.getProperty(SPRING_PROFILES_ACTIVE_ALIAS)).isEqualTo("local");
     }
 }

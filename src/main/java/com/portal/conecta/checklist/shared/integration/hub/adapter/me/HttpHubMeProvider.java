@@ -4,7 +4,6 @@ import com.portal.conecta.checklist.shared.integration.hub.client.me.HubMeClient
 import com.portal.conecta.checklist.shared.integration.hub.exception.HubIntegrationException;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -16,7 +15,6 @@ import java.util.UUID;
  * identificador do token nao e enviado na URL.</p>
  */
 @Component
-@Profile("!mock & !test")
 @RequiredArgsConstructor
 public class HttpHubMeProvider implements HubMeProvider {
 

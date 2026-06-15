@@ -1,6 +1,6 @@
 package com.portal.conecta.checklist.shared.security.config;
 
-import com.portal.conecta.checklist.shared.hub.properties.HubApiProperties;
+import com.portal.conecta.checklist.shared.integration.hub.config.HubApiProperties;
 import com.portal.conecta.checklist.shared.security.error.SecurityErrorResponseWriter;
 import com.portal.conecta.checklist.shared.security.filter.HubJwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;

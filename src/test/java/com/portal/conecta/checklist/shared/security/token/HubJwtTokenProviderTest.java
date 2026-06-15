@@ -3,7 +3,7 @@ package com.portal.conecta.checklist.shared.security.token;
 import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.TypeUser;
-import com.portal.conecta.checklist.shared.hub.provider.user.HubUserProvider;
+import com.portal.conecta.checklist.shared.integration.hub.adapter.me.HubMeProvider;
 import com.portal.conecta.checklist.shared.security.config.HubJwtProperties;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -33,7 +33,7 @@ class HubJwtTokenProviderTest {
         UUID userId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
         String token = token(Map.of(
-                "userType", "REPRESENTATIVE",
+                "userType", "STUDENT",
                 "classes", List.of(Map.of(
                         "classId", classId.toString(),
                         "role", "REPRESENTATIVE"
@@ -48,7 +48,7 @@ class HubJwtTokenProviderTest {
         RequestContext principal = (RequestContext) authentication.getPrincipal();
 
         assertThat(principal.userId()).isEqualTo(userId);
-        assertThat(principal.userType()).isEqualTo(TypeUser.REPRESENTATIVE);
+        assertThat(principal.userType()).isEqualTo(TypeUser.STUDENT);
         assertThat(principal.classes()).hasSize(1);
         assertThat(principal.classes().getFirst().classId()).isEqualTo(classId);
         assertThat(principal.classes().getFirst().role()).isEqualTo(ClassRole.REPRESENTATIVE);
@@ -151,8 +151,8 @@ class HubJwtTokenProviderTest {
     @Test
     void shouldValidateUserExistenceWhenHubProviderIsAvailable() {
         UUID userId = UUID.randomUUID();
-        HubUserProvider userProvider = id -> id.equals(userId);
-        HubJwtTokenProvider tokenProvider = tokenProvider(userProvider);
+        HubMeProvider meProvider = id -> id.equals(userId);
+        HubJwtTokenProvider tokenProvider = tokenProvider(meProvider);
         String token = token(Map.of("userType", "STUDENT"), userId, Instant.now().plusSeconds(3600));
 
         Authentication authentication = tokenProvider.getAuthentication(token);
@@ -163,8 +163,8 @@ class HubJwtTokenProviderTest {
 
     @Test
     void shouldRejectTokenWhenUserDoesNotExistInHub() {
-        HubUserProvider userProvider = id -> false;
-        HubJwtTokenProvider tokenProvider = tokenProvider(userProvider);
+        HubMeProvider meProvider = id -> false;
+        HubJwtTokenProvider tokenProvider = tokenProvider(meProvider);
         String token = token(Map.of("userType", "STUDENT"), UUID.randomUUID(), Instant.now().plusSeconds(3600));
 
         assertThatThrownBy(() -> tokenProvider.getAuthentication(token))
@@ -187,11 +187,11 @@ class HubJwtTokenProviderTest {
         return builder.signWith(key).compact();
     }
 
-    private HubJwtTokenProvider tokenProvider(HubUserProvider userProvider) {
+    private HubJwtTokenProvider tokenProvider(HubMeProvider meProvider) {
         return new HubJwtTokenProvider(
                 new HubJwtProperties(SECRET),
                 new HubJwtClaimsMapper(),
-                userProvider
+                meProvider
         );
     }
 }

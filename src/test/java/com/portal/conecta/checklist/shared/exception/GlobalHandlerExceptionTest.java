@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.shared.exception;
 
-import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
-import com.portal.conecta.checklist.module.checklist.domain.exception.SubmissionWindowViolationException;
+import com.portal.conecta.checklist.shared.integration.hub.exception.HubIntegrationException;
+import com.portal.conecta.checklist.modules.checklist.domain.exception.SubmissionWindowViolationException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

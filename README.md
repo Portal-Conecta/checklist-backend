@@ -24,28 +24,38 @@ The service must keep its own business rules and data ownership. The Hub remains
 
 ## Architecture
 
-The project follows a business-module structure.
+The project follows a modular layered architecture. Business capabilities are
+grouped by module, while dependencies flow from presentation and infrastructure
+toward application and domain contracts.
 
 ```text
-src/main/java/br/senai/centroweg/checklist
-|- ChecklistApplication.java
-|- module
+src/main/java/com/portal/conecta/checklist
+|- Application.java
+|- modules
 |  |- checklist
-|  |  |- domain
-|  |  |- application
-|  |  |- presentation
-|  |  |- infrastructure
-|  |- issue
-|     |- domain
 |     |- application
-|     |- presentation
+|     |  |- port/out
+|     |  |- service
+|     |  |- usecase
+|     |- domain
+|     |  |- enums
+|     |  |- exception
+|     |  |- model
+|     |  |- schema
+|     |  |- service
+|     |  |- valueobject
 |     |- infrastructure
+|     |- issues
+|     |- presentation
 |- shared
-   |- config
-   |- exception
-   |- security
    |- context
+   |- exception
+   |- integration
+   |- security
 ```
+
+See [ADR-0001](docs/adr/0001-modular-layered-architecture.md) for the
+architectural boundaries and dependency rules.
 
 ### Modules
 
@@ -286,7 +296,7 @@ Checklist API validates:
 - `sub` as a valid user UUID;
 - `classes[].classId` as valid class UUIDs;
 - `classes[].role` as `STUDENT`, `TEACHER`, or `REPRESENTATIVE`;
-- user existence through `HubUserProvider`;
+- authenticated user context through `HubMeProvider` using the Hub `/me/courses` contract;
 - room/class existence through Hub providers when the endpoint needs it.
 
 #### Run API With Mock Hub Providers

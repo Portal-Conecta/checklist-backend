@@ -13,12 +13,11 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  * depender de configuracao global da maquina.</p>
  */
 @SpringBootApplication
-@EnableFeignClients(basePackages = "com.portal.conecta.checklist.shared.hub.client")
+@EnableFeignClients(basePackages = "com.portal.conecta.checklist.shared.integration.hub.client")
 public class Application {
 
 	public static void main(String[] args) {
 		EnvFileLoader.loadFromWorkingDirectory();
 		SpringApplication.run(Application.class, args);
 	}
-
 }

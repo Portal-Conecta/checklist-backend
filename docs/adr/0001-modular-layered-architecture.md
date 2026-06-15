@@ -23,8 +23,8 @@ The application adopts a business-module structure with explicit layers:
   integrations.
 - `infrastructure`: implementations of persistence contracts.
 - `presentation`: controllers, transport DTOs, and HTTP mapping.
-- `shared/integration`: Hub clients, adapters, mocks, and integration
-  configuration shared by the module.
+- `shared/integration`: Hub clients, adapters, and integration configuration
+  shared by the module.
 
 The `issues` capability remains inside the Checklist module because issues are
 currently created and managed as part of checklist executions. It keeps its own

@@ -64,7 +64,8 @@ class ArchitectureRulesTest {
                 ".dto.mudar",
                 ".shared.client.",
                 ".shared.hub.provider.",
-                ".shared.hub.mock."
+                ".shared.hub.mock.",
+                ".shared.integration.hub.mock."
         );
 
         List<String> violations = javaSources()

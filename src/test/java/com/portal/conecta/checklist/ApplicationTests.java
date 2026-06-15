@@ -6,9 +6,9 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(properties = {
 		"checklist.security.jwt.secret=dGVzdC1vbmx5LWp3dC1zZWNyZXQtMzItYnl0ZXMtbm90LXJlYWw=",
-		"hub.api.url=http://localhost:8081"
+		"hub.api.url=http://localhost:8080"
 })
-@ActiveProfiles("mock")
+@ActiveProfiles("test")
 class ApplicationTests {
 
 	@Test

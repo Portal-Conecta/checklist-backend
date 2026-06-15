@@ -9,8 +9,8 @@ import java.util.UUID;
 /**
  * Contrato para validar turmas conhecidas pelo Hub.
  *
- * <p>Isola a aplicacao da origem dos dados, permitindo usar implementacoes HTTP
- * em producao e mocks em testes.</p>
+ * <p>Isola a aplicacao do contrato HTTP e permite que o adapter traduza os
+ * dados retornados pelo Hub para referencias do dominio.</p>
  */
 public interface HubClassProvider {
 

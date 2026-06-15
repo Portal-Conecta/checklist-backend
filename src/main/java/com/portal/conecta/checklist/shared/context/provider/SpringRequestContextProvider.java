@@ -2,7 +2,6 @@ package com.portal.conecta.checklist.shared.context.provider;
 
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Component;
  * entrega o {@link RequestContext} para os use cases.</p>
  */
 @Component
-@Profile("!test")
 public class SpringRequestContextProvider implements RequestContextProvider {
 
     @Override

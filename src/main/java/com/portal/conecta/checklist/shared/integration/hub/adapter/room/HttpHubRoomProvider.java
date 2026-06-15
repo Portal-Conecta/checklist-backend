@@ -7,7 +7,6 @@ import com.portal.conecta.checklist.shared.integration.hub.client.room.HubRoomRe
 import com.portal.conecta.checklist.shared.integration.hub.exception.HubIntegrationException;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -20,7 +19,6 @@ import java.util.UUID;
  * persistir templates ou execucoes.</p>
  */
 @Component
-@Profile("!mock & !test")
 @RequiredArgsConstructor
 public class HttpHubRoomProvider implements HubRoomProvider {
 

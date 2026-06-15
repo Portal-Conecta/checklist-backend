@@ -1,11 +1,13 @@
-package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command;
+package com.portal.conecta.checklist.module.checklist.application.usecase.template;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
-import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.update.ChecklistTemplateEditRequest;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
+import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
 import com.portal.conecta.checklist.shared.utils.ChecklistSchemaValidator;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -32,20 +34,21 @@ public class EditChecklistTemplateUseCase {
 
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>(){};
 
-    private final ChecklistTemplateRepositoryPort templateRepository;
+    private final ChecklistTemplateRepository templateRepository;
     private final RequestContextProvider contextProvider;
     private final ObjectMapper objectMapper;
+    private final HubRoomProvider hubRoomProvider; // <-- INJETADO AQUI PARA O TESTE PASSAR
 
     /**
      * Atualiza um template de checklist existente.
      *
      * <p>Antes da atualização são realizadas as seguintes validações:</p>
      * <ul>
-     *     <li>Permissão do usuário autenticado;</li>
-     *     <li>Existência do template informado;</li>
-     *     <li>Status do template, que deve ser {@code DRAFT};</li>
-     *     <li>Existência da sala informada no Hub;</li>
-     *     <li>Unicidade das chaves de seções e itens do schema.</li>
+     * <li>Permissão do usuário autenticado;</li>
+     * <li>Existência do template informado;</li>
+     * <li>Status do template, que deve ser {@code DRAFT};</li>
+     * <li>Existência da sala informada no Hub;</li>
+     * <li>Unicidade das chaves de seções e itens do schema.</li>
      * </ul>
      *
      * @param templateId identificador do template a ser atualizado
@@ -53,11 +56,11 @@ public class EditChecklistTemplateUseCase {
      * @return template atualizado e persistido
      * @throws AccessDeniedException quando o usuário não possui permissão para editar templates
      * @throws EntityNotFoundException quando o template ou a sala não forem encontrados
-     * @throws IllegalStateException quando o template não estiver com status {@code DRAFT}
+     * @throws IllegalStateException quando o template não estiver com status {@code DRAFT} ou a sala não existir mais
      * @throws IllegalArgumentException quando houver chaves duplicadas no schema
      */
     @Transactional
-    public ChecklistTemplate execute(UUID templateId, EditChecklistTemplateCommand command){
+    public ChecklistTemplate execute(UUID templateId, ChecklistTemplateEditRequest request){
         var currentUser = contextProvider.getRequestContext();
 
         if (!currentUser.canManageChecklistTemplates()){
@@ -71,22 +74,22 @@ public class EditChecklistTemplateUseCase {
             throw new IllegalStateException("Apenas templates com status DRAFT podem ser editados. Status atual: "  + template.getStatus());
         }
 
-        if (command.title() != null){
-            template.setTitle(command.title());
+        hubRoomProvider.findById(template.getRoomId())
+                .orElseThrow(() -> new IllegalStateException("A sala vinculada a este template foi removida do Hub. A edição não é mais permitida."));
+
+        if (request.title() != null){
+            template.setTitle(request.title());
         }
 
-        if (command.description() != null){
-            template.setDescription(command.description());
+        if (request.description() != null){
+            template.setDescription((request.description()));
         }
 
-        if (command.schema() != null){
-            ChecklistSchemaValidator.validateStableKeys(command.schema());
-            template.setSchemaJson(objectMapper.convertValue(command.schema(), MAP_TYPE));
+        if (request.schemaJson() != null){
+            ChecklistSchemaValidator.validateStableKeys(request.schemaJson());
+            template.setSchemaJson(objectMapper.convertValue(request.schemaJson(), MAP_TYPE));
         }
 
-        return  templateRepository.save(template);
+        return templateRepository.save(template);
     }
-
-
-
 }

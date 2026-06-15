@@ -1,17 +1,18 @@
-package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command;
+package com.portal.conecta.checklist.module.checklist.application.usecase.template;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.EditChecklistTemplateUseCase;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
-import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistTemplateRepository;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSection;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.EditChecklistTemplateCommand;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.RoomReference;
+import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistItemDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistSchemaDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistSectionDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.update.ChecklistTemplateEditRequest;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
+import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
@@ -30,18 +31,22 @@ class EditChecklistTemplateUseCaseTest {
     private final ChecklistTemplateRepository templateRepository = mock(ChecklistTemplateRepository.class);
     private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final HubRoomProvider hubRoomProvider = mock(HubRoomProvider.class);
     private final EditChecklistTemplateUseCase useCase = new EditChecklistTemplateUseCase(
             templateRepository,
             contextProvider,
-            objectMapper
+            objectMapper,
+            hubRoomProvider
     );
 
     @Test
     void shouldEditTemplateWhenDraftAndManager() {
         UUID templateId = UUID.randomUUID();
+        ChecklistTemplate template = draftTemplate();
 
         when(contextProvider.getRequestContext()).thenReturn(user(TypeUser.SENAI));
-        when(templateRepository.findById(templateId)).thenReturn(Optional.of(draftTemplate()));
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
+        when(hubRoomProvider.findById(template.getRoomId())).thenReturn(Optional.of(mock(RoomReference.class)));
         when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         ChecklistTemplate result = useCase.execute(templateId, requestFull());
@@ -58,6 +63,7 @@ class EditChecklistTemplateUseCaseTest {
 
         when(contextProvider.getRequestContext()).thenReturn(user(TypeUser.SENAI));
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(existing));
+        when(hubRoomProvider.findById(existing.getRoomId())).thenReturn(Optional.of(mock(RoomReference.class)));
         when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         ChecklistTemplate result = useCase.execute(templateId, requestOnlySchema());
@@ -73,6 +79,7 @@ class EditChecklistTemplateUseCaseTest {
                 () -> useCase.execute(UUID.randomUUID(), requestFull()));
 
         verify(templateRepository, never()).findById(any());
+        verify(hubRoomProvider, never()).findById(any());
         verify(templateRepository, never()).save(any());
     }
 
@@ -84,6 +91,7 @@ class EditChecklistTemplateUseCaseTest {
         assertThrows(EntityNotFoundException.class,
                 () -> useCase.execute(UUID.randomUUID(), requestFull()));
 
+        verify(hubRoomProvider, never()).findById(any());
         verify(templateRepository, never()).save(any());
     }
 
@@ -99,15 +107,34 @@ class EditChecklistTemplateUseCaseTest {
         assertThrows(IllegalStateException.class,
                 () -> useCase.execute(templateId, requestFull()));
 
+        verify(hubRoomProvider, never()).findById(any());
+        verify(templateRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldRejectWhenRoomIsDeletedInHub() {
+        UUID templateId = UUID.randomUUID();
+        ChecklistTemplate draft = draftTemplate();
+
+        when(contextProvider.getRequestContext()).thenReturn(user(TypeUser.SENAI));
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(draft));
+        // Simula o Hub retornando que a sala não existe (foi removida)
+        when(hubRoomProvider.findById(draft.getRoomId())).thenReturn(Optional.empty());
+
+        assertThrows(IllegalStateException.class,
+                () -> useCase.execute(templateId, requestFull()));
+
         verify(templateRepository, never()).save(any());
     }
 
     @Test
     void shouldRejectWhenSchemaHasDuplicateKeys() {
         UUID templateId = UUID.randomUUID();
+        ChecklistTemplate template = draftTemplate();
 
         when(contextProvider.getRequestContext()).thenReturn(user(TypeUser.SENAI));
-        when(templateRepository.findById(templateId)).thenReturn(Optional.of(draftTemplate()));
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
+        when(hubRoomProvider.findById(template.getRoomId())).thenReturn(Optional.of(mock(RoomReference.class)));
 
         assertThrows(IllegalArgumentException.class,
                 () -> useCase.execute(templateId, requestDuplicateKeys()));
@@ -115,34 +142,34 @@ class EditChecklistTemplateUseCaseTest {
         verify(templateRepository, never()).save(any());
     }
 
-    private EditChecklistTemplateCommand requestFull() {
-        return new EditChecklistTemplateCommand(
+    private ChecklistTemplateEditRequest requestFull() {
+        return new ChecklistTemplateEditRequest(
                 "Novo título",
                 "Nova descrição",
                 schema("secao-1", "item-1")
         );
     }
 
-    private EditChecklistTemplateCommand requestOnlySchema() {
-        return new EditChecklistTemplateCommand(null, null, schema("secao-1", "item-1"));
+    private ChecklistTemplateEditRequest requestOnlySchema() {
+        return new ChecklistTemplateEditRequest(null, null, schema("secao-1", "item-1"));
     }
 
-    private EditChecklistTemplateCommand requestDuplicateKeys() {
-        return new EditChecklistTemplateCommand(
+    private ChecklistTemplateEditRequest requestDuplicateKeys() {
+        return new ChecklistTemplateEditRequest(
                 null, null,
-                new ChecklistSchema(List.of(
-                        new ChecklistSection("secao-1", "Seção 1", 1, List.of(
-                                new ChecklistItem("item-1", "Item 1", "", true, 1),
-                                new ChecklistItem("item-1", "Item duplicado", "", true, 2)
+                new ChecklistSchemaDTO(List.of(
+                        new ChecklistSectionDTO("secao-1", "Seção 1", 1, List.of(
+                                new ChecklistItemDTO("item-1", "Item 1", "", true, 1),
+                                new ChecklistItemDTO("item-1", "Item duplicado", "", true, 2)
                         ))
                 ))
         );
     }
 
-    private ChecklistSchema schema(String sectionKey, String itemKey) {
-        return new ChecklistSchema(List.of(
-                new ChecklistSection(sectionKey, "Seção", 1, List.of(
-                        new ChecklistItem(itemKey, "Item", "Observação", true, 1)
+    private ChecklistSchemaDTO schema(String sectionKey, String itemKey) {
+        return new ChecklistSchemaDTO(List.of(
+                new ChecklistSectionDTO(sectionKey, "Seção", 1, List.of(
+                        new ChecklistItemDTO(itemKey, "Item", "Observação", true, 1)
                 ))
         ));
     }

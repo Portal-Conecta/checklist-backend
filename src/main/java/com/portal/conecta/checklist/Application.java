@@ -8,7 +8,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 /**
  * Ponto de entrada da Checklist API.
  *
- * <p>Carrega variaveis locais do arquivo {@code .env} antes de iniciar o
+ * <p>Carrega variaveis locais do arquivo {@code ..env} antes de iniciar o
  * contexto Spring, permitindo executar o projeto em ambientes locais sem
  * depender de configuracao global da maquina.</p>
  */

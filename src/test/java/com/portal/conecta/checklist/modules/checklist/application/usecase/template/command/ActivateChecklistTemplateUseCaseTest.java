@@ -1,12 +1,12 @@
-package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command;
+package com.portal.conecta.checklist.module.checklist.application.usecase.template;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.ActivateChecklistTemplateUseCase;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
-import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistTemplateRepository;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
+import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,8 +24,9 @@ class ActivateChecklistTemplateUseCaseTest {
 
     private final ChecklistTemplateRepository templateRepository = mock(ChecklistTemplateRepository.class);
     private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
+    private final HubRoomProvider hubRoomProvider = mock(HubRoomProvider.class);
     private final ActivateChecklistTemplateUseCase useCase = new ActivateChecklistTemplateUseCase(
-            templateRepository, contextProvider);
+            templateRepository, contextProvider, hubRoomProvider);
 
     @Test
     @DisplayName("deve ativar template DRAFT e inativar versão anterior do mesmo grupo")
@@ -38,6 +39,7 @@ class ActivateChecklistTemplateUseCaseTest {
 
         when(contextProvider.getRequestContext()).thenReturn(senai());
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(draft));
+        when(hubRoomProvider.findById(draft.getRoomId())).thenReturn(Optional.of(mock(RoomReference.class)));
         when(templateRepository.findByTemplateGroupIdAndStatus(groupId, ChecklistTemplateStatus.ACTIVE))
                 .thenReturn(List.of(active));
         when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -61,6 +63,7 @@ class ActivateChecklistTemplateUseCaseTest {
 
         when(contextProvider.getRequestContext()).thenReturn(senai());
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(draft));
+        when(hubRoomProvider.findById(draft.getRoomId())).thenReturn(Optional.of(mock(RoomReference.class)));
         when(templateRepository.findByTemplateGroupIdAndStatus(groupId, ChecklistTemplateStatus.ACTIVE))
                 .thenReturn(List.of());
         when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -85,6 +88,7 @@ class ActivateChecklistTemplateUseCaseTest {
 
         assertThrows(IllegalStateException.class, () -> useCase.execute(templateId));
 
+        verify(hubRoomProvider, never()).findById(any());
         verify(templateRepository, never()).save(any());
     }
 
@@ -96,6 +100,7 @@ class ActivateChecklistTemplateUseCaseTest {
 
         assertThrows(EntityNotFoundException.class, () -> useCase.execute(UUID.randomUUID()));
 
+        verify(hubRoomProvider, never()).findById(any());
         verify(templateRepository, never()).save(any());
     }
 
@@ -107,11 +112,31 @@ class ActivateChecklistTemplateUseCaseTest {
         assertThrows(AccessDeniedException.class, () -> useCase.execute(UUID.randomUUID()));
 
         verify(templateRepository, never()).findById(any());
+        verify(hubRoomProvider, never()).findById(any());
+    }
+
+    @Test
+    @DisplayName("deve rejeitar quando a sala do template não existe mais no Hub")
+    void deveRejeitarQuandoSalaRemovidaNoHub() {
+        UUID groupId = UUID.randomUUID();
+        UUID templateId = UUID.randomUUID();
+
+        ChecklistTemplate draft = template(templateId, groupId, ChecklistTemplateStatus.DRAFT, false);
+
+        when(contextProvider.getRequestContext()).thenReturn(senai());
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(draft));
+        // Simula o Hub retornando vazio (sala removida)
+        when(hubRoomProvider.findById(draft.getRoomId())).thenReturn(Optional.empty());
+
+        assertThrows(IllegalStateException.class, () -> useCase.execute(templateId));
+
+        verify(templateRepository, never()).save(any());
     }
 
     private ChecklistTemplate template(UUID id, UUID groupId, ChecklistTemplateStatus status, boolean active) {
         return ChecklistTemplate.builder()
                 .id(id)
+                .roomId(UUID.randomUUID())
                 .templateGroupId(groupId)
                 .status(status)
                 .active(active)

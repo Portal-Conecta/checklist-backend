@@ -34,7 +34,8 @@ import java.util.UUID;
 @Component
 public class ChecklistExecutionMapper {
 
-    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {
+    };
 
     private final ObjectMapper objectMapper;
     private final ChecklistIssueMapper issueMapper;
@@ -47,9 +48,9 @@ public class ChecklistExecutionMapper {
     /**
      * Cria uma entidade de execução em rascunho a partir da requisição inicial.
      *
-     * @param request dados informados para criar o rascunho.
-     * @param template template de checklist associado à execução.
-     * @param filledBy identificador do usuário responsável pelo preenchimento.
+     * @param request   dados informados para criar o rascunho.
+     * @param template  template de checklist associado à execução.
+     * @param filledBy  identificador do usuário responsável pelo preenchimento.
      * @param startedAt data e hora de início da execução.
      * @return entidade de execução em rascunho ou {@code null} quando a requisição for nula.
      */
@@ -111,7 +112,33 @@ public class ChecklistExecutionMapper {
                 issueMapper.toResponseList(execution.getIssues())
         );
     }
+    public ChecklistExecutionResponseDTO toResponseWithAnswers(ChecklistExecution execution, List<ChecklistAnswerResponseDTO> draftAnswers){
+        if(execution == null){
+            return null;
+        }
 
+        ChecklistTemplate template = execution.getChecklistTemplate();
+
+        List<ChecklistAnswerResponseDTO> safeAnswers = draftAnswers != null ? draftAnswers : List.of();
+        ChecklistAnswersDTO answers = new ChecklistAnswersDTO(safeAnswers, summarize(safeAnswers));
+        return new ChecklistExecutionResponseDTO(
+                execution.getId(),
+                template == null ? null : template.getId(),
+                template == null ? null : template.getVersion(),
+                execution.getRoomId(),
+                execution.getClassId(),
+                execution.getUserId(),
+                execution.getPeriod(),
+                execution.getChecklistType(),
+                execution.getStatus(),
+                execution.getComplianceScore(),
+                answers,
+                answers.summary(),
+                toInstant(execution.getStartedAt()),
+                toInstant(execution.getSubmittedAt()),
+                issueMapper.toResponseList(execution.getIssues())
+        );
+    }
     /**
      * Converte a requisição de submissão para o JSON estruturado de respostas.
      *
@@ -257,5 +284,20 @@ public class ChecklistExecutionMapper {
 
     private Instant toInstant(LocalDateTime dateTime) {
         return dateTime == null ? null : dateTime.atZone(ZoneId.systemDefault()).toInstant();
+    }
+
+    /**
+     * Converte uma lista de respostas vindas do rascunho do Redis para a estrutura
+     * JSON persistivel no PostgreSQL, gerando tambem o sumario atualizado.
+     *
+     * @param draftAnswers lista de respostas obtidas do cache temporario.
+     * @return mapa estruturado pronto para persistencia na entidade.
+     */
+    public Map<String, Object> toAnswersJson(List<ChecklistAnswerResponseDTO> draftAnswers) {
+        if (draftAnswers == null) {
+            return toAnswersJson(emptyAnswers());
+        }
+
+        return toAnswersJson(new ChecklistAnswersDTO(draftAnswers, summarize(draftAnswers)));
     }
 }

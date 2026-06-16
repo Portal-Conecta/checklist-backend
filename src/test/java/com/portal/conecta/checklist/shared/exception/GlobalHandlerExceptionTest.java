@@ -106,7 +106,7 @@ class GlobalHandlerExceptionTest {
                 new SubmissionWindowViolationException(LocalTime.of(7, 30), LocalTime.of(8, 0))
         );
 
-        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+        assertEquals(HttpStatus.UNPROCESSABLE_CONTENT, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(422, response.getBody().status());
         assertEquals("Fora da janela de envio. Janela permitida: 07:30 ate 08:00.", response.getBody().message());

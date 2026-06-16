@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command;
 
+import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
@@ -29,7 +30,7 @@ public class ActivateChecklistTemplateUseCase {
 
     private final ChecklistTemplateRepositoryPort templateRepository;
     private final RequestContextProvider contextProvider;
-
+    private final HubRoomProvider hubRoomProvider;
     /**
      * Ativa um template de checklist.
      *
@@ -64,6 +65,9 @@ public class ActivateChecklistTemplateUseCase {
         if (template.getStatus() != ChecklistTemplateStatus.DRAFT) {
             throw new IllegalStateException("Apenas templates com status DRAFT podem ser ativados. Status atual: " + template.getStatus());
         }
+
+        hubRoomProvider.findById(template.getRoomId())
+                .orElseThrow(() -> new IllegalStateException("A sala vinculada a este template foi removida do Hub. Não é possível ativar o template."));
 
         inactivatePreviousVersion(template);
 

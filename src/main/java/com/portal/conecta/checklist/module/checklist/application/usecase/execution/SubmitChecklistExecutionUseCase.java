@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ConformityAnswerValue;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecutionDraft;
 import com.portal.conecta.checklist.module.checklist.domain.valueobject.UserReference;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
-import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistAnswerRequestDTO;
+import com.portal.conecta.checklist.module.checklist.infrastructure.redis.ChecklistDraftRedisRepository;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionSubmitDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistAnswerResponseDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistItemDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.schema.ChecklistSchemaDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
@@ -36,10 +38,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Caso de uso responsavel por submeter uma execucao de checklist.
- *
- * <p>Valida permissao, status, respostas obrigatorias e regras de nao
- * conformidade antes de consolidar o checklist como enviado.</p>
+ * Caso de uso responsavel por submeter uma execucao de checklist baseando-se no cache do Redis.
  */
 @Service
 @RequiredArgsConstructor
@@ -48,6 +47,7 @@ public class SubmitChecklistExecutionUseCase {
     private static final int ISSUE_DUE_DAYS = 7;
 
     private final ChecklistExecutionRepository executionRepository;
+    private final ChecklistDraftRedisRepository draftRedisRepository;
     private final ChecklistExecutionMapper executionMapper;
     private final ObjectMapper objectMapper;
     private final RequestContextProvider contextProvider;
@@ -56,28 +56,8 @@ public class SubmitChecklistExecutionUseCase {
     @Value("${checklist.timezone:America/Sao_Paulo}")
     private String timezone;
 
-    /**
-     * Submete e processa a execução de um checklist.
-     * <p>
-     * O método realiza validações de permissão do usuário atual, verifica se a execução
-     * está no status correto (rascunho), mapeia e valida as respostas enviadas contra o
-     * schema original do template, calcula o score de conformidade e gera pendências
-     * (issues) para itens não conformes.
-     * </p>
-     *
-     * @param executionId o identificador único da execução do checklist.
-     * @param request     o DTO contendo os dados de submissão, incluindo as respostas.
-     * @return a entidade {@link ChecklistExecution} salva com o status atualizado para SUBMITTED.
-     * @throws EntityNotFoundException  se a execução do checklist não for encontrada.
-     * @throws AccessDeniedException    se o usuário logado não tiver permissão para enviar o checklist.
-     * @throws IllegalStateException    se o checklist não estiver no status {@code DRAFT}.
-     * @throws IllegalArgumentException se houver falhas na validação das respostas.
-     */
-
-
-
     @Transactional
-    public ChecklistExecution execute(UUID executionId, ChecklistExecutionSubmitDTO request) {
+    public ChecklistExecution execute(UUID executionId) {
         ChecklistExecution execution = executionRepository.findById(executionId)
                 .orElseThrow(() -> new EntityNotFoundException("Execucao de checklist nao encontrada."));
 
@@ -94,31 +74,33 @@ public class SubmitChecklistExecutionUseCase {
 
         submissionWindowValidator.validate(execution.getClassId(), execution.getChecklistType());
 
+        List<ChecklistAnswerResponseDTO> draftAnswers = draftRedisRepository.findByExecutionId(executionId)
+                .map(ChecklistExecutionDraft::getAnswers)
+                .orElse(List.of());
+
         ChecklistSchemaDTO schema = objectMapper.convertValue(
                 execution.getChecklistTemplate().getSchemaJson(),
                 ChecklistSchemaDTO.class
         );
 
         Map<String, ChecklistItemDTO> itemsByKey = itemsByKey(schema);
-        Map<String, ChecklistAnswerRequestDTO> answersByItemKey = answersByItemKey(request.answers());
+        Map<String, ChecklistAnswerResponseDTO> answersByItemKey = answersByItemKey(draftAnswers);
 
         validateAnswers(itemsByKey, answersByItemKey);
 
-        execution.setAnswersJson(executionMapper.toAnswersJson(request));
-        execution.setComplianceScore(calculateComplianceScore(request.answers()));
+        execution.setAnswersJson(executionMapper.toAnswersJson(draftAnswers));
+        execution.setComplianceScore(calculateComplianceScore(draftAnswers));
         execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
         execution.setSubmittedAt(LocalDateTime.now(ZoneId.of(timezone)));
-        createIssuesForNonCompliantAnswers(execution, request.answers(), itemsByKey);
+        createIssuesForNonCompliantAnswers(execution, draftAnswers, itemsByKey);
 
-        return executionRepository.save(execution);
+        ChecklistExecution savedExecution = executionRepository.save(execution);
+
+        draftRedisRepository.deleteByExecutionId(executionId);
+
+        return savedExecution;
     }
-    /**
-     * Mapeia os itens do esquema do checklist utilizando suas chaves únicas.
-     *
-     * @param schema o esquema do checklist contendo seções e itens.
-     * @return um mapa ordenado onde a chave é o identificador do item e o valor é o próprio item.
-     * @throws IllegalArgumentException se houver chaves duplicadas no template.
-     */
+
     private Map<String, ChecklistItemDTO> itemsByKey(ChecklistSchemaDTO schema) {
         return schema.sections().stream()
                 .flatMap(section -> section.items().stream())
@@ -132,17 +114,10 @@ public class SubmitChecklistExecutionUseCase {
                 ));
     }
 
-    /**
-     * Mapeia as respostas enviadas na requisição utilizando as chaves dos itens respondidos.
-     *
-     * @param answers a lista de respostas fornecidas pelo usuário.
-     * @return um mapa ordenado onde a chave é o identificador do item (itemKey) e o valor é a resposta.
-     * @throws IllegalArgumentException se houver mais de uma resposta para a mesma chave.
-     */
-    private Map<String, ChecklistAnswerRequestDTO> answersByItemKey(List<ChecklistAnswerRequestDTO> answers) {
+    private Map<String, ChecklistAnswerResponseDTO> answersByItemKey(List<ChecklistAnswerResponseDTO> answers) {
         return answers.stream()
                 .collect(Collectors.toMap(
-                        ChecklistAnswerRequestDTO::itemKey,
+                        ChecklistAnswerResponseDTO::itemKey,
                         Function.identity(),
                         (first, duplicated) -> {
                             throw new IllegalArgumentException("Resposta duplicada para itemKey: " + first.itemKey());
@@ -151,23 +126,9 @@ public class SubmitChecklistExecutionUseCase {
                 ));
     }
 
-    /**
-     * Valida as respostas fornecidas pelo usuário comparando-as com os itens do template.
-     * <p>
-     * As seguintes regras são aplicadas:
-     * 1. Nenhuma resposta pode ser enviada para um item que não existe no template.
-     * 2. Todos os itens marcados como obrigatórios no template devem ter uma resposta.
-     * 3. Respostas marcadas como NÃO CONFORME (NON_COMPLIANT) exigem uma observação preenchida.
-     * </p>
-     *
-     * @param itemsByKey       mapa de itens extraídos do template original.
-     * @param answersByItemKey mapa de respostas enviadas na requisição.
-     * @throws IllegalArgumentException se alguma das regras de validação for violada.
-     */
-
     private void validateAnswers(
             Map<String, ChecklistItemDTO> itemsByKey,
-            Map<String, ChecklistAnswerRequestDTO> answersByItemKey
+            Map<String, ChecklistAnswerResponseDTO> answersByItemKey
     ) {
         for (String answerItemKey : answersByItemKey.keySet()) {
             if (!itemsByKey.containsKey(answerItemKey)) {
@@ -176,7 +137,7 @@ public class SubmitChecklistExecutionUseCase {
         }
 
         for (ChecklistItemDTO item : itemsByKey.values()) {
-            ChecklistAnswerRequestDTO answer = answersByItemKey.get(item.key());
+            ChecklistAnswerResponseDTO answer = answersByItemKey.get(item.key());
 
             if (Boolean.TRUE.equals(item.required()) && answer == null) {
                 throw new IllegalArgumentException("Item obrigatorio sem resposta: " + item.key());
@@ -189,14 +150,8 @@ public class SubmitChecklistExecutionUseCase {
             }
         });
     }
-    /**
-     * Calcula a nota de conformidade (Compliance Score) com base nas respostas avaliadas.
-     * O cálculo é feito dividindo o número de itens conformes pelo total de itens respondidos.
-     *
-     * @param answers a lista de respostas fornecidas pelo usuário.
-     * @return o percentual de conformidade de 0.00 a 100.00, com duas casas decimais.
-     */
-    private BigDecimal calculateComplianceScore(List<ChecklistAnswerRequestDTO> answers) {
+
+    private BigDecimal calculateComplianceScore(List<ChecklistAnswerResponseDTO> answers) {
         long answeredItems = answers.stream()
                 .filter(answer -> answer.value() != null)
                 .count();
@@ -213,30 +168,14 @@ public class SubmitChecklistExecutionUseCase {
                 .multiply(BigDecimal.valueOf(100))
                 .divide(BigDecimal.valueOf(answeredItems), 2, RoundingMode.HALF_UP);
     }
-    /**
-     * Verifica se uma String é nula, vazia ou contém apenas espaços em branco.
-     *
-     * @param value a String a ser verificada.
-     * @return {@code true} se for nula ou em branco, {@code false} caso contrário.
-     */
+
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
     }
 
-    /**
-     * Cria automaticamente pendências (Issues) para todas as respostas avaliadas como não conformes.
-     * <p>
-     * A data de vencimento (Due Date) é calculada adicionando um número predefinido de dias
-     * (ISSUE_DUE_DAYS) a partir da data de submissão atual.
-     * </p>
-     *
-     * @param execution  a execução de checklist à qual as pendências serão atreladas.
-     * @param answers    a lista de respostas fornecidas pelo usuário.
-     * @param itemsByKey o mapa de itens do template para obter o título de cada item.
-     */
     private void createIssuesForNonCompliantAnswers(
             ChecklistExecution execution,
-            List<ChecklistAnswerRequestDTO> answers,
+            List<ChecklistAnswerResponseDTO> answers,
             Map<String, ChecklistItemDTO> itemsByKey
     ) {
         Instant dueAt = Instant.now().plusSeconds(ISSUE_DUE_DAYS * 24L * 60L * 60L);
@@ -259,19 +198,10 @@ public class SubmitChecklistExecutionUseCase {
                 });
     }
 
-    /**
-     * Trunca uma String para garantir que não exceda um tamanho máximo estipulado.
-     *
-     * @param value     a String original a ser truncada.
-     * @param maxLength o número máximo de caracteres permitido.
-     * @return a String truncada ou o valor original se estiver dentro do limite de tamanho.
-     */
-
     private String truncate(String value, int maxLength) {
         if (value == null || value.length() <= maxLength) {
             return value;
         }
-
         return value.substring(0, maxLength);
     }
 }

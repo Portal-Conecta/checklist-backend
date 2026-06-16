@@ -1,12 +1,13 @@
-package com.portal.conecta.checklist.module.checklist.application.usecase.template;
+package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command;
 
-import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
-import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
-import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
+import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
+import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
+import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
-import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,20 +17,27 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ActivateChecklistTemplateUseCaseTest {
 
-    private final ChecklistTemplateRepository templateRepository = mock(ChecklistTemplateRepository.class);
+    private final ChecklistTemplateRepositoryPort templateRepository = mock(ChecklistTemplateRepositoryPort.class);
     private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
     private final HubRoomProvider hubRoomProvider = mock(HubRoomProvider.class);
     private final ActivateChecklistTemplateUseCase useCase = new ActivateChecklistTemplateUseCase(
             templateRepository, contextProvider, hubRoomProvider);
 
     @Test
-    @DisplayName("deve ativar template DRAFT e inativar versão anterior do mesmo grupo")
+    @DisplayName("deve ativar template DRAFT e inativar versao anterior do mesmo grupo")
     void deveAtivarTemplateDraftEInativarVersaoAnterior() {
         UUID groupId = UUID.randomUUID();
         UUID templateId = UUID.randomUUID();
@@ -39,7 +47,7 @@ class ActivateChecklistTemplateUseCaseTest {
 
         when(contextProvider.getRequestContext()).thenReturn(senai());
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(draft));
-        when(hubRoomProvider.findById(draft.getRoomId())).thenReturn(Optional.of(mock(RoomReference.class)));
+        when(hubRoomProvider.findById(draft.getRoomId())).thenReturn(Optional.of(new RoomReference(draft.getRoomId())));
         when(templateRepository.findByTemplateGroupIdAndStatus(groupId, ChecklistTemplateStatus.ACTIVE))
                 .thenReturn(List.of(active));
         when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -54,7 +62,7 @@ class ActivateChecklistTemplateUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve ativar template DRAFT sem versão anterior no grupo")
+    @DisplayName("deve ativar template DRAFT sem versao anterior no grupo")
     void deveAtivarTemplateDraftSemVersaoAnterior() {
         UUID groupId = UUID.randomUUID();
         UUID templateId = UUID.randomUUID();
@@ -63,7 +71,7 @@ class ActivateChecklistTemplateUseCaseTest {
 
         when(contextProvider.getRequestContext()).thenReturn(senai());
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(draft));
-        when(hubRoomProvider.findById(draft.getRoomId())).thenReturn(Optional.of(mock(RoomReference.class)));
+        when(hubRoomProvider.findById(draft.getRoomId())).thenReturn(Optional.of(new RoomReference(draft.getRoomId())));
         when(templateRepository.findByTemplateGroupIdAndStatus(groupId, ChecklistTemplateStatus.ACTIVE))
                 .thenReturn(List.of());
         when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -76,7 +84,7 @@ class ActivateChecklistTemplateUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve rejeitar quando template não está em DRAFT")
+    @DisplayName("deve rejeitar quando template nao esta em DRAFT")
     void deveRejeitarQuandoTemplateNaoEstaDraft() {
         UUID groupId = UUID.randomUUID();
         UUID templateId = UUID.randomUUID();
@@ -93,7 +101,7 @@ class ActivateChecklistTemplateUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve rejeitar quando template não existe")
+    @DisplayName("deve rejeitar quando template nao existe")
     void deveRejeitarQuandoTemplateNaoExiste() {
         when(contextProvider.getRequestContext()).thenReturn(senai());
         when(templateRepository.findById(any())).thenReturn(Optional.empty());
@@ -105,7 +113,7 @@ class ActivateChecklistTemplateUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve rejeitar quando usuario não gerencia templates")
+    @DisplayName("deve rejeitar quando usuario nao gerencia templates")
     void deveRejeitarQuandoUsuarioNaoGerenciaTemplates() {
         when(contextProvider.getRequestContext()).thenReturn(student());
 
@@ -116,7 +124,7 @@ class ActivateChecklistTemplateUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve rejeitar quando a sala do template não existe mais no Hub")
+    @DisplayName("deve rejeitar quando a sala do template nao existe mais no Hub")
     void deveRejeitarQuandoSalaRemovidaNoHub() {
         UUID groupId = UUID.randomUUID();
         UUID templateId = UUID.randomUUID();
@@ -125,7 +133,6 @@ class ActivateChecklistTemplateUseCaseTest {
 
         when(contextProvider.getRequestContext()).thenReturn(senai());
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(draft));
-        // Simula o Hub retornando vazio (sala removida)
         when(hubRoomProvider.findById(draft.getRoomId())).thenReturn(Optional.empty());
 
         assertThrows(IllegalStateException.class, () -> useCase.execute(templateId));

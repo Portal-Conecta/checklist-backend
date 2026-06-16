@@ -3,6 +3,7 @@ package com.portal.conecta.checklist.module.checklist.application.usecase.execut
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
+import com.portal.conecta.checklist.module.checklist.infrastructure.redis.ChecklistDraftRedisRepository;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class CancelChecklistExecutionUseCase {
 
     private final ChecklistExecutionRepository executionRepository;
     private final RequestContextProvider contextProvider;
+    private final ChecklistDraftRedisRepository draftRedisRepository;
 
 
     /**
@@ -61,10 +63,11 @@ public class CancelChecklistExecutionUseCase {
             throw new AccessDeniedException("Usuario nao tem permissao para cancelar esta execucao de checklist.");
         }
 
-        if(execution.getStatus() != ChecklistExecutionStatus.SUBMITTED){
+        if(execution.getStatus() != ChecklistExecutionStatus.DRAFT){
             throw new IllegalArgumentException("Somente checklist enviados podem ser cancelados");
         }
         execution.setStatus(ChecklistExecutionStatus.CANCELED);
+        draftRedisRepository.deleteByExecutionId(executionId);
 
         return executionRepository.save(execution);
 

@@ -123,7 +123,7 @@ package com.portal.conecta.checklist.shared.exception;
          */
         @ExceptionHandler(SubmissionWindowViolationException.class)
         public ResponseEntity<ErrorResponseDTO> handleWindowViolation(SubmissionWindowViolationException ex) {
-            return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), null);
+            return buildResponse(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage(), null);
         }
 
         @ExceptionHandler(IllegalStateException.class)

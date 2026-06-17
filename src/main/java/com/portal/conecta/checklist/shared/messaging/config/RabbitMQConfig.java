@@ -3,12 +3,14 @@ package com.portal.conecta.checklist.shared.messaging.config;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 
 @Configuration
 @EnableRabbit
+@EnableConfigurationProperties(RabbitMQProperties.class)
 public class RabbitMQConfig {
 
     private final RabbitMQProperties props;

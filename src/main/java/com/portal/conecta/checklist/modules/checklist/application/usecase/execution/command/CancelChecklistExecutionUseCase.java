@@ -61,10 +61,14 @@ public class CancelChecklistExecutionUseCase {
             throw new AccessDeniedException("Usuario nao tem permissao para cancelar esta execucao de checklist.");
         }
 
-        long activeCount = executionRepository.countByUserI-dAndStatus(
+        long activeCount = executionRepository.countByUserIdAndStatus(
                 execution.getUserId(),
                 ChecklistExecutionStatus.SUBMITTED.name()
         );
+
+        if (activeCount >= 2){
+            throw new IllegalArgumentException("Limite atingido: o representante ja possui 2 checklist submetidos e ativos");
+        }
 
         if(execution.getStatus() != ChecklistExecutionStatus.SUBMITTED){
             throw new IllegalArgumentException("Somente checklist enviados podem ser cancelados");

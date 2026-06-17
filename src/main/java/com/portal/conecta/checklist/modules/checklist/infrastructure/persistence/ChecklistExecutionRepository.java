@@ -133,13 +133,6 @@ public interface ChecklistExecutionRepository
         );
 
 
-        @Query(value = """
-                SELECT COUNT(1)
-                    FROM checklist_execution
-                    WHERE user_id = :userId
-                    AND status = :status
-                """,nativeQuery = true)
-        long countByUserIdAndStatus(@Param("userId") UUID userId, @Param("status") String status);
 
 
 

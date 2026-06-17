@@ -35,6 +35,6 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Executar testes com Maven
-        run: mvn clean test
+        run: mvn clean test -Dspring-boot.run.profiles=test
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}

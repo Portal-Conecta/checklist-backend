@@ -4,9 +4,11 @@ import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.messaging.NotificationEventPublisher;
 import com.portal.conecta.checklist.shared.messaging.config.RabbitMQProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("!test")  // ← ADICIONAR ISSO
 public class RabbitMQNotificationPublisher implements NotificationEventPublisher {
 
     private final RabbitTemplate rabbitTemplate;

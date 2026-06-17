@@ -12,22 +12,6 @@ import org.springframework.context.annotation.Profile;
 @Profile("test")
 public class TestRabbitMQConfiguration {
 
-    @Bean
-    @Primary
-    public RabbitTemplate rabbitTemplate() {
-        return new RabbitTemplate();
-    }
-
-    @Bean
-    @Primary
-    public RabbitMQProperties rabbitMQProperties() {
-        RabbitMQProperties props = new RabbitMQProperties();
-        props.setExchange("test.exchange");
-        props.setQueue("test.queue");
-        props.setDlq("test.dlq");
-        props.setRoutingKey("test.routing");
-        return props;
-    }
 
     @Bean
     @Primary

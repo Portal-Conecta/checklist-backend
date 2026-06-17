@@ -18,6 +18,8 @@ public class Application {
 
 	public static void main(String[] args) {
 		EnvFileLoader.loadFromWorkingDirectory();
+		System.out.println(">>> Profile Ativo: " + System.getProperty("spring.profiles.active"));
+		System.out.println(">>> Conectando ao Host: " + System.getProperty("DB_HOST"));
 		SpringApplication.run(Application.class, args);
 	}
 }

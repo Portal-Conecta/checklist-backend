@@ -27,4 +27,5 @@ public interface ChecklistExecutionRepositoryPort extends ListCrudRepository<Che
             ChecklistExecutionStatus status,
             Pageable pageable
     );
+
 }

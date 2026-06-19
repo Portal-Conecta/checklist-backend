@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:checklist_db}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:checklist_db}
     driver-class-name: org.postgresql.Driver
     username: ${DB_USER:checklist_user}
     password: ${DB_PASSWORD:checklist_password}
@@ -23,6 +23,12 @@ spring:
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
     virtual-host: ${RABBITMQ_VHOST:/}
+  docker:
+    compose:
+      file: docker-compose.yml
+      lifecycle-management: start_only
+      readiness:
+        timeout: 30s
 
 checklist:
   security:

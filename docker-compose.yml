@@ -1,50 +1,47 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: postgres_db
     environment:
-      POSTGRES_USER: checklist_user
-      POSTGRES_PASSWORD: checklist_password
-      POSTGRES_DB: checklist_db
+      POSTGRES_USER: ${DB_USER:-checklist_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-checklist_password}
+      POSTGRES_DB: ${DB_NAME:-checklist_db}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - grafana_network
-
-  grafana:
-    image: grafana/grafana-oss:latest
-    container_name: grafana_dashboard
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana_data:/var/lib/grafana
-    networks:
-      - grafana_network
-    depends_on:
-      - postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
-    container_name: checklist_rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
     ports:
-      - "5672:5672"
+      - "${RABBITMQ_PORT:-5672}:5672"
       - "15672:15672"
-    networks:
-      - grafana_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    profiles: ["observability"]
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:
   grafana_data:
-
-networks:
-  grafana_network:
-    driver: bridge

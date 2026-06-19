@@ -134,10 +134,30 @@ For deployed environments, configure sensitive values as GitHub Environment Secr
 - `DB_PASSWORD`
 - `DB_USER`, if the database username is sensitive in your environment
 
-### Run PostgreSQL
+### First Run
+
+1. Install and open Docker Desktop.
+2. Copy `.env.example` to `.env` and set `JWT_SECRET` to the Base64 HS256 secret configured by the local Hub. This value is required and must never be committed.
+3. Start the API from IntelliJ or with Maven. With the `local` profile, Spring Boot starts PostgreSQL from `docker-compose.yml` automatically and waits until it is healthy.
+
+Windows:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+The first execution downloads the PostgreSQL image. Future runs reuse the existing container and database volume. The application does not stop the database when it exits.
+
+The local PostgreSQL port is `5433` by default to avoid colliding with a database already installed on the machine. Change `DB_PORT` in `.env` only when that port is also unavailable.
+
+`DB_USER` and `DB_PASSWORD` in `.env.example` are credentials exclusively for the disposable local PostgreSQL container. They are not valid credentials for any shared or production environment.
+
+### Manage Local Infrastructure Manually
+
+Normally, no manual Docker command is needed. Use these commands only when you want to inspect or manage the local infrastructure directly.
 
 ```bash
-docker compose up -d
+docker compose up -d postgres
 ```
 
 Check the container status:
@@ -156,6 +176,12 @@ Remove the local database volume:
 
 ```bash
 docker compose down -v
+```
+
+To start Grafana as an optional local observability tool:
+
+```bash
+docker compose --profile observability up -d
 ```
 
 ### Run the API

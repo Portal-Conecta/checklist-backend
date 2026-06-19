@@ -134,11 +134,11 @@ For deployed environments, configure sensitive values as GitHub Environment Secr
 - `DB_PASSWORD`
 - `DB_USER`, if the database username is sensitive in your environment
 
-### First Run
+### Primeira Execucao
 
-1. Install and open Docker Desktop.
-2. Copy `.env.example` to `.env` and set `JWT_SECRET` to the Base64 HS256 secret configured by the local Hub. This value is required and must never be committed.
-3. Start the API from IntelliJ or with Maven. With the `local` profile, Spring Boot starts PostgreSQL from `docker-compose.yml` automatically and waits until it is healthy.
+1. Instale e abra o Docker Desktop.
+2. Copie `.env.example` para `.env` e configure `JWT_SECRET` com o segredo Base64 HS256 do Hub local. Esse valor e obrigatorio e nunca deve ser versionado.
+3. Inicie a API pelo IntelliJ ou Maven. No profile `local`, o Spring Boot inicia automaticamente o PostgreSQL definido no `docker-compose.yml` e aguarda o health check.
 
 Windows:
 
@@ -146,15 +146,15 @@ Windows:
 .\mvnw.cmd spring-boot:run
 ```
 
-The first execution downloads the PostgreSQL image. Future runs reuse the existing container and database volume. The application does not stop the database when it exits.
+Na primeira execucao, a imagem do PostgreSQL sera baixada. As proximas reutilizam o container e o volume de dados existentes. A aplicacao nao encerra o banco ao finalizar.
 
-The local PostgreSQL port is `5433` by default to avoid colliding with a database already installed on the machine. Change `DB_PORT` in `.env` only when that port is also unavailable.
+A porta padrao do PostgreSQL local e `5433`, evitando conflito com uma instalacao ja existente na maquina. Altere `DB_PORT` no `.env` somente se essa porta tambem estiver indisponivel.
 
-`DB_USER` and `DB_PASSWORD` in `.env.example` are credentials exclusively for the disposable local PostgreSQL container. They are not valid credentials for any shared or production environment.
+`DB_USER` e `DB_PASSWORD` presentes no `.env.example` sao credenciais exclusivas do container local e descartavel do PostgreSQL. Elas nao sao validas para ambientes compartilhados ou de producao.
 
-### Manage Local Infrastructure Manually
+### Gerenciar Infraestrutura Local Manualmente
 
-Normally, no manual Docker command is needed. Use these commands only when you want to inspect or manage the local infrastructure directly.
+Normalmente, nenhum comando manual do Docker e necessario. Use os comandos abaixo apenas para inspecionar ou gerenciar diretamente a infraestrutura local.
 
 ```bash
 docker compose up -d postgres
@@ -178,7 +178,7 @@ Remove the local database volume:
 docker compose down -v
 ```
 
-To start Grafana as an optional local observability tool:
+Para iniciar o Grafana como ferramenta local opcional de observabilidade:
 
 ```bash
 docker compose --profile observability up -d

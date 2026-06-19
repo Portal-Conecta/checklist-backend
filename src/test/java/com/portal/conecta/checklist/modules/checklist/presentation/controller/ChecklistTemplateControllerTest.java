@@ -6,6 +6,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.templa
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.EditChecklistTemplateUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.FindChecklistTemplateByIdUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.ListChecklistTemplatesUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.SearchChecklistItemUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.mapper.ChecklistTemplateMapper;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 class ChecklistTemplateControllerTest {
 
+    private final SearchChecklistItemUseCase searchChecklistItemUseCase = mock(SearchChecklistItemUseCase.class);
     private final CreateChecklistTemplateVersionUseCase createVersionUseCase = mock(CreateChecklistTemplateVersionUseCase.class);
     private final CreateChecklistTemplateUseCase createUseCase     = mock(CreateChecklistTemplateUseCase.class);
     private final ActivateChecklistTemplateUseCase activateUseCase = mock(ActivateChecklistTemplateUseCase.class);
@@ -32,7 +34,7 @@ class ChecklistTemplateControllerTest {
     private final EditChecklistTemplateUseCase editUseCase         = mock(EditChecklistTemplateUseCase.class);
     private final ChecklistTemplateMapper mapper                   = mock(ChecklistTemplateMapper.class);
     private final ChecklistTemplateController controller           = new ChecklistTemplateController(
-            createUseCase, activateUseCase, findByIdUseCase, listUseCase, editUseCase, createVersionUseCase, mapper);
+            searchChecklistItemUseCase, createUseCase, activateUseCase, findByIdUseCase, listUseCase, editUseCase, createVersionUseCase, mapper);
 
     @Test
     @DisplayName("deve retornar ok ao ativar template")

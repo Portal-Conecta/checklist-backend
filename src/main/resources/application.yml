@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: conecta.checklist
+  profiles:
+    default: local
+
+server:
+  port: ${SERVER_PORT:8083}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+checklist:
+  security:
+    swagger-public: false
+    jwt:
+      secret: ${JWT_SECRET}
+  timezone: America/Sao_Paulo
+
+hub:
+  api:
+    url: ${HUB_API_URL:http://localhost:8080}
+
+app:
+  rabbitmq:
+    enabled: ${RABBITMQ_ENABLED:true}
+    exchange: ${RABBITMQ_NOTIFICATIONS_EXCHANGE:notifications.exchange}
+    queue: ${RABBITMQ_NOTIFICATIONS_QUEUE:notifications.dispatch.q}
+    dlq: ${RABBITMQ_NOTIFICATIONS_DLQ:notifications.dispatch.dlq}
+    routing-key: ${RABBITMQ_NOTIFICATIONS_ROUTING_KEY:notification.requested}

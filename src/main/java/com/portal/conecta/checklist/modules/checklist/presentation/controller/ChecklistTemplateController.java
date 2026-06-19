@@ -6,7 +6,9 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.templa
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.EditChecklistTemplateUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.FindChecklistTemplateByIdUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.ListChecklistTemplatesUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.SearchChecklistItemUseCase;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateCreateRequest;
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemSearchResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateEditRequest;
 import com.portal.conecta.checklist.modules.checklist.presentation.mapper.ChecklistTemplateMapper;
@@ -26,12 +28,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+import static java.util.stream.Collectors.toList;
+
 @RestController
 @RequestMapping("/api/checklist-templates")
 @RequiredArgsConstructor
 @Tag(name = "Checklist Templates", description = "Endpoints para gerenciamento de templates de checklist")
 public class ChecklistTemplateController {
 
+    private final SearchChecklistItemUseCase searchChecklistItemUseCase;
     private final CreateChecklistTemplateUseCase createUseCase;
     private final ActivateChecklistTemplateUseCase activateUseCase;
     private final FindChecklistTemplateByIdUseCase findByIdUseCase;
@@ -225,5 +230,15 @@ public class ChecklistTemplateController {
             @PathVariable UUID templateId) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(mapper.toResponse(createVersionUseCase.execute(templateId)));
+    }
+
+    @GetMapping("/items/search")
+    public ResponseEntity<List<ChecklistItemSearchResponseDTO>> searchItems(@RequestParam("query") String query) {
+        List<ChecklistItemSearchResponseDTO> response = searchChecklistItemUseCase.execute(query)
+                .stream()
+                .map(mapper::toItemSearchResponseDTO)
+                .toList();
+
+        return ResponseEntity.ok(response);
     }
 }

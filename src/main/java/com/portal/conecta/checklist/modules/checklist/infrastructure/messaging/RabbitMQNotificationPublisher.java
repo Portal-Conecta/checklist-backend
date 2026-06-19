@@ -1,14 +1,14 @@
 package com.portal.conecta.checklist.modules.checklist.infrastructure.messaging;
 
-import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.messaging.NotificationEventPublisher;
 import com.portal.conecta.checklist.shared.messaging.config.RabbitMQProperties;
+import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("!test")  // ← ADICIONAR ISSO
+@ConditionalOnProperty(prefix = "app.rabbitmq", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class RabbitMQNotificationPublisher implements NotificationEventPublisher {
 
     private final RabbitTemplate rabbitTemplate;

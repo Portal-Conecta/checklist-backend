@@ -26,6 +26,10 @@ checklist:
   security:
     swagger-public: true
 
+app:
+  rabbitmq:
+    enabled: false
+
 logging:
   level:
     root: WARN

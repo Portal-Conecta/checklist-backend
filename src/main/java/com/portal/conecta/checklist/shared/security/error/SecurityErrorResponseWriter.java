@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.shared.security.error;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.shared.exception.ErrorResponseDTO;
+import com.portal.conecta.checklist.shared.exception.ApiError;
 import com.portal.conecta.checklist.shared.security.config.SecurityConfig;
 import com.portal.conecta.checklist.shared.security.filter.HubJwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,11 +12,12 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 /**
  * Componente utilitário que serializa erros de segurança (autenticação e autorização)
- * como JSON no formato {@link ErrorResponseDTO} diretamente na resposta HTTP.
+ * como JSON no formato {@link ApiError} diretamente na resposta HTTP.
  *
  * <p>Utilizado pelo {@link HubJwtAuthenticationFilter} e pelos handlers de exceção de
  * segurança configurados no {@link SecurityConfig}. Garante que erros de segurança
@@ -60,7 +61,13 @@ public class SecurityErrorResponseWriter {
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         objectMapper.writeValue(
                 response.getWriter(),
-                new ErrorResponseDTO(LocalDateTime.now(), status.value(), message, null)
+                new ApiError(
+                        Instant.now().toString(),
+                        status.value(),
+                        status.getReasonPhrase(),
+                        message,
+                        request.getRequestURI()
+                )
         );
     }
 }

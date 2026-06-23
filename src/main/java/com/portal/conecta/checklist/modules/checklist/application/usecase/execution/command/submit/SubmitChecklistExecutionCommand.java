@@ -1,4 +1,6 @@
-package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command;
+package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit;
+
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.ChecklistAnswerCommand;
 
 import java.util.List;
 

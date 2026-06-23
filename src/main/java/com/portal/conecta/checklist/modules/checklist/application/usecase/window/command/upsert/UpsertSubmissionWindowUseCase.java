@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.modules.checklist.application.usecase.window.command;
+package com.portal.conecta.checklist.modules.checklist.application.usecase.window.command.upsert;
 
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistSubmissionWindow;

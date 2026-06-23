@@ -1,10 +1,11 @@
-package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command;
+package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionDataMapper;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionScoringService;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistIssueService;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionRepositoryPort;

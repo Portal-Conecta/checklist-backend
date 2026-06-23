@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request;
 
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ConformityAnswerValue;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.ChecklistAnswerCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.ChecklistAnswerCommand;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 

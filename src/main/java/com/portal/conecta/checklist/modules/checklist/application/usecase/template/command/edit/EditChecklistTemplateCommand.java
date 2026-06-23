@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command;
+package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.edit;
 
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 

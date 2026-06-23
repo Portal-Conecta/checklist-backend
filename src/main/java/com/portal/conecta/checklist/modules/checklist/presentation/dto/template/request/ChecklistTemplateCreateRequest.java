@@ -1,6 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.CreateChecklistTemplateCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateCommand;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

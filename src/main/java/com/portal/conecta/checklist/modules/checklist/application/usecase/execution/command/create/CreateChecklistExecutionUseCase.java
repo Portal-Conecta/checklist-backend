@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command;
+package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create;
 
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionDataMapper;
 import com.portal.conecta.checklist.modules.checklist.application.service.window.SubmissionWindowValidator;
@@ -12,7 +12,6 @@ import com.portal.conecta.checklist.modules.checklist.domain.valueobject.ClassRe
 import com.portal.conecta.checklist.modules.checklist.domain.valueobject.CourseReference;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionRepositoryPort;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
-import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubClassProvider;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubCourseProvider;
@@ -66,7 +65,7 @@ public class CreateChecklistExecutionUseCase {
 
         validateCourseFromClass(classReference);
 
-        RequestContext currentUser = contextProvider.getRequestContext();
+        var currentUser = contextProvider.getRequestContext();
 
         if (!currentUser.canOperateChecklistExecutionForClass(command.classId())) {
             throw new AccessDeniedException("Usuario nao tem permissao para criar checklist para a turma informada.");

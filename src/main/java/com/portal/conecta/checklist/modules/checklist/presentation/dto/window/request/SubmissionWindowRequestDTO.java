@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.dto.window.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.window.command.UpsertSubmissionWindowCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.window.command.upsert.UpsertSubmissionWindowCommand;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

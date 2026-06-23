@@ -1,6 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.application.service.execution;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.ChecklistAnswerCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.ChecklistAnswerCommand;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ConformityAnswerValue;
 import org.springframework.stereotype.Service;
 

@@ -2,6 +2,7 @@ package com.portal.conecta.checklist.shared.hub.provider.classes;
 
 import com.portal.conecta.checklist.shared.hub.exception.HubIntegrationException;
 import com.portal.conecta.checklist.shared.hub.properties.HubApiProperties;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -35,4 +36,34 @@ public class HttpHubClassProvider implements HubClassProvider {
             throw new HubIntegrationException("Servico de turmas do Hub indisponivel.", exception);
         }
     }
+
+    @Override
+    public HubClassInfo findById(UUID classId) {
+        try {
+            HubClassResponse response = restClient.get()
+                    .uri("/classes/{classId}", classId)
+                    .retrieve()
+                    .body(HubClassResponse.class);
+
+            if (response == null) {
+                throw new EntityNotFoundException("Turma nao encontrada no Hub.");
+            }
+
+            return new HubClassInfo(
+                    response.name(),
+                    response.representative1Name(),
+                    response.representative2Name()
+            );
+        } catch (HttpClientErrorException.NotFound exception) {
+            throw new EntityNotFoundException("Turma nao encontrada no Hub.");
+        } catch (RestClientException exception) {
+            throw new HubIntegrationException("Servico de turmas do Hub indisponivel.", exception);
+        }
+    }
+
+    private record HubClassResponse(
+            String name,
+            String representative1Name,
+            String representative2Name
+    ) {}
 }

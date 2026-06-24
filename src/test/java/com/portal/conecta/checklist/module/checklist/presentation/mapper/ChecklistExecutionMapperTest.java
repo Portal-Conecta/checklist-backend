@@ -46,7 +46,7 @@ class ChecklistExecutionMapperTest {
                 ChecklistType.ARRIVAL
         );
 
-        ChecklistExecution execution = mapper.toDraftEntity(request, template, filledBy, startedAt);
+        ChecklistExecution execution = mapper.toDraftEntity(request, template, filledBy, startedAt, null);
         ChecklistAnswersDTO answers = mapper.toAnswersDTO(execution.getAnswersJson());
 
         assertSame(template, execution.getChecklistTemplate());

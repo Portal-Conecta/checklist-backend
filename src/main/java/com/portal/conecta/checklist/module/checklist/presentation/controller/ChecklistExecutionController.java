@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -37,5 +38,12 @@ public class ChecklistExecutionController {
             @PathVariable UUID executionId
     ){
         return ResponseEntity.ok(checklistExecutionFacade.cancel(executionId));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ChecklistExecutionResponseDTO>> search(
+            @RequestParam String query
+    ) {
+        return ResponseEntity.ok(checklistExecutionFacade.search(query));
     }
 }

@@ -13,6 +13,7 @@ import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
+import com.portal.conecta.checklist.shared.hub.provider.classes.HubClassInfo;
 import com.portal.conecta.checklist.shared.hub.provider.classes.HubClassProvider;
 import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
 import jakarta.persistence.EntityNotFoundException;
@@ -67,6 +68,7 @@ class CreateChecklistExecutionUseCaseTest {
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
         when(hubRoomProvider.existsById(roomId)).thenReturn(true);
         when(hubClassProvider.existsById(classId)).thenReturn(true);
+        when(hubClassProvider.findById(classId)).thenReturn(new HubClassInfo("Turma A", "Rep1", "Rep2"));
         when(executionRepository.existsDuplicateChecklist(
                 eq(classId),
                 eq(roomId),
@@ -76,13 +78,13 @@ class CreateChecklistExecutionUseCaseTest {
                 any(LocalDateTime.class)
         )).thenReturn(false);
         when(contextProvider.getRequestContext()).thenReturn(currentUser);
-        when(executionMapper.toDraftEntity(eq(request), eq(template), eq(userId), any(LocalDateTime.class))).thenReturn(draft);
+        when(executionMapper.toDraftEntity(eq(request), eq(template), eq(userId), any(LocalDateTime.class), any(HubClassInfo.class))).thenReturn(draft);
         when(executionRepository.save(draft)).thenReturn(saved);
 
         ChecklistExecution result = useCase.execute(request);
 
         assertSame(saved, result);
-        verify(executionMapper).toDraftEntity(eq(request), eq(template), eq(userId), any(LocalDateTime.class));
+        verify(executionMapper).toDraftEntity(eq(request), eq(template), eq(userId), any(LocalDateTime.class), any(HubClassInfo.class));
         verify(executionRepository).save(draft);
     }
 
@@ -97,6 +99,7 @@ class CreateChecklistExecutionUseCaseTest {
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
         when(hubRoomProvider.existsById(roomId)).thenReturn(true);
         when(hubClassProvider.existsById(classId)).thenReturn(true);
+        when(hubClassProvider.findById(classId)).thenReturn(new HubClassInfo("Turma A", "Rep1", "Rep2"));
         when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID(), classId));
         when(executionRepository.existsDuplicateChecklist(
                 eq(classId),
@@ -110,7 +113,7 @@ class CreateChecklistExecutionUseCaseTest {
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(request));
 
         verify(contextProvider).getRequestContext();
-        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any());
+        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any(), any());
         verify(executionRepository, never()).save(any());
     }
 
@@ -214,7 +217,7 @@ class CreateChecklistExecutionUseCaseTest {
         assertThrows(AccessDeniedException.class, () -> useCase.execute(request));
 
         verify(executionRepository, never()).existsDuplicateChecklist(any(), any(), any(), any(), any(), any());
-        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any());
+        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any(), any());
         verify(executionRepository, never()).save(any());
     }
 
@@ -238,7 +241,7 @@ class CreateChecklistExecutionUseCaseTest {
         assertThrows(AccessDeniedException.class, () -> useCase.execute(request));
 
         verify(executionRepository, never()).existsDuplicateChecklist(any(), any(), any(), any(), any(), any());
-        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any());
+        verify(executionMapper, never()).toDraftEntity(any(), any(), any(), any(), any());
         verify(executionRepository, never()).save(any());
     }
 

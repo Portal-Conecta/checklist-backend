@@ -14,6 +14,7 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.response.C
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionResponseDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.response.ChecklistExecutionSummaryDTO;
 import com.portal.conecta.checklist.module.issues.presentation.mapper.ChecklistIssueMapper;
+import com.portal.conecta.checklist.shared.hub.provider.classes.HubClassInfo;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -41,7 +42,8 @@ public class ChecklistExecutionMapper {
             ChecklistExecutionDraftCreateDTO request,
             ChecklistTemplate template,
             UUID filledBy,
-            LocalDateTime startedAt
+            LocalDateTime startedAt,
+            HubClassInfo classInfo
     ) {
         if (request == null) {
             return null;
@@ -51,6 +53,9 @@ public class ChecklistExecutionMapper {
                 .checklistTemplate(template)
                 .roomId(request.roomId())
                 .classId(request.classId())
+                .className(classInfo != null ? classInfo.className() : null)
+                .representative1Name(classInfo != null ? classInfo.representative1Name() : null)
+                .representative2Name(classInfo != null ? classInfo.representative2Name() : null)
                 .userId(filledBy)
                 .period(request.period())
                 .checklistType(request.checklistType())

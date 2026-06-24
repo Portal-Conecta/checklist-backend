@@ -83,6 +83,16 @@ public interface ChecklistExecutionRepository extends JpaRepository<ChecklistExe
             @Param("executionId") UUID executionId
     );
 
+    @Query(value = """
+    select *
+    from checklist_execution ce
+    where ce.class_name        ilike concat('%', :term, '%')
+       or ce.representative1_name ilike concat('%', :term, '%')
+       or ce.representative2_name ilike concat('%', :term, '%')
+    order by ce.started_at desc
+    """, nativeQuery = true)
+    List<ChecklistExecution> searchByClassOrRepresentativeName(@Param("term") String term);
+
 
 
 }

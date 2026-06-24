@@ -5,4 +5,6 @@ import java.util.UUID;
 public interface HubClassProvider {
 
     boolean existsById(UUID classId);
+
+    HubClassInfo findById(UUID classId);
 }

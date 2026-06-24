@@ -39,6 +39,15 @@ public class ChecklistExecution {
     @Column(name = "class_id", nullable = false)
     private UUID classId;
 
+    @Column(name = "class_name")
+    private String className;
+
+    @Column(name = "representative1_name")
+    private String representative1Name;
+
+    @Column(name = "representative2_name")
+    private String representative2Name;
+
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 

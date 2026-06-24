@@ -10,6 +10,7 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.request.Ch
 import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
+import com.portal.conecta.checklist.shared.hub.provider.classes.HubClassInfo;
 import com.portal.conecta.checklist.shared.hub.provider.classes.HubClassProvider;
 import com.portal.conecta.checklist.shared.hub.provider.room.HubRoomProvider;
 import jakarta.persistence.EntityNotFoundException;
@@ -52,6 +53,8 @@ public class CreateChecklistExecutionUseCase {
             throw new EntityNotFoundException("Turma nao encontrada no Hub.");
         }
 
+        HubClassInfo classInfo = hubClassProvider.findById(request.classId());
+
         RequestContext currentUser = contextProvider.getRequestContext();
 
         if (!currentUser.canOperateChecklistExecutionForClass(request.classId())) {
@@ -75,7 +78,7 @@ public class CreateChecklistExecutionUseCase {
             throw new IllegalArgumentException("Ja existe checklist para esta turma, sala, periodo, dia e tipo.");
         }
 
-        ChecklistExecution execution = executionMapper.toDraftEntity(request, template, currentUser.userId(), now);
+        ChecklistExecution execution = executionMapper.toDraftEntity(request, template, currentUser.userId(), now, classInfo);
 
         return repository.save(execution);
     }

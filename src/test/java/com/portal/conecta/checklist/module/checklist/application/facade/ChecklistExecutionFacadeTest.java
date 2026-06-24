@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.module.checklist.application.facade;
 
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.CreateChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.SearchChecklistExecutionsByClassOrRepresentativeUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.SubmitChecklistExecutionUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.request.ChecklistExecutionDraftCreateDTO;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.CancelChecklistExecutionUseCase;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -23,12 +25,14 @@ class ChecklistExecutionFacadeTest {
     private final CreateChecklistExecutionUseCase createChecklistExecutionUseCase = mock(CreateChecklistExecutionUseCase.class);
     private final SubmitChecklistExecutionUseCase submitChecklistExecutionUseCase = mock(SubmitChecklistExecutionUseCase.class);
     private final ChecklistExecutionMapper executionMapper = mock(ChecklistExecutionMapper.class);
-    private final CancelChecklistExecutionUseCase cancelChecklistExecutionUseCase = mock(CancelChecklistExecutionUseCase.class); // ← essa linha estava faltando
+    private final CancelChecklistExecutionUseCase cancelChecklistExecutionUseCase = mock(CancelChecklistExecutionUseCase.class);
+    private final SearchChecklistExecutionsByClassOrRepresentativeUseCase searchChecklistExecutionsUseCase = mock(SearchChecklistExecutionsByClassOrRepresentativeUseCase.class);
     private final ChecklistExecutionFacade facade = new ChecklistExecutionFacade(
             createChecklistExecutionUseCase,
             submitChecklistExecutionUseCase,
             executionMapper,
-            cancelChecklistExecutionUseCase
+            cancelChecklistExecutionUseCase,
+            searchChecklistExecutionsUseCase
     );
 
     @Test
@@ -67,6 +71,23 @@ class ChecklistExecutionFacadeTest {
 
         assertSame(response, result);
         verify(submitChecklistExecutionUseCase).execute(executionId, request);
+        verify(executionMapper).toResponse(execution);
+    }
+
+    @Test
+    @DisplayName("deve buscar execucoes e retornar lista de dtos mapeados")
+    void deveBuscarExecucoesERetornarListaDeDtosMapeados() {
+        String query = "Turma A";
+        ChecklistExecution execution = ChecklistExecution.builder().id(UUID.randomUUID()).build();
+        ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
+
+        when(searchChecklistExecutionsUseCase.execute(query)).thenReturn(List.of(execution));
+        when(executionMapper.toResponse(execution)).thenReturn(response);
+
+        List<ChecklistExecutionResponseDTO> result = facade.search(query);
+
+        assertSame(response, result.get(0));
+        verify(searchChecklistExecutionsUseCase).execute(query);
         verify(executionMapper).toResponse(execution);
     }
 }

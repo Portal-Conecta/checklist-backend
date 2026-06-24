@@ -133,6 +133,31 @@ class ChecklistExecutionRepositoryTest {
         );
     }
 
+    @Test
+    @DisplayName("deve declarar query nativa para busca por nome de turma ou representante")
+    void deveDeclararQueryNativaParaBuscaPorNomeDeTurmaOuRepresentante() throws NoSuchMethodException {
+        Method method = ChecklistExecutionRepository.class.getMethod(
+                "searchByClassOrRepresentativeName",
+                String.class
+        );
+
+        String query = normalizedQuery(method);
+
+        assertAll(
+                () -> assertEquals(List.class, method.getReturnType()),
+                () -> assertTrue(method.getGenericReturnType().getTypeName().contains(ChecklistExecution.class.getName())),
+                () -> assertNativeQuery(method),
+                () -> assertQueryParamsMatchMethodParams(method),
+                () -> assertTrue(query.contains("from checklist_execution ce")),
+                () -> assertTrue(query.contains("ce.class_name")),
+                () -> assertTrue(query.contains("ilike")),
+                () -> assertTrue(query.contains("ce.representative1_name")),
+                () -> assertTrue(query.contains("ce.representative2_name")),
+                () -> assertTrue(query.contains(":term")),
+                () -> assertTrue(query.contains("order by ce.started_at desc"))
+        );
+    }
+
     private static void assertNativeQuery(Method method) {
         Query query = method.getAnnotation(Query.class);
 

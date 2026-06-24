@@ -1,6 +1,5 @@
 package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.CancelChecklistExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
@@ -173,7 +172,6 @@ class CancelChecklistExecutionUseCaseTest {
         return new RequestContext(
                 userId,
                 TypeUser.REPRESENTATIVE,
-                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
-        );
+                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE)));
     }
 }

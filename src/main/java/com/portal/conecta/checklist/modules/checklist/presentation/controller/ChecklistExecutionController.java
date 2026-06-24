@@ -18,6 +18,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.portal.conecta.checklist.modules.checklist.presentation.mapper.ChecklistExecutionMapper;
+import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubClassProvider;
+import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
+import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.modules.checklist.domain.valueobject.ClassReference;
+import com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,7 +32,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/checklist-executions")
@@ -41,6 +49,8 @@ public class ChecklistExecutionController {
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase;
     private final UpdateChecklistExecutionAnswersUseCase updateAnswersUseCase;
     private final ChecklistExecutionMapper mapper;
+    private final HubRoomProvider hubRoomProvider;
+    private final HubClassProvider hubClassProvider;
 
     @Operation(
             summary = "Criar rascunho de execução",
@@ -200,7 +210,30 @@ public class ChecklistExecutionController {
             @PathVariable UUID classId,
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        return ResponseEntity.ok(mapper.toPageHistory(listHistoryByClassUseCase.execute(classId, pageable)));
+        Page<ChecklistExecution> executions = listHistoryByClassUseCase.execute(classId, pageable);
+        List<UUID> roomIds = executions.getContent().stream()
+                .map(ChecklistExecution::getRoomId)
+                .toList();
+
+        Map<UUID, RoomReference> roomMap = Map.of();
+        try {
+            List<RoomReference> rooms = hubRoomProvider.findByIds(roomIds);
+            roomMap = rooms.stream()
+                    .collect(Collectors.toMap(RoomReference::getRoomId, room -> room, (r1, r2) -> r1));
+        } catch (Exception e) {
+            // best-effort enrichment, keep functioning on error
+        }
+
+        Map<UUID, ClassReference> classMap = Map.of();
+        try {
+            List<ClassReference> classes = hubClassProvider.findByIds(List.of(classId));
+            classMap = classes.stream()
+                    .collect(Collectors.toMap(ClassReference::getClassId, classRef -> classRef, (c1, c2) -> c1));
+        } catch (Exception e) {
+            // best-effort enrichment, keep functioning on error
+        }
+
+        return ResponseEntity.ok(mapper.toPageHistory(executions, roomMap, classMap));
     }
 
     @Operation(

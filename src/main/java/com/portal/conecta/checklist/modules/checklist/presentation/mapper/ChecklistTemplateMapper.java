@@ -4,12 +4,15 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
+import com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference;
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.shared.RoomResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class ChecklistTemplateMapper {
@@ -21,8 +24,22 @@ public class ChecklistTemplateMapper {
     }
 
     public ChecklistTemplateResponseDTO toResponse(ChecklistTemplate template) {
+        return toResponse(template, null);
+    }
+
+    public ChecklistTemplateResponseDTO toResponse(ChecklistTemplate template, RoomReference room) {
         if (template == null) {
             return null;
+        }
+
+        RoomResponseDTO roomDTO = null;
+        if (room != null) {
+            roomDTO = new RoomResponseDTO(
+                    room.getRoomId(),
+                    room.getNumber(),
+                    room.getTypeRoom(),
+                    room.getStatus()
+            );
         }
 
         return new ChecklistTemplateResponseDTO(
@@ -35,14 +52,22 @@ public class ChecklistTemplateMapper {
                 template.isActive(),
                 toSchema(template.getSchemaJson()),
                 template.getCreatedAt(),
-                template.getUpdatedAt()
+                template.getUpdatedAt(),
+                roomDTO
         );
     }
 
     public List<ChecklistTemplateResponseDTO> toResponseList(List<ChecklistTemplate> templates) {
-        return templates == null
-                ? List.of()
-                : templates.stream().map(this::toResponse).toList();
+        return toResponseList(templates, Map.of());
+    }
+
+    public List<ChecklistTemplateResponseDTO> toResponseList(List<ChecklistTemplate> templates, Map<UUID, RoomReference> roomMap) {
+        if (templates == null) {
+            return List.of();
+        }
+        return templates.stream()
+                .map(t -> toResponse(t, roomMap != null ? roomMap.get(t.getRoomId()) : null))
+                .toList();
     }
 
     public ChecklistSchema toSchema(Map<String, Object> schemaJson) {

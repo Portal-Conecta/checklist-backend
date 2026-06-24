@@ -9,6 +9,8 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.execut
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubClassProvider;
+import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request.ChecklistExecutionSubmitDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.response.ChecklistExecutionHistoryDTO;
@@ -39,13 +41,17 @@ class ChecklistExecutionControllerTest {
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase = mock(ListChecklistHistoryByClassUseCase.class);
     private final UpdateChecklistExecutionAnswersUseCase updateAnswersUseCase = mock(UpdateChecklistExecutionAnswersUseCase.class);
     private final ChecklistExecutionMapper mapper = mock(ChecklistExecutionMapper.class);
+    private final HubRoomProvider hubRoomProvider = mock(HubRoomProvider.class);
+    private final HubClassProvider hubClassProvider = mock(HubClassProvider.class);
     private final ChecklistExecutionController controller = new ChecklistExecutionController(
             createUseCase,
             submitUseCase,
             cancelUseCase,
             listHistoryByClassUseCase,
             updateAnswersUseCase,
-            mapper
+            mapper,
+            hubRoomProvider,
+            hubClassProvider
     );
 
     @Test

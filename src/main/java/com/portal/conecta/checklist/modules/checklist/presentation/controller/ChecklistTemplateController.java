@@ -17,11 +17,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
+import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import java.util.List;
 import java.util.UUID;
@@ -39,6 +45,20 @@ public class ChecklistTemplateController {
     private final EditChecklistTemplateUseCase editUseCase;
     private final CreateChecklistTemplateVersionUseCase createVersionUseCase;
     private final ChecklistTemplateMapper mapper;
+    private final HubRoomProvider hubRoomProvider;
+
+    private ChecklistTemplateResponseDTO mapWithEnrichment(ChecklistTemplate template) {
+        if (template == null) {
+            return null;
+        }
+        RoomReference roomRef = null;
+        try {
+            roomRef = hubRoomProvider.findById(template.getRoomId()).orElse(null);
+        } catch (Exception e) {
+            // Keep functioning if Hub integration fails
+        }
+        return mapper.toResponse(template, roomRef);
+    }
 
     @Operation(
             summary = "Criar novo template",
@@ -78,7 +98,7 @@ public class ChecklistTemplateController {
     })
     @PostMapping
     public ResponseEntity<ChecklistTemplateResponseDTO> createTemplate(@RequestBody @Valid ChecklistTemplateCreateRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(createUseCase.execute(request.toCommand())));
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapWithEnrichment(createUseCase.execute(request.toCommand())));
     }
 
     @Operation(
@@ -124,7 +144,7 @@ public class ChecklistTemplateController {
     })
     @PatchMapping("/{templateId}/activate")
     public ResponseEntity<ChecklistTemplateResponseDTO> activateTemplate(@PathVariable UUID templateId) {
-        return ResponseEntity.ok(mapper.toResponse(activateUseCase.execute(templateId)));
+        return ResponseEntity.ok(mapWithEnrichment(activateUseCase.execute(templateId)));
     }
 
     @Operation(
@@ -165,7 +185,7 @@ public class ChecklistTemplateController {
     })
     @GetMapping("/{templateId}")
     public ResponseEntity<ChecklistTemplateResponseDTO> findTemplateById(@PathVariable UUID templateId) {
-        return ResponseEntity.ok(mapper.toResponse(findByIdUseCase.execute(templateId)));
+        return ResponseEntity.ok(mapWithEnrichment(findByIdUseCase.execute(templateId)));
     }
 
     @Operation(
@@ -196,7 +216,21 @@ public class ChecklistTemplateController {
     })
     @GetMapping
     public ResponseEntity<List<ChecklistTemplateResponseDTO>> listTemplates() {
-        return ResponseEntity.ok(mapper.toResponseList(listUseCase.execute()));
+        List<ChecklistTemplate> templates = listUseCase.execute();
+        List<UUID> roomIds = templates.stream()
+                .map(ChecklistTemplate::getRoomId)
+                .toList();
+
+        Map<UUID, RoomReference> roomMap = Map.of();
+        try {
+            List<RoomReference> rooms = hubRoomProvider.findByIds(roomIds);
+            roomMap = rooms.stream()
+                    .collect(Collectors.toMap(RoomReference::getRoomId, room -> room, (r1, r2) -> r1));
+        } catch (Exception e) {
+            // best-effort enrichment, keep functioning on error
+        }
+
+        return ResponseEntity.ok(mapper.toResponseList(templates, roomMap));
     }
 
     @Operation(summary = "Editar Template", description = "Atualiza parcialmente um template com status DRAFT. Campos não informados são mantidos.")
@@ -210,7 +244,7 @@ public class ChecklistTemplateController {
     })
     @PatchMapping("/{templateId}")
     public ResponseEntity<ChecklistTemplateResponseDTO> editTemplate(@PathVariable UUID templateId, @RequestBody @Valid ChecklistTemplateEditRequest request){
-        return ResponseEntity.ok(mapper.toResponse(editUseCase.execute(templateId, request.toCommand())));
+        return ResponseEntity.ok(mapWithEnrichment(editUseCase.execute(templateId, request.toCommand())));
     }
 
     @Operation(summary = "Criar nova versão", description = "Cria uma nova versão em DRAFT a partir de um template ACTIVE, preservando o histórico")
@@ -224,6 +258,6 @@ public class ChecklistTemplateController {
     public ResponseEntity<ChecklistTemplateResponseDTO> createNewVersion(
             @PathVariable UUID templateId) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(mapper.toResponse(createVersionUseCase.execute(templateId)));
+                .body(mapWithEnrichment(createVersionUseCase.execute(templateId)));
     }
 }

@@ -15,20 +15,10 @@ spring:
   h2:
     console:
       enabled: false
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-    virtual-host: /
 
 checklist:
   security:
     swagger-public: true
-
-app:
-  rabbitmq:
-    enabled: false
 
 logging:
   level:

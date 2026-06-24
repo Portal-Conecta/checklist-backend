@@ -1,8 +1,8 @@
-package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command;
+package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.edit;
 
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 
-public record EditChecklistTemplateCommand(
+public record UpdateChecklistTemplateCommand(
         String title,
         String description,
         ChecklistSchema schema

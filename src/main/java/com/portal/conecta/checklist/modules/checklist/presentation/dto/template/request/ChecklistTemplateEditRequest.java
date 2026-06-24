@@ -1,6 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.EditChecklistTemplateCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.edit.UpdateChecklistTemplateCommand;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -31,7 +31,7 @@ public record ChecklistTemplateEditRequest(
         @Valid
         ChecklistSchema schemaJson
 ) {
-    public EditChecklistTemplateCommand toCommand() {
-        return new EditChecklistTemplateCommand(title, description, schemaJson);
+    public UpdateChecklistTemplateCommand toCommand() {
+        return new UpdateChecklistTemplateCommand(title, description, schemaJson);
     }
 }

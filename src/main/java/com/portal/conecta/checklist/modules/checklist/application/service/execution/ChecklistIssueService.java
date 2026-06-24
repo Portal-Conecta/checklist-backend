@@ -1,6 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.application.service.execution;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.ChecklistAnswerCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistAnswerCommand;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ConformityAnswerValue;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.domain.valueobject.UserReference;
@@ -35,7 +35,7 @@ public class ChecklistIssueService {
      */
     public void createIssuesForNonCompliantAnswers(
             ChecklistExecution execution,
-            List<ChecklistAnswerCommand> answers,
+            List<UpdateChecklistAnswerCommand> answers,
             Map<String, ChecklistItem> itemsByKey
     ) {
         Instant dueAt = Instant.now().plusSeconds(ISSUE_DUE_DAYS * 24L * 60L * 60L);

@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command;
+package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create;
 
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionDataMapper;
 import com.portal.conecta.checklist.modules.checklist.application.service.window.SubmissionWindowValidator;

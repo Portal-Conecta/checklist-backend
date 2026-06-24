@@ -1,16 +1,18 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.controller;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.ActivateChecklistTemplateUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.CreateChecklistTemplateUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.CreateChecklistTemplateVersionUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.EditChecklistTemplateUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.FindChecklistTemplateByIdUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.ListChecklistTemplatesUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.activate.ActivateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateVersionUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.edit.UpdateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.find.FindChecklistTemplateByIdUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.list.ListChecklistTemplatesUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchChecklistItemUseCase;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateCreateRequest;
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemSearchResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateEditRequest;
 import com.portal.conecta.checklist.modules.checklist.presentation.mapper.ChecklistTemplateMapper;
-import com.portal.conecta.checklist.shared.exception.ErrorResponseDTO;
+import com.portal.conecta.checklist.shared.exception.ApiError;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -32,11 +34,12 @@ import java.util.UUID;
 @Tag(name = "Checklist Templates", description = "Endpoints para gerenciamento de templates de checklist")
 public class ChecklistTemplateController {
 
+    private final SearchChecklistItemUseCase searchChecklistItemUseCase;
     private final CreateChecklistTemplateUseCase createUseCase;
     private final ActivateChecklistTemplateUseCase activateUseCase;
     private final FindChecklistTemplateByIdUseCase findByIdUseCase;
     private final ListChecklistTemplatesUseCase listUseCase;
-    private final EditChecklistTemplateUseCase editUseCase;
+    private final UpdateChecklistTemplateUseCase editUseCase;
     private final CreateChecklistTemplateVersionUseCase createVersionUseCase;
     private final ChecklistTemplateMapper mapper;
 
@@ -53,27 +56,27 @@ public class ChecklistTemplateController {
             @ApiResponse(
                     responseCode = "400",
                     description = "Dados inválidos no corpo da requisição (campos obrigatórios ausentes ou JSON malformado)",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "401",
                     description = "Não autenticado — token JWT ausente ou inválido",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "403",
                     description = "Sem permissão para criar templates",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "409",
                     description = "Conflito de integridade — já existe um registro com os mesmos dados únicos",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Erro interno inesperado no servidor",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             )
     })
     @PostMapping
@@ -94,32 +97,32 @@ public class ChecklistTemplateController {
             @ApiResponse(
                     responseCode = "400",
                     description = "Formato inválido para o templateId (deve ser um UUID válido)",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "401",
                     description = "Não autenticado — token JWT ausente ou inválido",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "403",
                     description = "Sem permissão para ativar templates",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "404",
                     description = "Template não encontrado para o ID informado",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "409",
                     description = "Conflito de estado — template já está ativo ou não pode ser ativado no status atual",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Erro interno inesperado no servidor",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             )
     })
     @PatchMapping("/{templateId}/activate")
@@ -140,27 +143,27 @@ public class ChecklistTemplateController {
             @ApiResponse(
                     responseCode = "400",
                     description = "Formato inválido para o templateId (deve ser um UUID válido)",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "401",
                     description = "Não autenticado — token JWT ausente ou inválido",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "403",
                     description = "Sem permissão para visualizar este template",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "404",
                     description = "Template não encontrado para o ID informado",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Erro interno inesperado no servidor",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             )
     })
     @GetMapping("/{templateId}")
@@ -181,17 +184,17 @@ public class ChecklistTemplateController {
             @ApiResponse(
                     responseCode = "401",
                     description = "Não autenticado — token JWT ausente ou inválido",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "403",
                     description = "Sem permissão para listar templates",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Erro interno inesperado no servidor",
-                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             )
     })
     @GetMapping
@@ -225,5 +228,15 @@ public class ChecklistTemplateController {
             @PathVariable UUID templateId) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(mapper.toResponse(createVersionUseCase.execute(templateId)));
+    }
+
+    @GetMapping("/items/search")
+    public ResponseEntity<List<ChecklistItemSearchResponseDTO>> searchItems(@RequestParam("query") String query) {
+        List<ChecklistItemSearchResponseDTO> response = searchChecklistItemUseCase.execute(query)
+                .stream()
+                .map(mapper::toItemSearchResponseDTO)
+                .toList();
+
+        return ResponseEntity.ok(response);
     }
 }

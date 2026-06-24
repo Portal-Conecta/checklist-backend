@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request;
 
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ConformityAnswerValue;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.ChecklistAnswerCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistAnswerCommand;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -24,7 +24,7 @@ public record ChecklistAnswerRequestDTO(
 
         Instant answeredAt
 ) {
-    public ChecklistAnswerCommand toCommand() {
-        return new ChecklistAnswerCommand(itemKey, value, observation, answeredAt);
+    public UpdateChecklistAnswerCommand toCommand() {
+        return new UpdateChecklistAnswerCommand(itemKey, value, observation, answeredAt);
     }
 }

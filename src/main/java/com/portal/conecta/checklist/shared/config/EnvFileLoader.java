@@ -7,6 +7,9 @@ import java.util.List;
 
 /**
  * Utilitario para carregar variaveis locais a partir de um arquivo {@code .env}.
+ *
+ * <p>Define propriedades de sistema antes da inicializacao do Spring, sem
+ * sobrescrever variaveis ja configuradas no ambiente da JVM ou do sistema.</p>
  */
 public final class EnvFileLoader {
 
@@ -29,7 +32,7 @@ public final class EnvFileLoader {
             System.out.println("[EnvFileLoader] Carregando variaveis de: " + envFile.toAbsolutePath());
             loadLines(Files.readAllLines(envFile));
         } catch (IOException exception) {
-            System.err.println("[EnvFileLoader] Erro ao ler arquivo .env: " + exception.getMessage());
+            throw new IllegalStateException("Nao foi possivel carregar o arquivo .env.", exception);
         }
     }
 
@@ -68,7 +71,7 @@ public final class EnvFileLoader {
         }
 
         String resolvedValue = unquote(value);
-        
+
         // System property tem precedencia
         if (System.getProperty(key) == null) {
             System.setProperty(key, resolvedValue);

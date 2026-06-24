@@ -3,6 +3,8 @@ package com.portal.conecta.checklist.modules.checklist.application.usecase.templ
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.edit.UpdateChecklistTemplateCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.edit.UpdateChecklistTemplateUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
@@ -34,7 +36,7 @@ class EditChecklistTemplateUseCaseTest {
     private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HubRoomProvider hubRoomProvider = mock(HubRoomProvider.class);
-    private final EditChecklistTemplateUseCase useCase = new EditChecklistTemplateUseCase(
+    private final UpdateChecklistTemplateUseCase useCase = new UpdateChecklistTemplateUseCase(
             templateRepository,
             contextProvider,
             objectMapper,
@@ -143,20 +145,20 @@ class EditChecklistTemplateUseCaseTest {
         verify(templateRepository, never()).save(any());
     }
 
-    private EditChecklistTemplateCommand commandFull() {
-        return new EditChecklistTemplateCommand(
+    private UpdateChecklistTemplateCommand commandFull() {
+        return new UpdateChecklistTemplateCommand(
                 "Novo titulo",
                 "Nova descricao",
                 schema("secao-1", "item-1")
         );
     }
 
-    private EditChecklistTemplateCommand commandOnlySchema() {
-        return new EditChecklistTemplateCommand(null, null, schema("secao-1", "item-1"));
+    private UpdateChecklistTemplateCommand commandOnlySchema() {
+        return new UpdateChecklistTemplateCommand(null, null, schema("secao-1", "item-1"));
     }
 
-    private EditChecklistTemplateCommand commandDuplicateKeys() {
-        return new EditChecklistTemplateCommand(
+    private UpdateChecklistTemplateCommand commandDuplicateKeys() {
+        return new UpdateChecklistTemplateCommand(
                 null,
                 null,
                 new ChecklistSchema(List.of(

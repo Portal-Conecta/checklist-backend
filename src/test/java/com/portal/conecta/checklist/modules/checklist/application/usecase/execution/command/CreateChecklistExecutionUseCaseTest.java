@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.CreateChecklistExecutionUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create.CreateChecklistExecutionCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create.CreateChecklistExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.service.window.SubmissionWindowValidator;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
@@ -11,7 +12,6 @@ import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemp
 import com.portal.conecta.checklist.modules.checklist.domain.valueobject.ClassReference;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistTemplateRepository;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.CreateChecklistExecutionCommand;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionDataMapper;
 import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.ContextClass;

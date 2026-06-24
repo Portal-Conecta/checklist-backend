@@ -1,12 +1,12 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.controller;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.ActivateChecklistTemplateUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.CreateChecklistTemplateUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.CreateChecklistTemplateVersionUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.EditChecklistTemplateUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.FindChecklistTemplateByIdUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.ListChecklistTemplatesUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.SearchChecklistItemUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.activate.ActivateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateVersionUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.edit.UpdateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.find.FindChecklistTemplateByIdUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.list.ListChecklistTemplatesUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchChecklistItemUseCase;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemSearchResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
@@ -28,8 +28,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-import static java.util.stream.Collectors.toList;
-
 @RestController
 @RequestMapping("/api/checklist-templates")
 @RequiredArgsConstructor
@@ -41,7 +39,7 @@ public class ChecklistTemplateController {
     private final ActivateChecklistTemplateUseCase activateUseCase;
     private final FindChecklistTemplateByIdUseCase findByIdUseCase;
     private final ListChecklistTemplatesUseCase listUseCase;
-    private final EditChecklistTemplateUseCase editUseCase;
+    private final UpdateChecklistTemplateUseCase editUseCase;
     private final CreateChecklistTemplateVersionUseCase createVersionUseCase;
     private final ChecklistTemplateMapper mapper;
 

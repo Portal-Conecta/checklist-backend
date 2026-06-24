@@ -1,12 +1,12 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.controller;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.ActivateChecklistTemplateUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.CreateChecklistTemplateUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.CreateChecklistTemplateVersionUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.EditChecklistTemplateUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.FindChecklistTemplateByIdUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.ListChecklistTemplatesUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.SearchChecklistItemUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.activate.ActivateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateVersionUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.edit.UpdateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.find.FindChecklistTemplateByIdUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.list.ListChecklistTemplatesUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchChecklistItemUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.mapper.ChecklistTemplateMapper;
@@ -31,7 +31,7 @@ class ChecklistTemplateControllerTest {
     private final ActivateChecklistTemplateUseCase activateUseCase = mock(ActivateChecklistTemplateUseCase.class);
     private final FindChecklistTemplateByIdUseCase findByIdUseCase = mock(FindChecklistTemplateByIdUseCase.class);
     private final ListChecklistTemplatesUseCase listUseCase        = mock(ListChecklistTemplatesUseCase.class);
-    private final EditChecklistTemplateUseCase editUseCase         = mock(EditChecklistTemplateUseCase.class);
+    private final UpdateChecklistTemplateUseCase editUseCase         = mock(UpdateChecklistTemplateUseCase.class);
     private final ChecklistTemplateMapper mapper                   = mock(ChecklistTemplateMapper.class);
     private final ChecklistTemplateController controller           = new ChecklistTemplateController(
             searchChecklistItemUseCase, createUseCase, activateUseCase, findByIdUseCase, listUseCase, editUseCase, createVersionUseCase, mapper);

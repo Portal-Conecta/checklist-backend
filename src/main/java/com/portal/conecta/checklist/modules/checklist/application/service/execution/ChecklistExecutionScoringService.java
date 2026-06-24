@@ -1,6 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.application.service.execution;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.ChecklistAnswerCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistAnswerCommand;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ConformityAnswerValue;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +22,7 @@ public class ChecklistExecutionScoringService {
      * @param answers a lista de respostas fornecidas pelo usuário.
      * @return o percentual de conformidade de 0.00 a 100.00, com duas casas decimais.
      */
-    public BigDecimal calculateComplianceScore(List<ChecklistAnswerCommand> answers) {
+    public BigDecimal calculateComplianceScore(List<UpdateChecklistAnswerCommand> answers) {
         long answeredItems = answers.stream()
                 .filter(answer -> answer.value() != null)
                 .count();

@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request;
 
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.CreateChecklistExecutionCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create.CreateChecklistExecutionCommand;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;

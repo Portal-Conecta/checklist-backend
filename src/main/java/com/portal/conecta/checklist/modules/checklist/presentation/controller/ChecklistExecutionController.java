@@ -1,10 +1,10 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.controller;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.CancelChecklistExecutionUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.CreateChecklistExecutionUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.cancel.CancelChecklistExecutionUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create.CreateChecklistExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ListChecklistHistoryByClassUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.SubmitChecklistExecutionUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.UpdateChecklistExecutionAnswersUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request.ChecklistExecutionSubmitDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.response.ChecklistExecutionHistoryDTO;

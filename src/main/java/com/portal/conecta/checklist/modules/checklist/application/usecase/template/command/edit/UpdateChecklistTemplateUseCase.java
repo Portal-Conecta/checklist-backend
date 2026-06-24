@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command;
+package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.edit;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,7 +25,7 @@ import java.util.UUID;
  */
 @Service
 @RequiredArgsConstructor
-public class EditChecklistTemplateUseCase {
+public class UpdateChecklistTemplateUseCase {
 
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {
     };
@@ -36,7 +36,7 @@ public class EditChecklistTemplateUseCase {
     private final HubRoomProvider hubRoomProvider;
 
     @Transactional
-    public ChecklistTemplate execute(UUID templateId, EditChecklistTemplateCommand command) {
+    public ChecklistTemplate execute(UUID templateId, UpdateChecklistTemplateCommand command) {
         var currentUser = contextProvider.getRequestContext();
 
         if (!currentUser.canManageChecklistTemplates()) {

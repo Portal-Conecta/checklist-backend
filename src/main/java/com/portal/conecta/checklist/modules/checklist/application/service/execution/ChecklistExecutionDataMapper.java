@@ -2,9 +2,9 @@ package com.portal.conecta.checklist.modules.checklist.application.service.execu
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.ChecklistAnswerCommand;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.CreateChecklistExecutionCommand;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.SubmitChecklistExecutionCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistAnswerCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create.CreateChecklistExecutionCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ConformityAnswerValue;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.Period;
@@ -68,7 +68,7 @@ public class ChecklistExecutionDataMapper {
         );
     }
 
-    private AnswerData toAnswerData(ChecklistAnswerCommand answer) {
+    private AnswerData toAnswerData(UpdateChecklistAnswerCommand answer) {
         Boolean compliant = answer.value() == null
                 ? null
                 : answer.value() == ConformityAnswerValue.COMPLIANT;

@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command;
+package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.activate;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;

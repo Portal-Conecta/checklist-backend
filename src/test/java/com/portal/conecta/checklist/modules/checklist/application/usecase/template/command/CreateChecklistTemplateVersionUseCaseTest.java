@@ -2,6 +2,7 @@ package com.portal.conecta.checklist.modules.checklist.application.usecase.templ
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateVersionUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference;

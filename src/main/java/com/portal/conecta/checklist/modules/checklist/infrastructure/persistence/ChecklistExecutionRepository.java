@@ -69,9 +69,8 @@ public interface ChecklistExecutionRepository
     );
 
     /**
-     * verifica se um usuário ficou três dias consecutivos sem enviar checklists
-     * @param userId indentificação de um usuário
-     * @return true caso não existam submissões nos últimos 3 dias consecutivos
+     * Busca todos os IDs de usuários que estão há 3 dias consecutivos
+     * sem enviar nenhum checklist com status 'SUBMITTED'.
      */
     @Query(value = """
             with expected_days as (
@@ -98,8 +97,7 @@ public interface ChecklistExecutionRepository
                 )
             ) = 3
             """, nativeQuery = true)
-        boolean hasThreeConsecutiveDaysWithoutSubmission(
-                @Param("userId") UUID userId
+        List<UUID> hasThreeConsecutiveDaysWithoutSubmission(
         );
 
     /**

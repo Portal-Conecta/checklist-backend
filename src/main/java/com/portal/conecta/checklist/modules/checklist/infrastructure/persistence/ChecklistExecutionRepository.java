@@ -73,22 +73,31 @@ public interface ChecklistExecutionRepository
      * @param userId indentificação de um usuário
      * @return true caso não existam submissões nos últimos 3 dias consecutivos
      */
-        @Query(value = """
-                with expected_days as (
-                    select (current_date - s)::date as day
-                    from generate_series(1, 3) s
-                )
-                select count(*) = 3
+    @Query(value = """
+            with expected_days as (
+                select (current_date - s)::date as day
+                from generate_series(1, 3) s
+            ),
+            active_users as (
+                select distinct user_id 
+                from checklist_execution
+                where user_id is not null
+            )
+            select au.user_id
+            from active_users au
+            where (
+                select count(*)
                 from expected_days d
                 where not exists (
                     select 1
                     from checklist_execution ce
-                    where ce.user_id = :userId
+                    where ce.user_id = au.user_id
                       and ce.status = 'SUBMITTED'
                       and ce.submitted_at >= d.day
                       and ce.submitted_at < d.day + interval '1 day'
                 )
-                """, nativeQuery = true)
+            ) = 3
+            """, nativeQuery = true)
         boolean hasThreeConsecutiveDaysWithoutSubmission(
                 @Param("userId") UUID userId
         );

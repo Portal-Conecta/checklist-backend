@@ -113,7 +113,13 @@ class RabbitMQPhysicalQueueIntegrationTest {
         assertThat(body)
                 .contains("\"messageId\":\"msg-physical-1\"")
                 .contains("\"correlationId\":\"corr-physical-1\"")
-                .contains("\"eventType\":\"checklist.non_compliance.created\"");
+                .contains("\"source\":\"checklist-api\"")
+                .contains("\"eventType\":\"checklist.non_compliance.created\"")
+                .contains("\"occurredAt\":")
+                .contains("\"title\":")
+                .contains("\"body\":")
+                .contains("\"scope\":")
+                .contains("\"filters\":");
     }
 
     @Test

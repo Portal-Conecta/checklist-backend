@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.unit.checklist.infrastructure.persistence;
 
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -87,25 +88,45 @@ class ChecklistExecutionRepositoryTest {
     }
 
     @Test
-    @DisplayName("deve declarar query nativa para tres dias sem envio")
-    void deveDeclararQueryNativaParaTresDiasSemEnvio() throws NoSuchMethodException {
+    @DisplayName("deve declarar query nativa para buscar turmas com checklist pendente no dia")
+    void deveDeclararQueryNativaParaBuscarTurmasComChecklistPendenteNoDia() throws NoSuchMethodException {
         Method method = ChecklistExecutionRepository.class.getMethod(
-                "hasThreeConsecutiveDaysWithoutSubmission",
-                UUID.class
+                "findClassIdsWithMissedChecklist",
+                LocalDateTime.class,
+                LocalDateTime.class
         );
 
         String query = normalizedQuery(method);
 
         assertAll(
-                () -> assertEquals(boolean.class, method.getReturnType()),
+                () -> assertEquals(List.class, method.getReturnType()),
                 () -> assertNativeQuery(method),
                 () -> assertQueryParamsMatchMethodParams(method),
-                () -> assertTrue(query.contains("generate_series(1, 3)")),
+                () -> assertTrue(query.contains("from checklist_submission_window csw")),
                 () -> assertTrue(query.contains("where not exists")),
-                () -> assertTrue(query.contains("ce.user_id = :userid")),
+                () -> assertTrue(query.contains("ce.class_id = csw.class_id")),
                 () -> assertTrue(query.contains("ce.status = 'submitted'")),
-                () -> assertTrue(query.contains("ce.submitted_at >= d.day")),
-                () -> assertTrue(query.contains("ce.submitted_at < d.day + interval '1 day'"))
+                () -> assertTrue(query.contains("ce.submitted_at >= :startofday")),
+                () -> assertTrue(query.contains("ce.submitted_at < :endofday"))
+        );
+    }
+
+    @Test
+    @DisplayName("deve declarar query nativa para buscar multiplos usuarios sem envio ha 3 dias")
+    void deveDeclararQueryNativaParaBuscarMultiplosUsuariosSemEnvioHa3Dias() throws NoSuchMethodException {
+        Method method = ChecklistExecutionRepository.class.getMethod(
+                "findUsersWithThreeConsecutiveDaysWithoutSubmission"
+        );
+
+        String query = normalizedQuery(method);
+
+        assertAll(
+                () -> assertEquals(List.class, method.getReturnType()),
+                () -> assertNativeQuery(method),
+                () -> assertTrue(query.contains("with expected_days as")),
+                () -> assertTrue(query.contains("generate_series(1, 3)")),
+                () -> assertTrue(query.contains("active_users as")),
+                () -> assertTrue(query.contains("ce.status = 'submitted'"))
         );
     }
 

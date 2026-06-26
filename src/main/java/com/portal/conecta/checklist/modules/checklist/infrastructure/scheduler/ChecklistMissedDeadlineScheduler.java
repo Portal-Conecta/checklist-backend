@@ -5,7 +5,7 @@ import com.portal.conecta.checklist.modules.checklist.application.port.out.messa
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
+import org.springframework.beans.factory.annotation.Value; // <-- USE ESTE
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

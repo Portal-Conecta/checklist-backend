@@ -9,8 +9,6 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.execut
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
-import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubClassProvider;
-import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request.ChecklistExecutionSubmitDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.response.ChecklistExecutionHistoryDTO;
@@ -41,17 +39,13 @@ class ChecklistExecutionControllerTest {
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase = mock(ListChecklistHistoryByClassUseCase.class);
     private final UpdateChecklistExecutionAnswersUseCase updateAnswersUseCase = mock(UpdateChecklistExecutionAnswersUseCase.class);
     private final ChecklistExecutionMapper mapper = mock(ChecklistExecutionMapper.class);
-    private final HubRoomProvider hubRoomProvider = mock(HubRoomProvider.class);
-    private final HubClassProvider hubClassProvider = mock(HubClassProvider.class);
     private final ChecklistExecutionController controller = new ChecklistExecutionController(
             createUseCase,
             submitUseCase,
             cancelUseCase,
             listHistoryByClassUseCase,
             updateAnswersUseCase,
-            mapper,
-            hubRoomProvider,
-            hubClassProvider
+            mapper
     );
 
     @Test
@@ -149,13 +143,13 @@ class ChecklistExecutionControllerTest {
         Page<ChecklistExecutionHistoryDTO> response = new PageImpl<>(List.of(history), pageable, 1);
 
         when(listHistoryByClassUseCase.execute(classId, pageable)).thenReturn(executions);
-        when(mapper.toPageHistory(executions)).thenReturn(response);
+        when(mapper.toPageHistoryWithEnrichment(executions, classId)).thenReturn(response);
 
         ResponseEntity<Page<ChecklistExecutionHistoryDTO>> result = controller.listHistoryByClass(classId, pageable);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
         verify(listHistoryByClassUseCase).execute(classId, pageable);
-        verify(mapper).toPageHistory(executions);
+        verify(mapper).toPageHistoryWithEnrichment(executions, classId);
     }
 }

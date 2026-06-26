@@ -2,25 +2,64 @@ package com.portal.conecta.checklist.modules.checklist.presentation.mapper;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 import com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.shared.RoomResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class ChecklistTemplateMapper {
 
     private final ObjectMapper objectMapper;
+    private final HubRoomProvider hubRoomProvider;
 
-    public ChecklistTemplateMapper(ObjectMapper objectMapper) {
+    public ChecklistTemplateMapper(ObjectMapper objectMapper, HubRoomProvider hubRoomProvider) {
         this.objectMapper = objectMapper;
+        this.hubRoomProvider = hubRoomProvider;
+    }
+
+    public ChecklistTemplateResponseDTO toResponseWithEnrichment(ChecklistTemplate template) {
+        if (template == null) {
+            return null;
+        }
+        RoomReference roomRef = null;
+        try {
+            roomRef = hubRoomProvider.findById(template.getRoomId()).orElse(null);
+        } catch (Exception e) {
+            log.warn("Falha ao buscar sala no Hub para template {}: {}", template.getId(), e.getMessage());
+        }
+        return toResponse(template, roomRef);
+    }
+
+    public List<ChecklistTemplateResponseDTO> toResponseListWithEnrichment(List<ChecklistTemplate> templates) {
+        if (templates == null) {
+            return List.of();
+        }
+        List<UUID> roomIds = templates.stream()
+                .map(ChecklistTemplate::getRoomId)
+                .toList();
+
+        Map<UUID, RoomReference> roomMap = Map.of();
+        try {
+            List<RoomReference> rooms = hubRoomProvider.findByIds(roomIds);
+            roomMap = rooms.stream()
+                    .collect(Collectors.toMap(RoomReference::getRoomId, room -> room, (r1, r2) -> r1));
+        } catch (Exception e) {
+            log.warn("Falha ao buscar salas no Hub para lista de templates: {}", e.getMessage());
+        }
+
+        return toResponseList(templates, roomMap);
     }
 
     public ChecklistTemplateResponseDTO toResponse(ChecklistTemplate template) {

@@ -1,6 +1,8 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubClassProvider;
+import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.Period;
@@ -8,6 +10,7 @@ import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExec
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.issues.presentation.mapper.ChecklistIssueMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +22,9 @@ class ChecklistExecutionMapperTest {
 
     private final ChecklistExecutionMapper mapper = new ChecklistExecutionMapper(
             new ObjectMapper(),
-            new ChecklistIssueMapper()
+            new ChecklistIssueMapper(),
+            Mockito.mock(HubRoomProvider.class),
+            Mockito.mock(HubClassProvider.class)
     );
 
     @Test

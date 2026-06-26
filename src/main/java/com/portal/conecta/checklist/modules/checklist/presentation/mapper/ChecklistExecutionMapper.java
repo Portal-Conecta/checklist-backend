@@ -1,6 +1,8 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubClassProvider;
+import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.issues.presentation.mapper.ChecklistIssueMapper;
@@ -12,6 +14,7 @@ import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.response.ChecklistExecutionHistoryDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.response.ChecklistExecutionResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.response.ChecklistExecutionSummaryDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
@@ -21,16 +24,53 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class ChecklistExecutionMapper {
 
     private final ObjectMapper objectMapper;
     private final ChecklistIssueMapper issueMapper;
+    private final HubRoomProvider hubRoomProvider;
+    private final HubClassProvider hubClassProvider;
 
-    public ChecklistExecutionMapper(ObjectMapper objectMapper, ChecklistIssueMapper issueMapper) {
+    public ChecklistExecutionMapper(ObjectMapper objectMapper, ChecklistIssueMapper issueMapper,
+                                    HubRoomProvider hubRoomProvider, HubClassProvider hubClassProvider) {
         this.objectMapper = objectMapper;
         this.issueMapper = issueMapper;
+        this.hubRoomProvider = hubRoomProvider;
+        this.hubClassProvider = hubClassProvider;
+    }
+
+    public Page<ChecklistExecutionHistoryDTO> toPageHistoryWithEnrichment(Page<ChecklistExecution> executions, UUID classId) {
+        if (executions == null) {
+            return Page.empty();
+        }
+
+        List<UUID> roomIds = executions.getContent().stream()
+                .map(ChecklistExecution::getRoomId)
+                .toList();
+
+        Map<UUID, RoomReference> roomMap = Map.of();
+        try {
+            List<RoomReference> rooms = hubRoomProvider.findByIds(roomIds);
+            roomMap = rooms.stream()
+                    .collect(Collectors.toMap(RoomReference::getRoomId, room -> room, (r1, r2) -> r1));
+        } catch (Exception e) {
+            log.warn("Falha ao buscar salas no Hub para histórico de execuções: {}", e.getMessage());
+        }
+
+        Map<UUID, ClassReference> classMap = Map.of();
+        try {
+            List<ClassReference> classes = hubClassProvider.findByIds(List.of(classId));
+            classMap = classes.stream()
+                    .collect(Collectors.toMap(ClassReference::getClassId, classRef -> classRef, (c1, c2) -> c1));
+        } catch (Exception e) {
+            log.warn("Falha ao buscar turmas no Hub para histórico de execuções: {}", e.getMessage());
+        }
+
+        return toPageHistory(executions, roomMap, classMap);
     }
 
     public ChecklistExecutionResponseDTO toResponse(ChecklistExecution execution) {

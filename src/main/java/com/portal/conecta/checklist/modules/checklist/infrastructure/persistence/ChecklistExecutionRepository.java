@@ -3,6 +3,7 @@ package com.portal.conecta.checklist.modules.checklist.infrastructure.persistenc
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionRepositoryPort;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -132,8 +133,20 @@ public interface ChecklistExecutionRepository
                 @Param("executionId") UUID executionId
         );
 
-
-
-
-
+        @Query(value = """
+                SELECT distinct csw.class_id
+                FROM checklist_submission_window csw
+                WHERE NOT EXISTS(
+                                    SELECT 1
+                                         FROM checklist_execution ce
+                                         WHERE ce.class_id = csw.class_id
+                                                   AND ce.checklist_type = csw.checklist_type
+                                                   AND ce.status = 'SUBMITTED'
+                                                   AND ce.submitted_at >= :startOfDay
+                                                   AND ce.submitted_at < :endOfDay)
+                """, nativeQuery = true)
+        List<UUID> findClassIdsWithMissedChecklist(
+                @Param("startOfDay")LocalDateTime startOfDay,
+                @Param("endOfDay")LocalDateTime endOfDay
+                );
     }

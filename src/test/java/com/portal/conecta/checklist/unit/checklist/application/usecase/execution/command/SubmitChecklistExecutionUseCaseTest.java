@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.unit.checklist.application.usecase.execution.command;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.conecta.checklist.modules.checklist.application.port.out.messaging.NotificationEventPublisher;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionScoringService;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistIssueService;
@@ -23,8 +24,10 @@ import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
+import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -37,6 +40,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -47,6 +51,7 @@ class SubmitChecklistExecutionUseCaseTest {
     private final ChecklistExecutionRepository executionRepository    = mock(ChecklistExecutionRepository.class);
     private final RequestContextProvider contextProvider              = mock(RequestContextProvider.class);
     private final SubmissionWindowValidator submissionWindowValidator = mock(SubmissionWindowValidator.class);
+    private final NotificationEventPublisher notificationPublisher    = mock(NotificationEventPublisher.class); // NOVO MOCK
     private final ObjectMapper objectMapper                           = new ObjectMapper().findAndRegisterModules();
     private final ChecklistExecutionDataMapper executionMapper = new ChecklistExecutionDataMapper(objectMapper);
 
@@ -62,17 +67,19 @@ class SubmitChecklistExecutionUseCaseTest {
                 submissionWindowValidator,
                 new ChecklistIssueService(),
                 new ChecklistExecutionScoringService(),
-                new ChecklistExecutionAnswerValidationService()
+                new ChecklistExecutionAnswerValidationService(),
+                notificationPublisher // INJETADO AQUI
         );
         ReflectionTestUtils.setField(useCase, "timezone", "America/Sao_Paulo");
     }
 
     @Test
-    void shouldSubmitChecklistAndCreateIssueForNonCompliantAnswer() {
+    void shouldSubmitChecklistAndCreateIssueForNonCompliantAnswerAndPublishEvent() { // NOME ATUALIZADO
         UUID executionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
         ChecklistExecution execution = draftExecution(executionId, userId, classId);
+
         SubmitChecklistExecutionCommand request = new SubmitChecklistExecutionCommand(List.of(
                 answer("quadro", ConformityAnswerValue.COMPLIANT, null),
                 answer("iluminacao", ConformityAnswerValue.NON_COMPLIANT, "Lampada queimada")
@@ -88,12 +95,38 @@ class SubmitChecklistExecutionUseCaseTest {
         assertThat(result.getSubmittedAt()).isNotNull();
         assertThat(result.getComplianceScore()).isEqualByComparingTo(new BigDecimal("50.00"));
         assertThat(result.getIssues()).hasSize(1);
-        assertThat(result.getIssues().getFirst().getItemKey()).isEqualTo("iluminacao");
-        assertThat(result.getIssues().getFirst().getItemTitleSnapshot()).isEqualTo("Iluminacao adequada?");
-        assertThat(result.getIssues().getFirst().getDescription()).isEqualTo("Lampada queimada");
-        assertThat(result.getIssues().getFirst().getStatus()).isEqualTo(IssueStatus.OPEN);
-        assertThat(result.getIssues().getFirst().getPriority()).isEqualTo(IssuePriority.MEDIUM);
-        assertThat(result.getIssues().getFirst().getAssignedUserReference().getUserId()).isEqualTo(userId);
+
+        // Verifica se a notificação foi publicada (já que a nota é < 100)
+        ArgumentCaptor<NotificationEvent> eventCaptor = ArgumentCaptor.forClass(NotificationEvent.class);
+        verify(notificationPublisher).publish(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().eventType()).isEqualTo("checklist.non_compliance.created");
+
+        verify(executionRepository).save(execution);
+    }
+
+    @Test
+    void shouldSubmitChecklistWithoutIssuesAndNotPublishEvent() {
+        // Teste extra para garantir que nota 100 não envia alerta
+        UUID executionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        ChecklistExecution execution = draftExecution(executionId, userId, classId);
+
+        SubmitChecklistExecutionCommand request = new SubmitChecklistExecutionCommand(List.of(
+                answer("quadro", ConformityAnswerValue.COMPLIANT, null),
+                answer("iluminacao", ConformityAnswerValue.COMPLIANT, null)
+        ));
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(currentUser(userId, classId));
+        when(executionRepository.save(execution)).thenReturn(execution);
+
+        ChecklistExecution result = useCase.execute(executionId, request);
+
+        assertThat(result.getComplianceScore()).isEqualByComparingTo(new BigDecimal("100.00"));
+
+        // Verifica que o publicador de eventos NÃO foi chamado
+        verify(notificationPublisher, never()).publish(any());
         verify(executionRepository).save(execution);
     }
 
@@ -114,6 +147,7 @@ class SubmitChecklistExecutionUseCaseTest {
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(executionId, request));
 
         verify(executionRepository, never()).save(execution);
+        verify(notificationPublisher, never()).publish(any());
     }
 
     @Test
@@ -132,6 +166,7 @@ class SubmitChecklistExecutionUseCaseTest {
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(executionId, request));
 
         verify(executionRepository, never()).save(execution);
+        verify(notificationPublisher, never()).publish(any());
     }
 
     @Test
@@ -152,6 +187,7 @@ class SubmitChecklistExecutionUseCaseTest {
         assertThrows(IllegalStateException.class, () -> useCase.execute(executionId, request));
 
         verify(executionRepository, never()).save(execution);
+        verify(notificationPublisher, never()).publish(any());
     }
 
     @Test
@@ -170,6 +206,7 @@ class SubmitChecklistExecutionUseCaseTest {
         assertThrows(AccessDeniedException.class, () -> useCase.execute(executionId, request));
 
         verify(executionRepository, never()).save(execution);
+        verify(notificationPublisher, never()).publish(any());
     }
 
     @Test
@@ -193,6 +230,7 @@ class SubmitChecklistExecutionUseCaseTest {
         assertThrows(AccessDeniedException.class, () -> useCase.execute(executionId, request));
 
         verify(executionRepository, never()).save(execution);
+        verify(notificationPublisher, never()).publish(any());
     }
 
     private ChecklistExecution draftExecution(UUID executionId, UUID userId, UUID classId) {

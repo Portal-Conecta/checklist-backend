@@ -82,7 +82,7 @@ public class SubmitChecklistExecutionUseCase {
 
         ChecklistExecution savedExecution = executionRepository.save(execution);
 
-        if (savedExecution.getComplianceScore().compareTo(new java.math.BigDecimal("100 ")) < 0) {
+        if (savedExecution.getComplianceScore().compareTo(new java.math.BigDecimal("100")) < 0) {
             publishNonComplianceNotification(savedExecution);
         }
 

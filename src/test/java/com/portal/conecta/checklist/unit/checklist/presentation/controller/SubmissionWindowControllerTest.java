@@ -6,6 +6,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.window
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.Shift;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistSubmissionWindow;
+import com.portal.conecta.checklist.modules.checklist.presentation.controller.SubmissionWindowController;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.window.request.SubmissionWindowRequestDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.window.response.SubmissionWindowResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.mapper.SubmissionWindowMapper;

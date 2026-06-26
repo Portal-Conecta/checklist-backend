@@ -5,6 +5,8 @@ import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.TypeUser;
 import com.portal.conecta.checklist.shared.integration.hub.adapter.me.HubMeProvider;
 import com.portal.conecta.checklist.shared.security.config.HubJwtProperties;
+import com.portal.conecta.checklist.shared.security.token.HubJwtClaimsMapper;
+import com.portal.conecta.checklist.shared.security.token.HubJwtTokenProvider;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

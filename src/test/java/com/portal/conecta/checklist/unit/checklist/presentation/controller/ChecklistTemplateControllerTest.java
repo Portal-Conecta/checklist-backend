@@ -8,6 +8,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.templa
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.list.ListChecklistTemplatesUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchChecklistItemUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.modules.checklist.presentation.controller.ChecklistTemplateController;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.mapper.ChecklistTemplateMapper;
 import org.junit.jupiter.api.DisplayName;

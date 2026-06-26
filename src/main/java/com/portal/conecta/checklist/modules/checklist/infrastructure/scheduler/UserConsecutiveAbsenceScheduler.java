@@ -1,7 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.infrastructure.scheduler;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.messaging.NotificationEventPublisher;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,7 @@ public class UserConsecutiveAbsenceScheduler {
     @Scheduled(cron = "0 0 7 * * *")
     public void checkThreeDaysConsecutiveAbsences(){
         log.info("Iniciando verficação de ausencia de checklist por 3 dias consegutivos...");
-        List<UUID> delinquentUserIds = executionRepository.hasThreeConsecutiveDaysWithoutSubmission();
+        List<UUID> delinquentUserIds = executionRepository.findUsersWithThreeConsecutiveDaysWithoutSubmission();
 
 
         for (UUID userIds: delinquentUserIds){

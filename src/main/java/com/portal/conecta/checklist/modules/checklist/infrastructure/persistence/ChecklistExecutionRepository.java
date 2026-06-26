@@ -3,7 +3,6 @@ package com.portal.conecta.checklist.modules.checklist.infrastructure.persistenc
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionRepositoryPort;
-import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -97,7 +96,7 @@ public interface ChecklistExecutionRepository
                 )
             ) = 3
             """, nativeQuery = true)
-        List<UUID> hasThreeConsecutiveDaysWithoutSubmission(
+        List<UUID> findUsersWithThreeConsecutiveDaysWithoutSubmission(
         );
 
     /**

@@ -1,6 +1,8 @@
 package com.portal.conecta.checklist.unit.shared.exception;
 
 import com.portal.conecta.checklist.modules.checklist.domain.exception.SubmissionWindowViolationException;
+import com.portal.conecta.checklist.shared.exception.ApiError;
+import com.portal.conecta.checklist.shared.exception.GlobalHandlerException;
 import com.portal.conecta.checklist.shared.integration.hub.exception.HubIntegrationException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,5 +1,9 @@
 package com.portal.conecta.checklist.unit.shared.context;
 
+import com.portal.conecta.checklist.shared.context.ClassRole;
+import com.portal.conecta.checklist.shared.context.ContextClass;
+import com.portal.conecta.checklist.shared.context.RequestContext;
+import com.portal.conecta.checklist.shared.context.TypeUser;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.unit.checklist.application.service.execution;
 
+import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ConformityAnswerValue;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistAnswerCommand;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;

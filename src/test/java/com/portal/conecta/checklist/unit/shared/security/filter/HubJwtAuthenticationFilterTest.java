@@ -3,6 +3,7 @@ package com.portal.conecta.checklist.unit.shared.security.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.shared.integration.hub.exception.HubIntegrationException;
 import com.portal.conecta.checklist.shared.security.error.SecurityErrorResponseWriter;
+import com.portal.conecta.checklist.shared.security.filter.HubJwtAuthenticationFilter;
 import com.portal.conecta.checklist.shared.security.token.HubJwtTokenProvider;
 import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.AfterEach;

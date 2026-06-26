@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.unit.checklist.presentation.dto.execution.request;
 
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request.ChecklistExecutionDraftCreateDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

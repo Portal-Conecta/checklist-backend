@@ -7,6 +7,7 @@ import com.portal.conecta.checklist.modules.checklist.domain.enums.Period;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.issues.presentation.mapper.ChecklistIssueMapper;
+import com.portal.conecta.checklist.modules.checklist.presentation.mapper.ChecklistExecutionMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

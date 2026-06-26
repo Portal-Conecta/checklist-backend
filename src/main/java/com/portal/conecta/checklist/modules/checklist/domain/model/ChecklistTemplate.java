@@ -38,6 +38,7 @@ public class ChecklistTemplate {
      * Agrupa todas as versões do mesmo template.
      * Gerado na criação e herdado por todas as versões subsequentes.
      */
+    @Column(name = "template_group_id", nullable = false)
     private UUID templateGroupId;
 
     /**

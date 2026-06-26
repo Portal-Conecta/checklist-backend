@@ -31,12 +31,4 @@ checklist:
 
 hub:
   api:
-    url: ${HUB_API_URL:http://localhost:8080}
-
-app:
-  rabbitmq:
-    enabled: ${RABBITMQ_ENABLED:true}
-    exchange: ${RABBITMQ_NOTIFICATIONS_EXCHANGE:notifications.exchange}
-    queue: ${RABBITMQ_NOTIFICATIONS_QUEUE:notifications.dispatch.q}
-    dlq: ${RABBITMQ_NOTIFICATIONS_DLQ:notifications.dispatch.dlq}
-    routing-key: ${RABBITMQ_NOTIFICATIONS_ROUTING_KEY:notification.requested}
+    url: ${HUB_API_URL}

@@ -131,4 +131,19 @@ class ChecklistExecutionControllerTest {
 
         verify(facade).listExecution(pageable);
     }
+
+    @Test
+    @DisplayName("deve retornar 200 OK e a execucao buscada por id")
+    void deveRetornarOkEExecucaoBuscadaPorId() {
+        UUID executionId = UUID.randomUUID();
+        ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
+
+        when(facade.findExecutionById(executionId)).thenReturn(response);
+
+        ResponseEntity<ChecklistExecutionResponseDTO> result = controller.findExecutionById(executionId);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(response, result.getBody());
+        verify(facade).findExecutionById(executionId);
+    }
 }

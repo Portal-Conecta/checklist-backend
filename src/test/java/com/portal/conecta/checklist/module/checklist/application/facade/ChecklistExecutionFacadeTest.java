@@ -26,8 +26,6 @@ class ChecklistExecutionFacadeTest {
     private final CancelChecklistExecutionUseCase cancelChecklistExecutionUseCase = mock(CancelChecklistExecutionUseCase.class);
     private final ListChecklistExecutionUseCase listChecklistExecutionUseCase = mock(ListChecklistExecutionUseCase.class);
     private final FindChecklistExecutionByIdUseCase findChecklistExecutionByIdUseCase = mock(FindChecklistExecutionByIdUseCase.class);
-    private final ChecklistExecutionMapper checklistExecutionMapper = mock(ChecklistExecutionMapper.class);
-
     private final ChecklistExecutionMapper executionMapper = mock(ChecklistExecutionMapper.class);
 
     private final ChecklistExecutionFacade facade;
@@ -39,7 +37,6 @@ class ChecklistExecutionFacadeTest {
                 executionMapper,
                 cancelChecklistExecutionUseCase,
                 findChecklistExecutionByIdUseCase,
-                checklistExecutionMapper,
                 listChecklistExecutionUseCase
 
         );
@@ -130,5 +127,30 @@ class ChecklistExecutionFacadeTest {
 
         verify(executionMapper)
                 .toResponse(execution);
+    }
+
+    @Test
+    @DisplayName("deve buscar execucao por id e retornar dto mapeado")
+    void deveBuscarExecucaoPorIdERetornarDtoMapeado() {
+        UUID executionId = UUID.randomUUID();
+
+        ChecklistExecution execution = ChecklistExecution.builder()
+                .id(executionId)
+                .build();
+
+        ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
+
+        when(findChecklistExecutionByIdUseCase.execute(executionId))
+                .thenReturn(execution);
+
+        when(executionMapper.toResponse(execution))
+                .thenReturn(response);
+
+        ChecklistExecutionResponseDTO result = facade.findExecutionById(executionId);
+
+        assertSame(response, result);
+
+        verify(findChecklistExecutionByIdUseCase).execute(executionId);
+        verify(executionMapper).toResponse(execution);
     }
 }

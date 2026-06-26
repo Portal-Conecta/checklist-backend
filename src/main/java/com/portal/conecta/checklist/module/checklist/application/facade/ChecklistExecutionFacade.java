@@ -23,7 +23,6 @@ private final SubmitChecklistExecutionUseCase submitChecklistExecutionUseCase;
 private final ChecklistExecutionMapper executionMapper;
 private final CancelChecklistExecutionUseCase cancelChecklistExecutionUseCase;
 private final FindChecklistExecutionByIdUseCase findExecutionByIdUseCase;
-private final ChecklistExecutionMapper checklistExecutionMapper;
 private final ListChecklistExecutionUseCase listChecklistExecutionUseCase;
 
     public ChecklistExecutionResponseDTO createDTO(ChecklistExecutionDraftCreateDTO request){
@@ -43,10 +42,10 @@ private final ListChecklistExecutionUseCase listChecklistExecutionUseCase;
     }
     public ChecklistExecutionResponseDTO findExecutionById(UUID executionId) {
         var execution = findExecutionByIdUseCase.execute(executionId);
-        return checklistExecutionMapper.toResponse(execution);
+        return executionMapper.toResponse(execution);
     }
     public Page<ChecklistExecutionResponseDTO> listExecution(Pageable pageable){
         return listChecklistExecutionUseCase.execute(pageable)
-                .map(checklistExecutionMapper::toResponse);
+                .map(executionMapper::toResponse);
     }
 }

@@ -90,7 +90,7 @@ public class SubmitChecklistExecutionUseCase {
     }
 
     private void publishNonComplianceNotification(ChecklistExecution execution) {
-        var filters = List.of(new NotificationEvent.NotificationFilter("ROLE", "WEG"));
+        var filters = List.of(new NotificationEvent.NotificationFilter("ROLE", "TEACHER"));
 
         var scope = List.of(new NotificationEvent.NotificationScope("CLASS", execution.getClassId().toString()));
 

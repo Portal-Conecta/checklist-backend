@@ -35,7 +35,7 @@ public class UserConsecutiveAbsenceScheduler {
     }
 
     private void publishThreeDaysAbsenceNotification(UUID userId){
-        var filters = List.of(new NotificationEvent.NotificationFilter("ROLE", "WEG"));
+        var filters = List.<NotificationEvent.NotificationFilter>of();
         var scope = List.of(new NotificationEvent.NotificationScope("USER", userId.toString()));
 
         Map<String, Object> metadata = Map.of(
@@ -57,7 +57,7 @@ public class UserConsecutiveAbsenceScheduler {
         );
 
         eventPublisher.publish(event);
-        log.info("Notificação de 3 dias sem checklist enviada para ROLE WEG a respeito do usuário: {}", userId);
+        log.info("Notificação de 3 dias sem checklist enviada ao usuário: {}", userId);
     }
 
 

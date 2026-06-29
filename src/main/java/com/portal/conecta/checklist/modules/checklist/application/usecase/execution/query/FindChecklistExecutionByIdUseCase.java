@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.portal.conecta.checklist.shared.context.RequestContextProvider;
+import org.springframework.security.access.AccessDeniedException;
+
 import java.util.UUID;
 
 @Service
@@ -14,10 +17,18 @@ import java.util.UUID;
 public class FindChecklistExecutionByIdUseCase {
 
     private final ChecklistExecutionRepositoryPort repositoryPort;
+    private final RequestContextProvider contextProvider;
 
     @Transactional(readOnly = true)
     public ChecklistExecution execute(UUID executionId) {
-        return repositoryPort.findById(executionId)
+        ChecklistExecution execution = repositoryPort.findById(executionId)
                 .orElseThrow(() -> new EntityNotFoundException("Execução de checklist não encontrada para o ID informado"));
+        
+        var context = contextProvider.getRequestContext();
+        if (!context.canManageChecklistTemplates() && !context.canOperateChecklistExecutionForClass(execution.getClassId())) {
+            throw new AccessDeniedException("Usuário não tem permissão para acessar esta execução de checklist.");
+        }
+
+        return execution;
     }
 }

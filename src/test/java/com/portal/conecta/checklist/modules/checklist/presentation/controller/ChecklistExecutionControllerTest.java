@@ -5,6 +5,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.execut
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create.CreateChecklistExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.FindChecklistExecutionByIdUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ListChecklistHistoryByClassUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ListChecklistExecutionsUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
@@ -38,6 +39,7 @@ class ChecklistExecutionControllerTest {
     private final SubmitChecklistExecutionUseCase submitUseCase = mock(SubmitChecklistExecutionUseCase.class);
     private final CancelChecklistExecutionUseCase cancelUseCase = mock(CancelChecklistExecutionUseCase.class);
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase = mock(ListChecklistHistoryByClassUseCase.class);
+    private final ListChecklistExecutionsUseCase listExecutionsUseCase = mock(ListChecklistExecutionsUseCase.class);
     private final UpdateChecklistExecutionAnswersUseCase updateAnswersUseCase = mock(UpdateChecklistExecutionAnswersUseCase.class);
     private final FindChecklistExecutionByIdUseCase findByIdUseCase = mock(FindChecklistExecutionByIdUseCase.class);
     private final ChecklistExecutionMapper mapper = mock(ChecklistExecutionMapper.class);
@@ -46,6 +48,7 @@ class ChecklistExecutionControllerTest {
             submitUseCase,
             cancelUseCase,
             listHistoryByClassUseCase,
+            listExecutionsUseCase,
             updateAnswersUseCase,
             findByIdUseCase,
             mapper

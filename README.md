@@ -224,12 +224,18 @@ OpenAPI JSON should be available at:
 http://localhost:8083/v3/api-docs
 ```
 
-## Health Check
+## Health Check and Metrics
 
 Actuator health endpoint:
 
 ```text
 http://localhost:8083/actuator/health
+```
+
+Prometheus metrics endpoint (JVM metrics, HTTP requests, and latency):
+
+```text
+http://localhost:8083/actuator/prometheus
 ```
 
 ## Testing
@@ -336,10 +342,11 @@ $env:HUB_API_URL="http://localhost:8080"
 mvn spring-boot:run
 ```
 
-Health check does not require token:
+Health check and metrics do not require a token:
 
 ```text
 GET http://localhost:8083/actuator/health
+GET http://localhost:8083/actuator/prometheus
 ```
 
 #### Create A Postman Environment

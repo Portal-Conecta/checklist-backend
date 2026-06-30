@@ -1,10 +1,11 @@
 package com.portal.conecta.checklist.unit.checklist.application.usecase.execution.command;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.modules.checklist.application.port.out.messaging.NotificationEventPublisher;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
+import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionDataMapper;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionScoringService;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistIssueService;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.ChecklistNonComplianceEvent;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.service.window.SubmissionWindowValidator;
@@ -16,18 +17,15 @@ import com.portal.conecta.checklist.modules.checklist.domain.enums.ConformityAns
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
-import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionDataMapper;
-import com.portal.conecta.checklist.modules.checklist.issues.domain.enums.IssuePriority;
-import com.portal.conecta.checklist.modules.checklist.issues.domain.enums.IssueStatus;
 import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
-import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -51,7 +49,7 @@ class SubmitChecklistExecutionUseCaseTest {
     private final ChecklistExecutionRepository executionRepository    = mock(ChecklistExecutionRepository.class);
     private final RequestContextProvider contextProvider              = mock(RequestContextProvider.class);
     private final SubmissionWindowValidator submissionWindowValidator = mock(SubmissionWindowValidator.class);
-    private final NotificationEventPublisher notificationPublisher    = mock(NotificationEventPublisher.class); // NOVO MOCK
+    private final ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
     private final ObjectMapper objectMapper                           = new ObjectMapper().findAndRegisterModules();
     private final ChecklistExecutionDataMapper executionMapper = new ChecklistExecutionDataMapper(objectMapper);
 
@@ -68,13 +66,13 @@ class SubmitChecklistExecutionUseCaseTest {
                 new ChecklistIssueService(),
                 new ChecklistExecutionScoringService(),
                 new ChecklistExecutionAnswerValidationService(),
-                notificationPublisher // INJETADO AQUI
+                applicationEventPublisher
         );
         ReflectionTestUtils.setField(useCase, "timezone", "America/Sao_Paulo");
     }
 
     @Test
-    void shouldSubmitChecklistAndCreateIssueForNonCompliantAnswerAndPublishEvent() { // NOME ATUALIZADO
+    void shouldSubmitChecklistAndCreateIssueForNonCompliantAnswerAndPublishEvent() {
         UUID executionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
@@ -96,17 +94,15 @@ class SubmitChecklistExecutionUseCaseTest {
         assertThat(result.getComplianceScore()).isEqualByComparingTo(new BigDecimal("50.00"));
         assertThat(result.getIssues()).hasSize(1);
 
-        // Verifica se a notificação foi publicada (já que a nota é < 100)
-        ArgumentCaptor<NotificationEvent> eventCaptor = ArgumentCaptor.forClass(NotificationEvent.class);
-        verify(notificationPublisher).publish(eventCaptor.capture());
-        assertThat(eventCaptor.getValue().eventType()).isEqualTo("checklist.non_compliance.created");
+        ArgumentCaptor<ChecklistNonComplianceEvent> eventCaptor = ArgumentCaptor.forClass(ChecklistNonComplianceEvent.class);
+        verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().execution().getId()).isEqualTo(executionId);
 
         verify(executionRepository).save(execution);
     }
 
     @Test
     void shouldSubmitChecklistWithoutIssuesAndNotPublishEvent() {
-        // Teste extra para garantir que nota 100 não envia alerta
         UUID executionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
@@ -125,8 +121,7 @@ class SubmitChecklistExecutionUseCaseTest {
 
         assertThat(result.getComplianceScore()).isEqualByComparingTo(new BigDecimal("100.00"));
 
-        // Verifica que o publicador de eventos NÃO foi chamado
-        verify(notificationPublisher, never()).publish(any());
+        verify(applicationEventPublisher, never()).publishEvent(any());
         verify(executionRepository).save(execution);
     }
 
@@ -147,7 +142,7 @@ class SubmitChecklistExecutionUseCaseTest {
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(executionId, request));
 
         verify(executionRepository, never()).save(execution);
-        verify(notificationPublisher, never()).publish(any());
+        verify(applicationEventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -166,7 +161,7 @@ class SubmitChecklistExecutionUseCaseTest {
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(executionId, request));
 
         verify(executionRepository, never()).save(execution);
-        verify(notificationPublisher, never()).publish(any());
+        verify(applicationEventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -187,7 +182,7 @@ class SubmitChecklistExecutionUseCaseTest {
         assertThrows(IllegalStateException.class, () -> useCase.execute(executionId, request));
 
         verify(executionRepository, never()).save(execution);
-        verify(notificationPublisher, never()).publish(any());
+        verify(applicationEventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -206,7 +201,7 @@ class SubmitChecklistExecutionUseCaseTest {
         assertThrows(AccessDeniedException.class, () -> useCase.execute(executionId, request));
 
         verify(executionRepository, never()).save(execution);
-        verify(notificationPublisher, never()).publish(any());
+        verify(applicationEventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -230,7 +225,7 @@ class SubmitChecklistExecutionUseCaseTest {
         assertThrows(AccessDeniedException.class, () -> useCase.execute(executionId, request));
 
         verify(executionRepository, never()).save(execution);
-        verify(notificationPublisher, never()).publish(any());
+        verify(applicationEventPublisher, never()).publishEvent(any());
     }
 
     private ChecklistExecution draftExecution(UUID executionId, UUID userId, UUID classId) {

@@ -5,10 +5,13 @@ import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence
 import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -21,21 +24,21 @@ public class UserConsecutiveAbsenceScheduler {
     private final ChecklistExecutionRepository executionRepository;
     private final NotificationEventPublisher eventPublisher;
 
-
+    @Value("${checklist.timezone:America/Sao_Paulo}")
+    private String timezone;
 
     @Scheduled(cron = "0 0 7 * * *")
-    public void checkThreeDaysConsecutiveAbsences(){
+    public void checkThreeDaysConsecutiveAbsences() {
         log.info("Iniciando verficação de ausencia de checklist por 3 dias consegutivos...");
         List<UUID> delinquentUserIds = executionRepository.findUsersWithThreeConsecutiveDaysWithoutSubmission();
 
-
-        for (UUID userIds: delinquentUserIds){
-            publishThreeDaysAbsenceNotification(userIds);
+        for (UUID userId : delinquentUserIds) {
+            publishThreeDaysAbsenceNotification(userId);
         }
     }
 
-    private void publishThreeDaysAbsenceNotification(UUID userId){
-        var filters = List.<NotificationEvent.NotificationFilter>of();
+    private void publishThreeDaysAbsenceNotification(UUID userId) {
+        var filters = List.of(new NotificationEvent.NotificationFilter("ROLE", "WEG"));
         var scope = List.of(new NotificationEvent.NotificationScope("USER", userId.toString()));
 
         Map<String, Object> metadata = Map.of(
@@ -44,7 +47,7 @@ public class UserConsecutiveAbsenceScheduler {
         );
 
         NotificationEvent event = new NotificationEvent(
-                UUID.randomUUID().toString(),
+                "user-absence-3days-" + userId + "-" + LocalDate.now(ZoneId.of(timezone)),
                 userId.toString(),
                 "checklist-service",
                 "checklist.three_days_missing",
@@ -59,7 +62,4 @@ public class UserConsecutiveAbsenceScheduler {
         eventPublisher.publish(event);
         log.info("Notificação de 3 dias sem checklist enviada ao usuário: {}", userId);
     }
-
-
-
 }

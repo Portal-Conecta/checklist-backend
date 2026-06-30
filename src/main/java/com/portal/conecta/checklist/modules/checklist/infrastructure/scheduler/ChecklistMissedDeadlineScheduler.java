@@ -1,12 +1,12 @@
 package com.portal.conecta.checklist.modules.checklist.infrastructure.scheduler;
 
-
 import com.portal.conecta.checklist.modules.checklist.application.port.out.messaging.NotificationEventPublisher;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
+import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.MissedChecklistSummary;
 import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value; // <-- USE ESTE
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -26,10 +26,8 @@ public class ChecklistMissedDeadlineScheduler {
     private final ChecklistExecutionRepository executionRepository;
     private final NotificationEventPublisher notificationEventPublisher;
 
-
     @Value("${checklist.timezone:America/Sao_Paulo}")
     private String timezone;
-
 
     @Scheduled(cron = "0 0 22 * * *")
     public void checkPendingChecklists() {
@@ -39,30 +37,31 @@ public class ChecklistMissedDeadlineScheduler {
         LocalDateTime startOfDay = now.atStartOfDay();
         LocalDateTime endOfDay = startOfDay.plusDays(1);
 
-        List<UUID> missingClassIds = executionRepository.findClassIdsWithMissedChecklist(startOfDay, endOfDay);
+        List<MissedChecklistSummary> missingClasses = executionRepository.findClassIdsWithMissedChecklist(startOfDay, endOfDay);
 
-        for (UUID classId : missingClassIds) {
-            publishMissedNotification(classId);
+        for (MissedChecklistSummary summary : missingClasses) {
+            publishMissedNotification(summary.getClassId(), summary.getChecklistType());
         }
-
     }
-    private void publishMissedNotification(UUID classId) {
+
+    private void publishMissedNotification(UUID classId, String checklistType) {
         var filters = List.of(new NotificationEvent.NotificationFilter("ROLE", "REPRESENTATIVE"));
         var scope = List.of(new NotificationEvent.NotificationScope("CLASS", classId.toString()));
 
         Map<String, Object> metadata = Map.of(
                 "classId", classId.toString(),
+                "checklistType", checklistType,
                 "route", "/turmas/" + classId + "/checklists/novo"
         );
 
         NotificationEvent event = new NotificationEvent(
-                UUID.randomUUID().toString(),
+                "checklist-missed-" + classId + "-" + checklistType + "-" + LocalDate.now(ZoneId.of(timezone)),
                 classId.toString(),
                 "checklist-service",
                 "checklist.missed_deadline",
                 Instant.now(),
                 "Checklist Não Realizado!",
-                "O prazo de hoje expirou e o checklist da sua turma não foi preenchido.",
+                "O prazo de hoje expirou e o checklist " + checklistType + " da sua turma não foi preenchido.",
                 filters,
                 scope,
                 metadata
@@ -71,6 +70,4 @@ public class ChecklistMissedDeadlineScheduler {
         notificationEventPublisher.publish(event);
         log.info("Notificação de checklist pendente enviada para a turma: {}", classId);
     }
-
-
 }

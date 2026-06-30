@@ -2,7 +2,7 @@ spring:
   application:
     name: conecta.checklist
   profiles:
-    default: local # Mantém o perfil local como padrão ao iniciar a aplicação
+    default: local
 
 server:
   port: ${SERVER_PORT:8083}

@@ -16,6 +16,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
  * Configuração central de segurança da aplicação.
@@ -39,12 +44,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 @EnableConfigurationProperties({
         HubJwtProperties.class,
-        HubApiProperties.class
+        HubApiProperties.class,
+        CorsProperties.class
 })
 public class SecurityConfig {
 
     private final HubJwtAuthenticationFilter hubJwtAuthenticationFilter;
     private final SecurityErrorResponseWriter securityErrorResponseWriter;
+    private final CorsProperties corsProperties;
 
     @Value("${checklist.security.swagger-public:false}")
     private boolean swaggerPublic;
@@ -66,6 +73,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -100,5 +108,28 @@ public class SecurityConfig {
                 })
                 .addFilterBefore(hubJwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
+    }
+
+    /**
+     * Configura a política de CORS centralizada para a API.
+     *
+     * <p>As origens permitidas são lidas de {@link CorsProperties},
+     * permitindo externalização via {@code application.yml} ou variáveis de ambiente.</p>
+     *
+     * @return source de configuração CORS registrada para {@code /api/**}
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(corsProperties.allowedOrigins());
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", config);
+        return source;
     }
 }

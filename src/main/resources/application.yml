@@ -23,6 +23,8 @@ springdoc:
     path: /v3/api-docs
 
 checklist:
+  cors:
+    allowed-origins: ${CHECKLIST_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
   security:
     swagger-public: false
     jwt:

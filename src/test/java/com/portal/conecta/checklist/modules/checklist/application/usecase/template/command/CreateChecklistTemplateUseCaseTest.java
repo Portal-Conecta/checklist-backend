@@ -6,6 +6,7 @@ import com.portal.conecta.checklist.modules.checklist.application.port.out.persi
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateCommand;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.AnswerType;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSection;
@@ -99,6 +100,7 @@ class CreateChecklistTemplateUseCaseTest {
                         itemKey,
                         "Quadro em bom estado?",
                         "Verificar quadro",
+                        AnswerType.CONFORMITY,
                         true,
                         1
                 ))

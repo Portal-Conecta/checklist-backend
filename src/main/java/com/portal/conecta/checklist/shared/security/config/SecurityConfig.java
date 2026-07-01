@@ -88,7 +88,7 @@ public class SecurityConfig {
                                 ))
                 )
                 .authorizeHttpRequests(authorize -> {
-                    authorize.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll();
+                    authorize.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll();
 
                     if (swaggerPublic) {
                         authorize.requestMatchers(SWAGGER_PATHS).permitAll();

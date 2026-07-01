@@ -21,7 +21,7 @@ public record ChecklistExecutionSubmitDTO(
         return new SubmitChecklistExecutionCommand(
                 answers == null
                         ? List.of()
-                        : answers.stream().map(ChecklistAnswerRequestDTO::toCommand).toList()
+                        : answers.stream().map(dto -> dto.toCommand()).toList()
         );
     }
 }

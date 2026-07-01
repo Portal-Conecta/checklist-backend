@@ -1,6 +1,5 @@
 package com.portal.conecta.checklist.modules.checklist.application.service.window;
 
-import com.portal.conecta.checklist.modules.checklist.application.service.window.SubmissionWindowValidator;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.modules.checklist.domain.exception.SubmissionWindowViolationException;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistSubmissionWindow;

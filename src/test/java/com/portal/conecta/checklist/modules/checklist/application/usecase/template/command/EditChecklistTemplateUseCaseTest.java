@@ -1,14 +1,12 @@
 package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.EditChecklistTemplateUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSection;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.EditChecklistTemplateCommand;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
@@ -33,8 +31,7 @@ class EditChecklistTemplateUseCaseTest {
     private final EditChecklistTemplateUseCase useCase = new EditChecklistTemplateUseCase(
             templateRepository,
             contextProvider,
-            objectMapper
-    );
+            objectMapper);
 
     @Test
     void shouldEditTemplateWhenDraftAndManager() {
@@ -119,8 +116,7 @@ class EditChecklistTemplateUseCaseTest {
         return new EditChecklistTemplateCommand(
                 "Novo título",
                 "Nova descrição",
-                schema("secao-1", "item-1")
-        );
+                schema("secao-1", "item-1"));
     }
 
     private EditChecklistTemplateCommand requestOnlySchema() {
@@ -133,18 +129,13 @@ class EditChecklistTemplateUseCaseTest {
                 new ChecklistSchema(List.of(
                         new ChecklistSection("secao-1", "Seção 1", 1, List.of(
                                 new ChecklistItem("item-1", "Item 1", "", true, 1),
-                                new ChecklistItem("item-1", "Item duplicado", "", true, 2)
-                        ))
-                ))
-        );
+                                new ChecklistItem("item-1", "Item duplicado", "", true, 2))))));
     }
 
     private ChecklistSchema schema(String sectionKey, String itemKey) {
         return new ChecklistSchema(List.of(
                 new ChecklistSection(sectionKey, "Seção", 1, List.of(
-                        new ChecklistItem(itemKey, "Item", "Observação", true, 1)
-                ))
-        ));
+                        new ChecklistItem(itemKey, "Item", "Observação", true, 1)))));
     }
 
     private ChecklistTemplate draftTemplate() {

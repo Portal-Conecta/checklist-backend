@@ -23,6 +23,6 @@ public interface HubClassProvider {
     }
 
     default Optional<Shift> findShiftByClassId(UUID classId) {
-        return findById(classId).map(ClassReference::getShift);
+        return findById(classId).map(classRef -> classRef.getShift());
     }
 }

@@ -2,7 +2,6 @@ package com.portal.conecta.checklist.modules.checklist.issues.application.usecas
 
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
-import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.query.ListIssuesByExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.domain.model.ChecklistIssue;
 import com.portal.conecta.checklist.modules.checklist.issues.infrastructure.persistence.ChecklistIssueRepository;
 import com.portal.conecta.checklist.shared.context.ClassRole;
@@ -33,8 +32,7 @@ class ListIssuesByExecutionUseCaseTest {
     private final ListIssuesByExecutionUseCase useCase = new ListIssuesByExecutionUseCase(
             issueRepository,
             executionRepository,
-            contextProvider
-    );
+            contextProvider);
 
     @Test
     void shouldAllowManagementProfileToListIssuesFromAnyExecution() {
@@ -105,7 +103,6 @@ class ListIssuesByExecutionUseCaseTest {
         return new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.REPRESENTATIVE,
-                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
-        );
+                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE)));
     }
 }

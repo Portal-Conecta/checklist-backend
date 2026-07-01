@@ -9,6 +9,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.templa
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.mapper.ChecklistTemplateMapper;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.SearchItemsByCategoryUseCase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -31,8 +32,9 @@ class ChecklistTemplateControllerTest {
     private final ListChecklistTemplatesUseCase listUseCase        = mock(ListChecklistTemplatesUseCase.class);
     private final EditChecklistTemplateUseCase editUseCase         = mock(EditChecklistTemplateUseCase.class);
     private final ChecklistTemplateMapper mapper                   = mock(ChecklistTemplateMapper.class);
+    private final SearchItemsByCategoryUseCase searchItemsByCategoryUseCase = mock(SearchItemsByCategoryUseCase.class);
     private final ChecklistTemplateController controller           = new ChecklistTemplateController(
-            createUseCase, activateUseCase, findByIdUseCase, listUseCase, editUseCase, createVersionUseCase, mapper);
+            createUseCase, activateUseCase, findByIdUseCase, listUseCase, editUseCase, createVersionUseCase, mapper, searchItemsByCategoryUseCase);
 
     @Test
     @DisplayName("deve retornar ok ao ativar template")

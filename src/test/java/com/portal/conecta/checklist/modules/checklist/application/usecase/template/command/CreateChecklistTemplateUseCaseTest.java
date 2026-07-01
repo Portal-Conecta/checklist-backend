@@ -1,10 +1,8 @@
 package com.portal.conecta.checklist.modules.checklist.application.usecase.template.command;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.CreateChecklistTemplateUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistTemplateRepository;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.CreateChecklistTemplateCommand;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSection;
@@ -37,8 +35,7 @@ class CreateChecklistTemplateUseCaseTest {
             templateRepository,
             hubRoomProvider,
             contextProvider,
-            objectMapper
-    );
+            objectMapper);
 
     @Test
     void shouldCreateTemplateWhenManagerAndRoomExists() {
@@ -95,10 +92,7 @@ class CreateChecklistTemplateUseCaseTest {
                                 "Quadro em bom estado?",
                                 "Verificar quadro",
                                 true,
-                                1
-                        ))
-                )))
-        );
+                                1))))));
     }
 
     private RequestContext user(TypeUser userType) {

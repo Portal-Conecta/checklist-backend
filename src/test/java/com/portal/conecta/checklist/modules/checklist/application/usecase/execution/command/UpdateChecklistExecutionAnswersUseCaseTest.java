@@ -4,12 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionScoringService;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistIssueService;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.SubmitChecklistExecutionCommand;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionDataMapper;
 import com.portal.conecta.checklist.shared.context.ClassRole;
@@ -171,8 +169,7 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
         RequestContext contextComRoleInvalida = new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.REPRESENTATIVE,
-                List.of(new ContextClass(classId, ClassRole.STUDENT))
-        );
+                List.of(new ContextClass(classId, ClassRole.STUDENT)));
         when(contextProvider.getRequestContext()).thenReturn(contextComRoleInvalida);
 
         assertThrows(AccessDeniedException.class,
@@ -207,7 +204,6 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
         return new RequestContext(
                 userId,
                 TypeUser.TEACHER,
-                List.of(new ContextClass(classId, ClassRole.TEACHER))
-        );
+                List.of(new ContextClass(classId, ClassRole.TEACHER)));
     }
 }

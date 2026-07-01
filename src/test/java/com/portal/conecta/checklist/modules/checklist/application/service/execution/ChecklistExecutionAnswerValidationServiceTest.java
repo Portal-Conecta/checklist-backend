@@ -1,6 +1,5 @@
 package com.portal.conecta.checklist.modules.checklist.application.service.execution;
 
-import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ConformityAnswerValue;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.ChecklistAnswerCommand;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
@@ -22,8 +21,7 @@ class ChecklistExecutionAnswerValidationServiceTest {
     void shouldReturnItemsWhenAnswersAreValid() {
         var items = service.validate(schema(), List.of(
                 answer("quadro", ConformityAnswerValue.COMPLIANT, null),
-                answer("iluminacao", ConformityAnswerValue.NON_COMPLIANT, "Lampada queimada")
-        ));
+                answer("iluminacao", ConformityAnswerValue.NON_COMPLIANT, "Lampada queimada")));
 
         assertThat(items).containsKeys("quadro", "iluminacao");
     }
@@ -32,8 +30,7 @@ class ChecklistExecutionAnswerValidationServiceTest {
     void shouldRejectAnswerForUnknownItem() {
         var answers = List.of(
                 answer("quadro", ConformityAnswerValue.COMPLIANT, null),
-                answer("porta", ConformityAnswerValue.COMPLIANT, null)
-        );
+                answer("porta", ConformityAnswerValue.COMPLIANT, null));
 
         assertThrows(IllegalArgumentException.class, () -> service.validate(schema(), answers));
     }
@@ -49,8 +46,7 @@ class ChecklistExecutionAnswerValidationServiceTest {
     void shouldRejectDuplicatedAnswer() {
         var answers = List.of(
                 answer("quadro", ConformityAnswerValue.COMPLIANT, null),
-                answer("quadro", ConformityAnswerValue.NON_COMPLIANT, "Riscado")
-        );
+                answer("quadro", ConformityAnswerValue.NON_COMPLIANT, "Riscado"));
 
         assertThrows(IllegalArgumentException.class, () -> service.validate(schema(), answers));
     }
@@ -59,8 +55,7 @@ class ChecklistExecutionAnswerValidationServiceTest {
     void shouldRejectNonCompliantAnswerWithoutObservation() {
         var answers = List.of(
                 answer("quadro", ConformityAnswerValue.COMPLIANT, null),
-                answer("iluminacao", ConformityAnswerValue.NON_COMPLIANT, " ")
-        );
+                answer("iluminacao", ConformityAnswerValue.NON_COMPLIANT, " "));
 
         assertThrows(IllegalArgumentException.class, () -> service.validate(schema(), answers));
     }
@@ -72,9 +67,7 @@ class ChecklistExecutionAnswerValidationServiceTest {
                 1,
                 List.of(
                         item("quadro", "Quadro em bom estado?"),
-                        item("iluminacao", "Iluminacao adequada?")
-                )
-        )));
+                        item("iluminacao", "Iluminacao adequada?")))));
     }
 
     private ChecklistItem item(String key, String title) {
@@ -84,8 +77,7 @@ class ChecklistExecutionAnswerValidationServiceTest {
     private ChecklistAnswerCommand answer(
             String itemKey,
             ConformityAnswerValue value,
-            String observation
-    ) {
+            String observation) {
         return new ChecklistAnswerCommand(itemKey, value, observation, Instant.now());
     }
 }

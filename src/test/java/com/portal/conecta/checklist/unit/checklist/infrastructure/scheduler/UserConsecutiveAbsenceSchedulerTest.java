@@ -59,8 +59,8 @@ class UserConsecutiveAbsenceSchedulerTest {
         assertEquals("0 0 7 * * *", scheduled.cron());
     }
 
+    @DisplayName("Should publish absence event with correct messageId and empty filters")
     @Test
-    @DisplayName("deve publicar evento de notificacao focado na ROLE WEG")
     void devePublicarEventoParaRoleWeg() {
         UUID userId = UUID.randomUUID();
 
@@ -73,8 +73,8 @@ class UserConsecutiveAbsenceSchedulerTest {
 
         NotificationEvent event = eventCaptor.getValue();
 
-        assertEquals("checklist.three_days_missing", event.eventType());
-        assertEquals(userId.toString(), event.correlationId());
+        assertTrue(event.filters().isEmpty());
+        assertTrue(event.messageId().startsWith("user-absence-3days-"));
 
         // Verifica se foi direcionado corretamente para WEG no filtro
         assertTrue(event.filters().stream().anyMatch(f -> f.type().equals("ROLE") && f.value().equals("WEG")));

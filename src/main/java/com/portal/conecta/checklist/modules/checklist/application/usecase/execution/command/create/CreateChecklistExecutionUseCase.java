@@ -19,6 +19,7 @@ import com.portal.conecta.checklist.modules.checklist.application.port.out.integ
 import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CreateChecklistExecutionUseCase {
@@ -45,6 +47,9 @@ public class CreateChecklistExecutionUseCase {
 
     @Transactional
     public ChecklistExecution execute(CreateChecklistExecutionCommand command) {
+        log.info("Criando rascunho de checklist templateId={} classId={} roomId={}",
+                command.templateId(), command.classId(), command.roomId());
+
         ChecklistTemplate template = templateRepository.findById(command.templateId())
                 .orElseThrow(() -> new EntityNotFoundException("Template nao encontrado."));
 
@@ -96,7 +101,11 @@ public class CreateChecklistExecutionUseCase {
 
         ChecklistExecution execution = executionMapper.toDraftEntity(command, template, currentUser.userId(), now, shift, period);
 
-        return repository.save(execution);
+        ChecklistExecution created = repository.save(execution);
+        log.info("Rascunho de checklist criado com sucesso executionId={} classId={}",
+                created.getId(), created.getClassId());
+
+        return created;
     }
 
     private void requireShiftPresent(ClassReference classReference) {

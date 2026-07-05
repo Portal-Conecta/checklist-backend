@@ -14,6 +14,7 @@ import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSch
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import java.util.UUID;
 /**
  * Caso de uso responsavel por submeter uma execucao de checklist.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubmitChecklistExecutionUseCase {
@@ -45,6 +47,8 @@ public class SubmitChecklistExecutionUseCase {
 
     @Transactional
     public ChecklistExecution execute(UUID executionId, SubmitChecklistExecutionCommand command) {
+        log.info("Submetendo checklist executionId={}", executionId);
+
         ChecklistExecution execution = executionRepository.findById(executionId)
                 .orElseThrow(() -> new EntityNotFoundException("Execucao de checklist nao encontrada."));
 
@@ -74,6 +78,10 @@ public class SubmitChecklistExecutionUseCase {
         execution.setSubmittedAt(LocalDateTime.now(ZoneId.of(timezone)));
         issueService.createIssuesForNonCompliantAnswers(execution, command.answers(), itemsByKey);
 
-        return executionRepository.save(execution);
+        ChecklistExecution submitted = executionRepository.save(execution);
+        log.info("Checklist submetido com sucesso executionId={} classId={} score={}%",
+                submitted.getId(), submitted.getClassId(), submitted.getComplianceScore());
+
+        return submitted;
     }
 }

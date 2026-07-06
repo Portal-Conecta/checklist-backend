@@ -17,24 +17,17 @@ Cada ADR captura **uma decisão**, seu **contexto**, as **alternativas** e as **
 | [0006](0006-autorizacao-local-checklist.md) | Autorização local por `userType` + `classes[].role` | Implementado | 2026-06-24 |
 | [0007](0007-integracao-hub-ports-adapters.md) | Integração com o Hub via portas e adaptadores (OpenFeign) | Implementado (pendências de contrato) | 2026-06-24 |
 | [0008](0008-contrato-de-erro-apierror.md) | Contrato de erro padronizado (`ApiError`) | Implementado | 2026-06-24 |
+| [0009](0009-mensageria-eventos-notificacao.md) | Mensageria de eventos de notificação (RabbitMQ) | Aceito (código na branch `#182`) | 2026-07-05 |
+| [0010](0010-modulo-notificacoes.md) | Responsabilidade de notificações e (não) módulo local | Proposto | 2026-07-05 |
 | [0011](0011-persistencia-jsonb-schema-respostas.md) | Persistência em `JSONB` do schema e das respostas | Implementado | 2026-07-05 |
 | [0012](0012-versionamento-imutabilidade-template.md) | Versionamento e imutabilidade de templates (snapshot) | Implementado | 2026-07-05 |
 | [0013](0013-conformidade-e-geracao-de-issues.md) | Cálculo de conformidade e geração de pendências | Implementado | 2026-07-05 |
 
-### Propostos / planejados
-
-| # | Decisão | Status |
-|---|---|---|
-| 0009 | Mensageria de eventos de notificação (RabbitMQ) | A documentar — código existe (`NotificationEventPublisher` → `RabbitMQNotificationPublisher`) |
-| 0010 | Módulo de notificações (`modules/notification`) | A documentar — pacote reservado, ainda sem implementação |
-
 > **Histórico de numeração:** o ADR-0001 substitui e traduz o antigo
 > `0001-modular-layered-architecture.md` (inglês) e absorve a proposta paralela de ports & adapters.
 > Os ADRs 0002–0007 foram migrados do vault `back-recorders` (numeração original 001–006) e
-> renumerados para a sequência coerente acima.
-> Os números **0009 e 0010 seguem reservados** para as decisões planejadas acima; os ADRs
-> 0011–0013 documentam decisões críticas já implementadas (JSONB, versionamento/snapshot e
-> conformidade/issues), por isso a sequência escrita salta de 0008 para 0011.
+> renumerados para a sequência coerente acima. Os ADRs 0009–0013 foram adicionados em 2026-07-05
+> (mensageria, notificações, JSONB, versionamento/snapshot e conformidade/issues).
 
 ---
 

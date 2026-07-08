@@ -9,11 +9,15 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -22,18 +26,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  *
  * <p>Define:</p>
  * <ul>
- *   <li>Política stateless (sem sessão HTTP).</li>
- *   <li>CSRF, form login, HTTP basic e logout desabilitados.</li>
- *   <li>Rotas públicas: {@code GET /actuator/health} e {@code GET /actuator/info}.
- *       Swagger liberado condicionalmente via {@code checklist.security.swagger-public=true}.</li>
- *   <li>As demais rotas exigem autenticação.</li>
- *   <li>{@link HubJwtAuthenticationFilter} inserido antes do filtro padrão do Spring Security.</li>
- *   <li>Respostas padronizadas para {@code 401 Unauthorized} e {@code 403 Forbidden}
- *       via {@link SecurityErrorResponseWriter}.</li>
+ * <li>Política stateless (sem sessão HTTP).</li>
+ * <li>Filtro dedicado com Basic Auth exclusivo para o scraper do Prometheus.</li>
+ * <li>Rotas públicas: {@code GET /actuator/health}, {@code GET /actuator/info} e {@code GET /actuator/prometheus} (esta última agora protegida por Basic Auth).
+ * Swagger liberado condicionalmente via {@code checklist.security.swagger-public=true}.</li>
+ * <li>As demais rotas exigem autenticação via JWT.</li>
+ * <li>{@link HubJwtAuthenticationFilter} inserido antes do filtro padrão do Spring Security.</li>
+ * <li>Respostas padronizadas para {@code 401 Unauthorized} e {@code 403 Forbidden}
+ * via {@link SecurityErrorResponseWriter}.</li>
  * </ul>
- *
- * <p>O bean do {@link HubJwtAuthenticationFilter} é desregistrado do servlet container
- * para evitar dupla execução — é gerenciado exclusivamente pelo Spring Security.</p>
  */
 @Configuration
 @RequiredArgsConstructor
@@ -63,7 +64,35 @@ public class SecurityConfig {
             "/v3/api-docs/**"
     };
 
+    /**
+     * Filtro dedicado de segurança para o endpoint do Prometheus.
+     * Intercepta requisições ao /actuator/prometheus e exige Basic Auth.
+     */
     @Bean
+    @Order(1) // Executa PRIMEIRO
+    public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .securityMatcher("/actuator/prometheus") // Alvo restrito
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("MONITORING"))
+                .httpBasic(Customizer.withDefaults()) // Ativa caixinha de login básico
+                .userDetailsService(new InMemoryUserDetailsManager(
+                        User.withUsername("prometheus")
+                                .password("{noop}SenhaSeguraDoPrometheus123")
+                                .roles("MONITORING")
+                                .build()
+                ))
+                .build();
+    }
+
+    /**
+     * Filtro principal da aplicação (Autenticação baseada em JWT).
+     */
+    @Bean
+    @Order(2) // Executa SEGUNDO
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -88,7 +117,8 @@ public class SecurityConfig {
                                 ))
                 )
                 .authorizeHttpRequests(authorize -> {
-                    authorize.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll();
+                    // REMOVIDO o /actuator/prometheus daqui porque ele já é tratado no filtro de cima
+                    authorize.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll();
 
                     if (swaggerPublic) {
                         authorize.requestMatchers(SWAGGER_PATHS).permitAll();

@@ -1,4 +1,4 @@
-package main.java.com.portal.conecta.checklist.shared.messaging.notification;
+package com.portal.conecta.checklist.shared.messaging.notification;
 
 public final class NotificationEventType {
 

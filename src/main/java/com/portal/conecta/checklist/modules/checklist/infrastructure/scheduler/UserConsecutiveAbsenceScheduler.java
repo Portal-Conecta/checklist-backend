@@ -38,7 +38,7 @@ public class UserConsecutiveAbsenceScheduler {
     }
 
     private void publishThreeDaysAbsenceNotification(UUID userId) {
-        var filters = List.of(new NotificationEvent.NotificationFilter("ROLE", "WEG"));
+        var filters = List.<NotificationEvent.NotificationFilter>of();
         var scope = List.of(new NotificationEvent.NotificationScope("USER", userId.toString()));
 
         Map<String, Object> metadata = Map.of(

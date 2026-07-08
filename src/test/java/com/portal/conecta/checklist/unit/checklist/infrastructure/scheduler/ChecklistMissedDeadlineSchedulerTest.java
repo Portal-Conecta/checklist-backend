@@ -2,6 +2,7 @@ package com.portal.conecta.checklist.unit.checklist.infrastructure.scheduler;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.messaging.NotificationEventPublisher;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
+import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.MissedChecklistSummary;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.scheduler.ChecklistMissedDeadlineScheduler;
 import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,8 +69,11 @@ class ChecklistMissedDeadlineSchedulerTest {
         UUID classId1 = UUID.randomUUID();
         UUID classId2 = UUID.randomUUID();
 
+        MissedChecklistSummary summary1 = missedChecklistSummary(classId1, "ARRIVAL");
+        MissedChecklistSummary summary2 = missedChecklistSummary(classId2, "ARRIVAL");
+
         when(executionRepository.findClassIdsWithMissedChecklist(any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(List.of(classId1, classId2));
+                .thenReturn(List.of(summary1, summary2));
 
         scheduler.checkPendingChecklists();
 
@@ -86,5 +90,19 @@ class ChecklistMissedDeadlineSchedulerTest {
         // Verifica se o contrato de filters/scope está respeitado
         assertTrue(firstEvent.filters().stream().anyMatch(f -> f.type().equals("ROLE") && f.value().equals("REPRESENTATIVE")));
         assertTrue(firstEvent.scope().stream().anyMatch(s -> s.type().equals("CLASS") && s.correlationId().equals(classId1.toString())));
+    }
+
+    private MissedChecklistSummary missedChecklistSummary(UUID classId, String checklistType) {
+        return new MissedChecklistSummary() {
+            @Override
+            public UUID getClassId() {
+                return classId;
+            }
+
+            @Override
+            public String getChecklistType() {
+                return checklistType;
+            }
+        };
     }
 }

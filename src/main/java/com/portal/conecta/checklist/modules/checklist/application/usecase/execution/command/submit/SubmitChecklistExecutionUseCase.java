@@ -77,6 +77,7 @@ public class SubmitChecklistExecutionUseCase {
         ChecklistExecution savedExecution = executionRepository.save(execution);
 
         if (savedExecution.getComplianceScore().compareTo(new java.math.BigDecimal("100")) < 0) {
+            applicationEventPublisher.publishEvent(new ChecklistNonComplianceEvent(savedExecution));
         }
 
         return savedExecution;

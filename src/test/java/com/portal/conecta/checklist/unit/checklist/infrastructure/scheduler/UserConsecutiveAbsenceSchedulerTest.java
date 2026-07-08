@@ -76,8 +76,6 @@ class UserConsecutiveAbsenceSchedulerTest {
         assertTrue(event.filters().isEmpty());
         assertTrue(event.messageId().startsWith("user-absence-3days-"));
 
-        // Verifica se foi direcionado corretamente para WEG no filtro
-        assertTrue(event.filters().stream().anyMatch(f -> f.type().equals("ROLE") && f.value().equals("WEG")));
         // Verifica se o escopo aponta pro usuario correto
         assertTrue(event.scope().stream().anyMatch(s -> s.type().equals("USER") && s.correlationId().equals(userId.toString())));
     }

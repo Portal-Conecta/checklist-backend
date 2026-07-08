@@ -4,6 +4,7 @@ import com.portal.conecta.checklist.modules.checklist.application.port.out.messa
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.ChecklistNonComplianceEvent;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
+import com.portal.conecta.checklist.shared.messaging.notification.NotificationEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -27,7 +28,7 @@ public class ChecklistNonComplianceEventListener {
                 "checklist-noncompliance-" + execution.getId(),
                 execution.getId().toString(),
                 "checklist-service",
-                "checklist.non_compliance.created",
+                NotificationEventType.CHECKLIST_NON_COMPLIANCE_CREATED,
                 Instant.now(),
                 "Não Conformidade Identificada",
                 "Um checklist foi submetido com itens não conformes na turma. Pontuação: " + execution.getComplianceScore() + "%.",

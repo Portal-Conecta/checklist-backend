@@ -2,6 +2,11 @@ package com.portal.conecta.checklist.modules.checklist.issues.presentation.contr
 
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.query.ListIssuesByExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.ResolveIssueUseCase;
+import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.StartIssueProgressUseCase;
+import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.ValidateIssueUseCase;
+import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.ReopenIssueUseCase;
+import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.ResumeIssueUseCase;
+import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.CancelIssueUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.presentation.dto.response.ChecklistIssueResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.issues.presentation.mapper.ChecklistIssueMapper;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +23,11 @@ public class ChecklistIssueController {
 
     private final ListIssuesByExecutionUseCase listByExecutionUseCase;
     private final ResolveIssueUseCase resolveUseCase;
+    private final StartIssueProgressUseCase startUseCase;
+    private final ValidateIssueUseCase validateUseCase;
+    private final ReopenIssueUseCase reopenUseCase;
+    private final ResumeIssueUseCase resumeUseCase;
+    private final CancelIssueUseCase cancelUseCase;
     private final ChecklistIssueMapper mapper;
 
     @GetMapping("/execution/{executionId}")
@@ -25,8 +35,34 @@ public class ChecklistIssueController {
         return ResponseEntity.ok(mapper.toResponseList(listByExecutionUseCase.execute(executionId)));
     }
 
+    @PatchMapping("/{issueId}/start")
+    public ResponseEntity<ChecklistIssueResponseDTO> start(@PathVariable UUID issueId) {
+        return ResponseEntity.ok(mapper.toResponse(startUseCase.execute(issueId)));
+    }
+
     @PatchMapping("/{issueId}/resolve")
     public ResponseEntity<ChecklistIssueResponseDTO> resolve(@PathVariable UUID issueId) {
         return ResponseEntity.ok(mapper.toResponse(resolveUseCase.execute(issueId)));
     }
+
+    @PatchMapping("/{issueId}/validate")
+    public ResponseEntity<ChecklistIssueResponseDTO> validate(@PathVariable UUID issueId) {
+        return ResponseEntity.ok(mapper.toResponse(validateUseCase.execute(issueId)));
+    }
+
+    @PatchMapping("/{issueId}/reopen")
+    public ResponseEntity<ChecklistIssueResponseDTO> reopen(@PathVariable UUID issueId) {
+        return ResponseEntity.ok(mapper.toResponse(reopenUseCase.execute(issueId)));
+    }
+
+    @PatchMapping("/{issueId}/resume")
+    public ResponseEntity<ChecklistIssueResponseDTO> resume(@PathVariable UUID issueId) {
+        return ResponseEntity.ok(mapper.toResponse(resumeUseCase.execute(issueId)));
+    }
+
+    @PatchMapping("/{issueId}/cancel")
+    public ResponseEntity<ChecklistIssueResponseDTO> cancel(@PathVariable UUID issueId) {
+        return ResponseEntity.ok(mapper.toResponse(cancelUseCase.execute(issueId)));
+    }
 }
+

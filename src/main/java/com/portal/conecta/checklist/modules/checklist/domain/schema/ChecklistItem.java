@@ -25,5 +25,12 @@ public record ChecklistItem(
         Boolean required,
 
         @NotNull(message = "item.order e obrigatorio.")
-        Integer order
-) {}
+        Integer order,
+
+        @Size(max = 100, message = "item.category deve ter no maximo 100 caracteres.")
+        String category
+) {
+    public ChecklistItem(String key, String title, String description, Boolean required, Integer order) {
+        this(key, title, description, required, order, null);
+    }
+}

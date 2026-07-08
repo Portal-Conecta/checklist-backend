@@ -7,12 +7,13 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.templa
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.find.FindChecklistTemplateByIdUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.list.ListChecklistTemplatesUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchChecklistItemUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchItemsByCategoryUseCase;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemSearchResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateEditRequest;
 import com.portal.conecta.checklist.modules.checklist.presentation.mapper.ChecklistTemplateMapper;
-import com.portal.conecta.checklist.shared.exception.ApiError;
+import com.portal.conecta.checklist.shared.exception.ErrorResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -35,6 +36,7 @@ import java.util.UUID;
 public class ChecklistTemplateController {
 
     private final SearchChecklistItemUseCase searchChecklistItemUseCase;
+    private final SearchItemsByCategoryUseCase searchItemsByCategoryUseCase;
     private final CreateChecklistTemplateUseCase createUseCase;
     private final ActivateChecklistTemplateUseCase activateUseCase;
     private final FindChecklistTemplateByIdUseCase findByIdUseCase;
@@ -230,7 +232,7 @@ public class ChecklistTemplateController {
                 .body(mapper.toResponse(createVersionUseCase.execute(templateId)));
     }
 
-    @GetMapping("/items/search")
+    @GetMapping(value = "/items/search", params = "query")
     public ResponseEntity<List<ChecklistItemSearchResponseDTO>> searchItems(@RequestParam("query") String query) {
         List<ChecklistItemSearchResponseDTO> response = searchChecklistItemUseCase.execute(query)
                 .stream()
@@ -238,5 +240,36 @@ public class ChecklistTemplateController {
                 .toList();
 
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+            summary = "Buscar itens por categoria",
+            description = "Retorna uma lista de itens de templates ativos que correspondem à categoria fornecida."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Itens encontrados com sucesso (pode ser lista vazia)",
+                    content = @Content(schema = @Schema(implementation = ChecklistItemSearchResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Não autenticado — token JWT ausente ou inválido",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Sem permissão para acessar o módulo de checklist",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno inesperado no servidor",
+                    content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+            )
+    })
+    @GetMapping(value = "/items/search", params = "category")
+    public ResponseEntity<List<ChecklistItemSearchResponseDTO>> searchItemsByCategory(@RequestParam String category) {
+        return ResponseEntity.ok(searchItemsByCategoryUseCase.execute(category));
     }
 }

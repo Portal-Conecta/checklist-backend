@@ -6,7 +6,7 @@ import com.portal.conecta.checklist.modules.checklist.issues.application.usecase
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.validate.ValidateIssueUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.reopen.ReopenIssueUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.start.RestartProgressIssueUseCase;
-import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.CancelIssueUseCase;
+import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.cancel.CancelIssueUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.presentation.dto.response.ChecklistIssueResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.issues.presentation.mapper.ChecklistIssueMapper;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.issues.presentation.controller;
 
-import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.*;
-import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.CancelIssueUseCase;
+import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.cancel.CancelIssueUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.reopen.ReopenIssueUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.resolved.ResolveIssueUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.start.RestartProgressIssueUseCase;

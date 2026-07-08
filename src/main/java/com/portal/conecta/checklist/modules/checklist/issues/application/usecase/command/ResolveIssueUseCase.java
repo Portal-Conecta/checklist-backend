@@ -11,6 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+/**
+ * Caso de uso para transicao IN_PROGRESS → RESOLVED.
+ *
+ * <p>Apenas WEG e SENAI podem resolver pendencias. A transicao e validada pelo
+ * dominio — qualquer outro status resulta em {@code InvalidIssueTransitionException}
+ * (HTTP 422).</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class ResolveIssueUseCase {

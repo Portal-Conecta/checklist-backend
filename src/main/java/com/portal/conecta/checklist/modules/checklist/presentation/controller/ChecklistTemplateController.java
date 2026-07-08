@@ -205,11 +205,11 @@ public class ChecklistTemplateController {
     @Operation(summary = "Editar Template", description = "Atualiza parcialmente um template com status DRAFT. Campos não informados são mantidos.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Template atualizado com sucesso."),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos na requisição."),
-            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para editar templates"),
-            @ApiResponse(responseCode = "404", description = "Template não encontrado."),
-            @ApiResponse(responseCode = "422", description = "Template não está em status DRAFT.")
-
+            @ApiResponse(responseCode = "400", description = "Dados inválidos na requisição.", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Token ausente ou inválido", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para editar templates", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Template não encontrado.", content = @Content),
+            @ApiResponse(responseCode = "409", description = "Template não está em status DRAFT.", content = @Content)
     })
     @PatchMapping("/{templateId}")
     public ResponseEntity<ChecklistTemplateResponseDTO> editTemplate(@PathVariable UUID templateId, @RequestBody @Valid ChecklistTemplateEditRequest request){
@@ -219,9 +219,10 @@ public class ChecklistTemplateController {
     @Operation(summary = "Criar nova versão", description = "Cria uma nova versão em DRAFT a partir de um template ACTIVE, preservando o histórico")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Nova versão criada com sucesso."),
-            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para versionar templates."),
-            @ApiResponse(responseCode = "404", description = "Template não encontrado"),
-            @ApiResponse(responseCode = "422", description = "Template não está em status ACTIVE.")
+            @ApiResponse(responseCode = "401", description = "Token ausente ou inválido", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para versionar templates.", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Template não encontrado", content = @Content),
+            @ApiResponse(responseCode = "409", description = "Template não está em status ACTIVE.", content = @Content)
     })
     @PostMapping("/{templateId}/new-version")
     public ResponseEntity<ChecklistTemplateResponseDTO> createNewVersion(
@@ -230,6 +231,16 @@ public class ChecklistTemplateController {
                 .body(mapper.toResponse(createVersionUseCase.execute(templateId)));
     }
 
+    @Operation(
+            summary = "Buscar itens do template por categoria",
+            description = "Retorna os itens de um template filtrados por categoria. Requer template ativo ou draft visível ao perfil."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Itens encontrados"),
+            @ApiResponse(responseCode = "401", description = "Token ausente ou inválido", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Perfil sem acesso ao template draft", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Template não encontrado", content = @Content)
+    })
     @GetMapping("/items/search")
     public ResponseEntity<List<ChecklistItemSearchResponseDTO>> searchItems(@RequestParam("query") String query) {
         List<ChecklistItemSearchResponseDTO> response = searchChecklistItemUseCase.execute(query)

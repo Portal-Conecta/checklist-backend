@@ -17,14 +17,14 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class ResumeIssueUseCaseTest {
+class RestartProgressIssueUseCaseTest {
 
     private final ChecklistIssueRepositoryPort repository = mock(ChecklistIssueRepositoryPort.class);
     private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
-    private final ResumeIssueUseCase useCase = new ResumeIssueUseCase(repository, contextProvider);
+    private final RestartProgressIssueUseCase useCase = new RestartProgressIssueUseCase(repository, contextProvider);
 
     @Test
-    void shouldAllowWegOrSenaiToResumeIssue() {
+    void shouldAllowWegOrSenaiToRestartProgress() {
         UUID issueId = UUID.randomUUID();
         ChecklistIssue issue = ChecklistIssue.builder()
                 .id(issueId)

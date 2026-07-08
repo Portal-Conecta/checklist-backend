@@ -24,7 +24,7 @@ class ChecklistIssueControllerTest {
     private final StartIssueProgressUseCase startUseCase = mock(StartIssueProgressUseCase.class);
     private final ValidateIssueUseCase validateUseCase = mock(ValidateIssueUseCase.class);
     private final ReopenIssueUseCase reopenUseCase = mock(ReopenIssueUseCase.class);
-    private final ResumeIssueUseCase resumeUseCase = mock(ResumeIssueUseCase.class);
+    private final RestartProgressIssueUseCase restartProgressUseCase = mock(RestartProgressIssueUseCase.class);
     private final CancelIssueUseCase cancelUseCase = mock(CancelIssueUseCase.class);
     private final ChecklistIssueMapper mapper = mock(ChecklistIssueMapper.class);
 
@@ -34,7 +34,7 @@ class ChecklistIssueControllerTest {
             startUseCase,
             validateUseCase,
             reopenUseCase,
-            resumeUseCase,
+            restartProgressUseCase,
             cancelUseCase,
             mapper
     );
@@ -132,14 +132,14 @@ class ChecklistIssueControllerTest {
         ChecklistIssue issue = mock(ChecklistIssue.class);
         ChecklistIssueResponseDTO response = mock(ChecklistIssueResponseDTO.class);
 
-        when(resumeUseCase.execute(issueId)).thenReturn(issue);
+        when(restartProgressUseCase.execute(issueId)).thenReturn(issue);
         when(mapper.toResponse(issue)).thenReturn(response);
 
-        ResponseEntity<ChecklistIssueResponseDTO> result = controller.resume(issueId);
+        ResponseEntity<ChecklistIssueResponseDTO> result = controller.restartProgress(issueId);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
-        verify(resumeUseCase).execute(issueId);
+        verify(restartProgressUseCase).execute(issueId);
     }
 
     @Test

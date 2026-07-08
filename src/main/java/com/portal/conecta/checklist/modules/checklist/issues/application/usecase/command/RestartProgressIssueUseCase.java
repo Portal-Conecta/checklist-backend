@@ -14,13 +14,14 @@ import java.util.UUID;
 /**
  * Caso de uso para transicao REOPENED → IN_PROGRESS.
  *
- * <p>Apenas WEG e SENAI podem retomar o atendimento de uma pendencia reaberta.
- * A transicao e validada pelo dominio — qualquer outro status resulta em
- * {@code InvalidIssueTransitionException} (HTTP 422).</p>
+ * <p>Retoma o atendimento de uma pendencia apos ela ter sido reaberta pelo SENAI.
+ * Apenas WEG e SENAI podem reiniciar o atendimento. A transicao e validada pelo
+ * dominio — qualquer outro status resulta em {@code InvalidIssueTransitionException}
+ * (HTTP 422).</p>
  */
 @Service
 @RequiredArgsConstructor
-public class ResumeIssueUseCase {
+public class RestartProgressIssueUseCase {
 
     private final ChecklistIssueRepositoryPort repository;
     private final RequestContextProvider contextProvider;
@@ -34,7 +35,7 @@ public class ResumeIssueUseCase {
         ChecklistIssue issue = repository.findById(issueId)
                 .orElseThrow(() -> new EntityNotFoundException("Pendencia nao encontrada."));
 
-        issue.resume();
+        issue.restartProgress();
 
         return repository.save(issue);
     }

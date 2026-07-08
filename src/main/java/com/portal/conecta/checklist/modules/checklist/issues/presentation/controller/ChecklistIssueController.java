@@ -5,7 +5,7 @@ import com.portal.conecta.checklist.modules.checklist.issues.application.usecase
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.StartIssueProgressUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.ValidateIssueUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.ReopenIssueUseCase;
-import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.ResumeIssueUseCase;
+import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.RestartProgressIssueUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.CancelIssueUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.presentation.dto.response.ChecklistIssueResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.issues.presentation.mapper.ChecklistIssueMapper;
@@ -26,7 +26,7 @@ public class ChecklistIssueController {
     private final StartIssueProgressUseCase startUseCase;
     private final ValidateIssueUseCase validateUseCase;
     private final ReopenIssueUseCase reopenUseCase;
-    private final ResumeIssueUseCase resumeUseCase;
+    private final RestartProgressIssueUseCase restartProgressUseCase;
     private final CancelIssueUseCase cancelUseCase;
     private final ChecklistIssueMapper mapper;
 
@@ -55,9 +55,9 @@ public class ChecklistIssueController {
         return ResponseEntity.ok(mapper.toResponse(reopenUseCase.execute(issueId)));
     }
 
-    @PatchMapping("/{issueId}/resume")
-    public ResponseEntity<ChecklistIssueResponseDTO> resume(@PathVariable UUID issueId) {
-        return ResponseEntity.ok(mapper.toResponse(resumeUseCase.execute(issueId)));
+    @PatchMapping("/{issueId}/restart-progress")
+    public ResponseEntity<ChecklistIssueResponseDTO> restartProgress(@PathVariable UUID issueId) {
+        return ResponseEntity.ok(mapper.toResponse(restartProgressUseCase.execute(issueId)));
     }
 
     @PatchMapping("/{issueId}/cancel")

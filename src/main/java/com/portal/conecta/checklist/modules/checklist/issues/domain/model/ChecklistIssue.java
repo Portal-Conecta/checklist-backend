@@ -126,7 +126,7 @@ public class ChecklistIssue {
      * REOPENED → IN_PROGRESS.
      * Retoma o atendimento apos reabertura.
      */
-    public void resume() {
+    public void restartProgress() {
         if (this.status != IssueStatus.REOPENED) {
             throw new InvalidIssueTransitionException(this.status, IssueStatus.IN_PROGRESS);
         }

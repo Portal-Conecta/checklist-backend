@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.domain.schema;
 
+import com.portal.conecta.checklist.modules.checklist.domain.enums.AnswerType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -7,8 +8,8 @@ import jakarta.validation.constraints.Size;
 /**
  * DTO que descreve um item dentro do schema de checklist.
  *
- * <p>Define chave estavel, titulo, descricao, obrigatoriedade e ordem de
- * exibicao usados durante a execucao.</p>
+ * <p>Define chave estavel, titulo, descricao, tipo de resposta esperado,
+ * obrigatoriedade e ordem de exibicao usados durante a execucao.</p>
  */
 public record ChecklistItem(
         @NotBlank(message = "item.key e obrigatorio.")
@@ -21,9 +22,18 @@ public record ChecklistItem(
         @Size(max = 250, message = "item.description deve ter no maximo 250 caracteres.")
         String description,
 
+        @NotNull(message = "item.answerType e obrigatorio.")
+        AnswerType answerType,
+
         @NotNull(message = "item.required e obrigatorio.")
         Boolean required,
 
         @NotNull(message = "item.order e obrigatorio.")
         Integer order
-) {}
+) {
+    public ChecklistItem {
+        if(answerType == null){
+            answerType = AnswerType.CONFORMITY;
+        }
+    }
+}

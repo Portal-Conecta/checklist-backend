@@ -65,7 +65,9 @@ public class SubmitChecklistExecutionUseCase {
                 execution.getChecklistTemplate().getSchemaJson(),
                 ChecklistSchema.class
         );
-
+        // TODO: O campo AnswerType foi introduzido no schema (ChecklistItem), mas as validacoes
+        // de formato de resposta (TEXT, NUMBER) serao implementadas em uma PR futura.
+        // Atualmente, apenas respostas COMPLIANT/NON_COMPLIANT sao validadas.
         Map<String, ChecklistItem> itemsByKey = answerValidationService.validate(schema, command.answers());
 
         execution.setAnswersJson(executionMapper.toAnswersJson(command));

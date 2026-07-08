@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command;
+package com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.resolved;
 
 import com.portal.conecta.checklist.modules.checklist.issues.application.port.out.persistence.ChecklistIssueRepositoryPort;
 import com.portal.conecta.checklist.modules.checklist.issues.domain.enums.IssueStatus;

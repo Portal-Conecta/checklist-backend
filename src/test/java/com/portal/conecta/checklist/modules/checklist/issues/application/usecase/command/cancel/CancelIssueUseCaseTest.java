@@ -1,6 +1,8 @@
-package com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command;
+package com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.cancel;
 
 import com.portal.conecta.checklist.modules.checklist.issues.application.port.out.persistence.ChecklistIssueRepositoryPort;
+import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.CancelIssueUseCase;
+import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.cancel.CancelIssueUseCaseTest;
 import com.portal.conecta.checklist.modules.checklist.issues.domain.enums.IssueStatus;
 import com.portal.conecta.checklist.modules.checklist.issues.domain.exception.InvalidIssueTransitionException;
 import com.portal.conecta.checklist.modules.checklist.issues.domain.model.ChecklistIssue;
@@ -21,7 +23,7 @@ class CancelIssueUseCaseTest {
 
     private final ChecklistIssueRepositoryPort repository = mock(ChecklistIssueRepositoryPort.class);
     private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
-    private final CancelIssueUseCase useCase = new CancelIssueUseCase(repository, contextProvider);
+    private final com.portal.conecta.checklist.modules.checklist.issues.application.usecase.command.CancelIssueUseCase useCase = new CancelIssueUseCase(repository, contextProvider);
 
     @Test
     void shouldAllowWegOrSenaiToCancelOpenIssue() {

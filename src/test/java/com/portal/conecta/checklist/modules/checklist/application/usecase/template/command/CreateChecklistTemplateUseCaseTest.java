@@ -82,6 +82,21 @@ class CreateChecklistTemplateUseCaseTest {
         verify(templateRepository, never()).save(any());
     }
 
+    @Test
+    void shouldDefaultToConformityWhenAnswerTypeIsNullInChecklistItem() {
+        // Teste solicitado no Code Review para garantir o fallback de retrocompatibilidade
+        ChecklistItem item = new ChecklistItem(
+                "item-teste-retrocompatibilidade",
+                "Quadro em bom estado?",
+                "Verificar quadro",
+                null, // Passando null de propósito para forçar o construtor compacto a agir
+                true,
+                1
+        );
+
+        assertThat(item.answerType()).isEqualTo(AnswerType.CONFORMITY);
+    }
+
     private CreateChecklistTemplateCommand command(UUID roomId) {
         return new CreateChecklistTemplateCommand(
                 roomId,

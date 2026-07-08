@@ -22,7 +22,6 @@ public record ChecklistItem(
         @Size(max = 250, message = "item.description deve ter no maximo 250 caracteres.")
         String description,
 
-        @NotNull(message = "item.answerType e obrigatorio.")
         AnswerType answerType,
 
         @NotNull(message = "item.required e obrigatorio.")

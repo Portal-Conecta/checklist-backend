@@ -1,15 +1,5 @@
 package com.portal.conecta.checklist.modules.checklist.application.service.window;
 
-import com.portal.conecta.checklist.modules.checklist.application.service.window.SubmissionWindowValidator;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
-import com.portal.conecta.checklist.modules.checklist.domain.exception.SubmissionWindowViolationException;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistSubmissionWindow;
-import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistSubmissionWindowRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
-
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Optional;
@@ -17,8 +7,17 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
+import com.portal.conecta.checklist.modules.checklist.domain.exception.SubmissionWindowViolationException;
+import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistSubmissionWindow;
+import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistSubmissionWindowRepository;
 
 class SubmissionWindowValidatorTest {
 

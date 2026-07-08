@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.application.usecase.template.query;
 
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.ListChecklistTemplatesUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistTemplateRepository;
@@ -27,7 +28,8 @@ class ListChecklistTemplatesUseCaseTest {
     private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
     private final ListChecklistTemplatesUseCase useCase = new ListChecklistTemplatesUseCase(
             templateRepository,
-            contextProvider);
+            contextProvider
+    );
 
     @Test
     void shouldRejectApprenticeAccess() {
@@ -42,8 +44,8 @@ class ListChecklistTemplatesUseCaseTest {
     @Test
     void shouldAllowManagementAccessToAllTemplates() {
         List<ChecklistTemplate> templates = List.of(
-                ChecklistTemplate.builder().id(UUID.randomUUID()).active(false).status(ChecklistTemplateStatus.DRAFT)
-                        .build());
+                ChecklistTemplate.builder().id(UUID.randomUUID()).active(false).status(ChecklistTemplateStatus.DRAFT).build()
+        );
 
         when(contextProvider.getRequestContext()).thenReturn(senai());
         when(templateRepository.findAll()).thenReturn(templates);
@@ -58,8 +60,8 @@ class ListChecklistTemplatesUseCaseTest {
     @Test
     void shouldAllowOperationalAccessToActiveTemplatesOnly() {
         List<ChecklistTemplate> templates = List.of(
-                ChecklistTemplate.builder().id(UUID.randomUUID()).active(true).status(ChecklistTemplateStatus.ACTIVE)
-                        .build());
+                ChecklistTemplate.builder().id(UUID.randomUUID()).active(true).status(ChecklistTemplateStatus.ACTIVE).build()
+        );
 
         when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID()));
         when(templateRepository.findAllByActiveTrueAndStatus(ChecklistTemplateStatus.ACTIVE)).thenReturn(templates);
@@ -83,6 +85,7 @@ class ListChecklistTemplatesUseCaseTest {
         return new RequestContext(
                 UUID.randomUUID(),
                 TypeUser.REPRESENTATIVE,
-                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE)));
+                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
+        );
     }
 }

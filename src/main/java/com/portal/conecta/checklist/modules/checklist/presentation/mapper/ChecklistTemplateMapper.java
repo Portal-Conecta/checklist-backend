@@ -47,14 +47,14 @@ public class ChecklistTemplateMapper {
             return List.of();
         }
         List<UUID> roomIds = templates.stream()
-                .map(ChecklistTemplate::getRoomId)
+                .map(template -> template.getRoomId())
                 .toList();
 
         Map<UUID, RoomReference> roomMap = Map.of();
         try {
             List<RoomReference> rooms = hubRoomProvider.findByIds(roomIds);
             roomMap = rooms.stream()
-                    .collect(Collectors.toMap(RoomReference::getRoomId, room -> room, (r1, r2) -> r1));
+                    .collect(Collectors.toMap(room -> room.getRoomId(), room -> room, (r1, r2) -> r1));
         } catch (Exception e) {
             log.warn("Falha ao buscar salas no Hub para lista de templates: {}", e.getMessage());
         }

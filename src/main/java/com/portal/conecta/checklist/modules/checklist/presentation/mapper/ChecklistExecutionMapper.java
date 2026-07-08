@@ -49,23 +49,23 @@ public class ChecklistExecutionMapper {
         }
 
         List<UUID> roomIds = executions.getContent().stream()
-                .map(ChecklistExecution::getRoomId)
+                .map(execution -> execution.getRoomId())
                 .toList();
 
         Map<UUID, RoomReference> roomMap = Map.of();
         try {
             List<RoomReference> rooms = hubRoomProvider.findByIds(roomIds);
             roomMap = rooms.stream()
-                    .collect(Collectors.toMap(RoomReference::getRoomId, room -> room, (r1, r2) -> r1));
+                    .collect(Collectors.toMap(room -> room.getRoomId(), room -> room, (r1, r2) -> r1));
         } catch (Exception e) {
             log.warn("Falha ao buscar salas no Hub para histórico de execuções: {}", e.getMessage());
         }
 
         Map<UUID, ClassReference> classMap = Map.of();
         try {
-            List<ClassReference> classes = hubClassProvider.findByIds(List.of(classId));
-            classMap = classes.stream()
-                    .collect(Collectors.toMap(ClassReference::getClassId, classRef -> classRef, (c1, c2) -> c1));
+            classMap = hubClassProvider.findById(classId)
+                    .map(classRef -> Map.of(classId, classRef))
+                    .orElse(Map.of());
         } catch (Exception e) {
             log.warn("Falha ao buscar turmas no Hub para histórico de execuções: {}", e.getMessage());
         }

@@ -34,7 +34,7 @@ public class ChecklistExecutionAnswerValidationService {
         return schema.sections().stream()
                 .flatMap(section -> section.items().stream())
                 .collect(Collectors.toMap(
-                        ChecklistItem::key,
+                        item -> item.key(),
                         Function.identity(),
                         (first, duplicated) -> {
                             throw new IllegalArgumentException("item.key duplicado no template: " + first.key());
@@ -46,7 +46,7 @@ public class ChecklistExecutionAnswerValidationService {
     private Map<String, ChecklistAnswerCommand> answersByItemKey(List<ChecklistAnswerCommand> answers) {
         return answers.stream()
                 .collect(Collectors.toMap(
-                    ChecklistAnswerCommand::itemKey,
+                        answer -> answer.itemKey(),
                         Function.identity(),
                         (first, duplicated) -> {
                             throw new IllegalArgumentException("Resposta duplicada para itemKey: " + first.itemKey());

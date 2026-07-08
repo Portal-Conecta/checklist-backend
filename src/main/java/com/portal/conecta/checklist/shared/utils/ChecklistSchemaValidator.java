@@ -25,7 +25,7 @@ public class ChecklistSchemaValidator {
                 throw new IllegalArgumentException("section.key duplicado: " + section.key());
             }
             section.items().stream()
-                    .map(ChecklistItem::key)
+                    .map(item -> item.key())
                     .forEach(itemKey -> {
                         if (!itemKeys.add(itemKey)) {
                             throw new IllegalArgumentException("item.key duplicado: " + itemKey);

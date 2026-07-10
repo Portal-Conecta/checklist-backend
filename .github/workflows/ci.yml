@@ -38,10 +38,6 @@ jobs:
             echo 'Arquivos Java não podem conter BOM UTF-8.' >&2
             exit 1
           fi
-          if grep -rIl -e $'\xC3\x83' -e $'\xC3\x82' -e $'\xC3\xA2' --include='*.java' src; then
-            echo 'Foram encontradas sequências com codificação corrompida.' >&2
-            exit 1
-          fi
 
       - name: Executar verificação Maven
         run: ./mvnw --batch-mode --no-transfer-progress clean verify

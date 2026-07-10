@@ -93,9 +93,6 @@ public class ChecklistIssueStatsUseCase {
         return statsPort.issuesPerExecution();
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // Validação auxiliar (defesa em profundidade)
-    // ────────────────────────────────────────────────────────────────────────
 
     /**
      * Valida o intervalo de datas — segunda linha de defesa após o controller.

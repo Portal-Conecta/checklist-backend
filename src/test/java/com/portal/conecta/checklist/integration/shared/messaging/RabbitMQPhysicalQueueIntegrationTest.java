@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
                 "checklist.security.swagger-public=true",
                 "hub.api.url=http://localhost:8080",
                 "spring.docker.compose.enabled=false",
+                "spring.datasource.url=jdbc:h2:mem:rabbitmqtest;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;INIT=CREATE DOMAIN IF NOT EXISTS JSONB AS JSON",
                 "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
                 "app.rabbitmq.enabled=true",
                 "app.rabbitmq.exchange=notifications.exchange",

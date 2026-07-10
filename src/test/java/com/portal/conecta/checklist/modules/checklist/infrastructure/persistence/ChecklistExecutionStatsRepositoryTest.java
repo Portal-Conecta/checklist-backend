@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.unit.checklist.infrastructure.persistence;
+package com.portal.conecta.checklist.modules.checklist.infrastructure.persistence;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionStatsPort;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionStatsRepository;
@@ -29,7 +29,7 @@ class ChecklistExecutionStatsRepositoryTest {
     }
 
     @Test
-    @DisplayName("deve declarar método countByDay com parâmetros LocalDate")
+    @DisplayName("deve declarar m�todo countByDay com par�metros LocalDate")
     void deveDeclararCountByDay() throws NoSuchMethodException {
         Method method = ChecklistExecutionStatsPort.class.getMethod("countByDay", LocalDate.class, LocalDate.class);
         assertAll(
@@ -39,7 +39,7 @@ class ChecklistExecutionStatsRepositoryTest {
     }
 
     @Test
-    @DisplayName("deve declarar método countByStatus sem parâmetros")
+    @DisplayName("deve declarar m�todo countByStatus sem par�metros")
     void deveDeclararCountByStatus() throws NoSuchMethodException {
         Method method = ChecklistExecutionStatsPort.class.getMethod("countByStatus");
         assertAll(
@@ -49,14 +49,14 @@ class ChecklistExecutionStatsRepositoryTest {
     }
 
     @Test
-    @DisplayName("deve declarar método completionRate sem parâmetros")
+    @DisplayName("deve declarar m�todo completionRate sem par�metros")
     void deveDeclararCompletionRate() throws NoSuchMethodException {
         Method method = ChecklistExecutionStatsPort.class.getMethod("completionRate");
         assertNotNull(method);
     }
 
     @Test
-    @DisplayName("deve declarar método avgFillTimeByDay com parâmetros LocalDate")
+    @DisplayName("deve declarar m�todo avgFillTimeByDay com par�metros LocalDate")
     void deveDeclararAvgFillTimeByDay() throws NoSuchMethodException {
         Method method = ChecklistExecutionStatsPort.class.getMethod("avgFillTimeByDay", LocalDate.class, LocalDate.class);
         assertAll(
@@ -66,14 +66,14 @@ class ChecklistExecutionStatsRepositoryTest {
     }
 
     @Test
-    @DisplayName("deve declarar método withIssuesRate sem parâmetros")
+    @DisplayName("deve declarar m�todo withIssuesRate sem par�metros")
     void deveDeclararWithIssuesRate() throws NoSuchMethodException {
         Method method = ChecklistExecutionStatsPort.class.getMethod("withIssuesRate");
         assertNotNull(method);
     }
 
     @Test
-    @DisplayName("deve declarar método heatmapShiftByDayOfWeek sem parâmetros")
+    @DisplayName("deve declarar m�todo heatmapShiftByDayOfWeek sem par�metros")
     void deveDeclararHeatmapShiftByDayOfWeek() throws NoSuchMethodException {
         Method method = ChecklistExecutionStatsPort.class.getMethod("heatmapShiftByDayOfWeek");
         assertAll(

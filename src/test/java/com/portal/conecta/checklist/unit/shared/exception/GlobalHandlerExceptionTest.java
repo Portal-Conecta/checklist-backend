@@ -109,7 +109,7 @@ class GlobalHandlerExceptionTest {
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(409, response.getBody().status());
-        assertEquals("O registro foi alterado por outro usuário. Recarregue os dados.", response.getBody().message());
+        assertEquals("O registro foi alterado por outro usu�rio. Recarregue os dados.", response.getBody().message());
     }
 
     @Test
@@ -129,13 +129,13 @@ class GlobalHandlerExceptionTest {
     @DisplayName("should return conflict when illegal state exception occurs")
     void shouldReturnConflictWhenIllegalStateExceptionOccurs() {
         ResponseEntity<ApiError> response = handler.handleIllegalState(
-                new IllegalStateException("Regra de negócio violada"), request
+                new IllegalStateException("Regra de neg�cio violada"), request
         );
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(409, response.getBody().status());
-        assertEquals("Regra de negócio violada", response.getBody().message());
+        assertEquals("Regra de neg�cio violada", response.getBody().message());
     }
 
     @Test
@@ -160,7 +160,7 @@ class GlobalHandlerExceptionTest {
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(503, response.getBody().status());
-        assertEquals("O serviço está temporariamente indisponível.", response.getBody().message());
+        assertEquals("O servi�o est� temporariamente indispon�vel.", response.getBody().message());
     }
 
     @Test
@@ -197,7 +197,7 @@ class GlobalHandlerExceptionTest {
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(503, response.getBody().status());
-        assertEquals("Ocorreu um erro na integração com o serviço externo.", response.getBody().message());
+        assertEquals("Ocorreu um erro na integra��o com o servi�o externo.", response.getBody().message());
     }
 
     @Test
@@ -223,7 +223,7 @@ class GlobalHandlerExceptionTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(400, response.getBody().status());
-        assertEquals("Valor inválido para o parâmetro 'executionId'.", response.getBody().message());
+        assertEquals("Valor inv�lido para o par�metro 'executionId'.", response.getBody().message());
     }
 
     @Test
@@ -250,7 +250,7 @@ class GlobalHandlerExceptionTest {
         assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(405, response.getBody().status());
-        assertEquals("Método HTTP 'DELETE' não suportado para esta rota.", response.getBody().message());
+        assertEquals("M�todo HTTP 'DELETE' n�o suportado para esta rota.", response.getBody().message());
     }
 
     @Test

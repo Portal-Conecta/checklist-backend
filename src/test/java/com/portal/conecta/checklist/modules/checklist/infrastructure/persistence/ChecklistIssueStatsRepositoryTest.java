@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.unit.checklist.infrastructure.persistence;
+package com.portal.conecta.checklist.modules.checklist.infrastructure.persistence;
 
 import com.portal.conecta.checklist.modules.checklist.issues.application.port.out.persistence.ChecklistIssueStatsPort;
 import com.portal.conecta.checklist.modules.checklist.issues.infrastructure.persistence.ChecklistIssueStatsRepository;
@@ -29,7 +29,7 @@ class ChecklistIssueStatsRepositoryTest {
     }
 
     @Test
-    @DisplayName("deve declarar método countByDay com parâmetros LocalDate")
+    @DisplayName("deve declarar m�todo countByDay com par�metros LocalDate")
     void deveDeclararCountByDay() throws NoSuchMethodException {
         Method method = ChecklistIssueStatsPort.class.getMethod("countByDay", LocalDate.class, LocalDate.class);
         assertAll(
@@ -39,7 +39,7 @@ class ChecklistIssueStatsRepositoryTest {
     }
 
     @Test
-    @DisplayName("deve declarar método topFailingItems com parâmetro int")
+    @DisplayName("deve declarar m�todo topFailingItems com par�metro int")
     void deveDeclararTopFailingItems() throws NoSuchMethodException {
         Method method = ChecklistIssueStatsPort.class.getMethod("topFailingItems", int.class);
         assertAll(
@@ -49,28 +49,28 @@ class ChecklistIssueStatsRepositoryTest {
     }
 
     @Test
-    @DisplayName("deve declarar método resolutionSplit sem parâmetros")
+    @DisplayName("deve declarar m�todo resolutionSplit sem par�metros")
     void deveDeclararResolutionSplit() throws NoSuchMethodException {
         Method method = ChecklistIssueStatsPort.class.getMethod("resolutionSplit");
         assertNotNull(method);
     }
 
     @Test
-    @DisplayName("deve declarar método overdueCount sem parâmetros")
+    @DisplayName("deve declarar m�todo overdueCount sem par�metros")
     void deveDeclararOverdueCount() throws NoSuchMethodException {
         Method method = ChecklistIssueStatsPort.class.getMethod("overdueCount");
         assertNotNull(method);
     }
 
     @Test
-    @DisplayName("deve declarar método issuesPerExecution sem parâmetros")
+    @DisplayName("deve declarar m�todo issuesPerExecution sem par�metros")
     void deveDeclararIssuesPerExecution() throws NoSuchMethodException {
         Method method = ChecklistIssueStatsPort.class.getMethod("issuesPerExecution");
         assertNotNull(method);
     }
 
     @Test
-    @DisplayName("deve declarar método countByChecklistType sem parâmetros")
+    @DisplayName("deve declarar m�todo countByChecklistType sem par�metros")
     void deveDeclararCountByChecklistType() throws NoSuchMethodException {
         Method method = ChecklistIssueStatsPort.class.getMethod("countByChecklistType");
         assertAll(

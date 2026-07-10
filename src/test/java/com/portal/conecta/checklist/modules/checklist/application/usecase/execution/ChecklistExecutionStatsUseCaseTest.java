@@ -1,10 +1,8 @@
-package com.portal.conecta.checklist.unit.checklist.application.usecase.execution;
+package com.portal.conecta.checklist.modules.checklist.application.usecase.execution;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionStatsPort;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ChecklistExecutionStatsUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.CompletionRateDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.WithIssuesRateDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -31,8 +29,8 @@ class ChecklistExecutionStatsUseCaseTest {
         useCase.countByDay(null, null);
 
         verify(statsPort).countByDay(
-                LocalDate.now().minusDays(30),
-                LocalDate.now()
+            LocalDate.now().minusDays(30),
+            LocalDate.now()
         );
     }
 
@@ -53,10 +51,10 @@ class ChecklistExecutionStatsUseCaseTest {
     @Test
     @DisplayName("completionRate deve delegar ao port e retornar o resultado")
     void completionRateDeveDelegarAoPort() {
-        CompletionRateDTO expected = CompletionRateDTO.of(128L, 160L);
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("completed", 128L));
         when(statsPort.completionRate()).thenReturn(expected);
 
-        CompletionRateDTO result = useCase.completionRate();
+        List<StatsEntryDTO> result = useCase.completionRate();
 
         assertNotNull(result);
         assertEquals(expected, result);
@@ -66,10 +64,10 @@ class ChecklistExecutionStatsUseCaseTest {
     @Test
     @DisplayName("withIssuesRate deve delegar ao port e retornar o resultado")
     void withIssuesRateDeveDelegarAoPort() {
-        WithIssuesRateDTO expected = WithIssuesRateDTO.of(52L, 128L);
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("with_issues", 52L));
         when(statsPort.withIssuesRate()).thenReturn(expected);
 
-        WithIssuesRateDTO result = useCase.withIssuesRate();
+        List<StatsEntryDTO> result = useCase.withIssuesRate();
 
         assertNotNull(result);
         assertEquals(expected, result);

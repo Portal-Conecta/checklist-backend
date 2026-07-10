@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubClassProvider;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubCourseProvider;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
-import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionRepositoryPort;
+import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistSubmissionWindowRepositoryPort;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
@@ -79,7 +79,7 @@ class ChecklistExecutionAuthorizationTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private ChecklistExecutionRepositoryPort executionRepository;
+    private ChecklistExecutionRepository executionRepository;
 
     @MockitoBean
     private ChecklistTemplateRepository templateRepository;

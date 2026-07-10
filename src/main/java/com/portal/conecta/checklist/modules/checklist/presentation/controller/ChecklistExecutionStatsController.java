@@ -1,0 +1,166 @@
+package com.portal.conecta.checklist.modules.checklist.presentation.controller;
+
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ChecklistExecutionStatsUseCase;
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.AvgFillTimeEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.CompletionRateDTO;
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.HeatmapEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.StatsEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.WithIssuesRateDTO;
+import com.portal.conecta.checklist.shared.exception.ApiError;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDate;
+import java.util.List;
+
+/**
+ * Endpoints de agregação para execuções de checklist.
+ *
+ * <p>Toda a lógica de GROUP BY é executada no banco — os endpoints devolvem
+ * linhas já somadas, prontas para consumo pelo Chart.js.</p>
+ *
+ * <p>Base: {@code GET /api/checklist-executions/stats}</p>
+ */
+@RestController
+@RequestMapping("/api/checklist-executions/stats")
+@RequiredArgsConstructor
+@Tag(name = "Checklist Execution Stats", description = "Métricas de agregação de execuções de checklist para dashboards")
+public class ChecklistExecutionStatsController {
+
+    private final ChecklistExecutionStatsUseCase statsUseCase;
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Genérico por groupBy
+    // ────────────────────────────────────────────────────────────────────────
+
+    @Operation(
+            summary = "Agregar execuções por dimensão",
+            description = """
+                    Retorna contagem de execuções agrupadas pela dimensão indicada em `groupBy`.
+                    
+                    Valores aceitos para `groupBy`:
+                    - `day` — por dia (requer `from`/`to`; padrão: últimos 30 dias)
+                    - `status` — por status (DRAFT, SUBMITTED, CANCELED)
+                    - `type` — por tipo de checklist
+                    - `shift` — por turno
+                    - `period` — por período
+                    - `day+status` — série temporal por dia **e** status (label = `YYYY-MM-DD|STATUS`)
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Dados de agregação retornados com sucesso",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
+            @ApiResponse(responseCode = "400", description = "Parâmetro groupBy inválido",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "401", description = "Não autenticado",
+                    content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
+    @GetMapping
+    public ResponseEntity<List<StatsEntryDTO>> aggregate(
+            @Parameter(description = "Dimensão de agrupamento", example = "status")
+            @RequestParam String groupBy,
+
+            @Parameter(description = "Início do intervalo (YYYY-MM-DD) — usado quando groupBy=day ou day+status")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+
+            @Parameter(description = "Fim do intervalo (YYYY-MM-DD) — usado quando groupBy=day ou day+status")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+    ) {
+        List<StatsEntryDTO> result = switch (groupBy) {
+            case "day"        -> statsUseCase.countByDay(from, to);
+            case "status"     -> statsUseCase.countByStatus();
+            case "type"       -> statsUseCase.countByType();
+            case "shift"      -> statsUseCase.countByShift();
+            case "period"     -> statsUseCase.countByPeriod();
+            case "day+status" -> statsUseCase.countByDayAndStatus(from, to);
+            default -> throw new IllegalArgumentException(
+                    "groupBy inválido: '" + groupBy + "'. Valores aceitos: day, status, type, shift, period, day+status"
+            );
+        };
+        return ResponseEntity.ok(result);
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Sub-recursos fixos
+    // ────────────────────────────────────────────────────────────────────────
+
+    @Operation(
+            summary = "Taxa de conclusão de execuções",
+            description = "Retorna o total de execuções submetidas, o total geral e o percentual de conclusão."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Taxa de conclusão calculada com sucesso",
+                    content = @Content(schema = @Schema(implementation = CompletionRateDTO.class))),
+            @ApiResponse(responseCode = "401", description = "Não autenticado",
+                    content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
+    @GetMapping("/completion-rate")
+    public ResponseEntity<CompletionRateDTO> completionRate() {
+        return ResponseEntity.ok(statsUseCase.completionRate());
+    }
+
+    @Operation(
+            summary = "Tempo médio de preenchimento por dia",
+            description = "Retorna a média de segundos entre início e submissão, por dia. " +
+                    "Somente execuções com submitted_at preenchido são consideradas."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Tempo médio por dia calculado com sucesso",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = AvgFillTimeEntryDTO.class)))),
+            @ApiResponse(responseCode = "401", description = "Não autenticado",
+                    content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
+    @GetMapping("/avg-fill-time")
+    public ResponseEntity<List<AvgFillTimeEntryDTO>> avgFillTime(
+            @Parameter(description = "Início do intervalo (YYYY-MM-DD); padrão: 30 dias atrás")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+
+            @Parameter(description = "Fim do intervalo (YYYY-MM-DD); padrão: hoje")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+    ) {
+        return ResponseEntity.ok(statsUseCase.avgFillTimeByDay(from, to));
+    }
+
+    @Operation(
+            summary = "Percentual de execuções com ao menos uma não-conformidade",
+            description = "Retorna execuções com issue, total de execuções submetidas e o percentual."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Taxa calculada com sucesso",
+                    content = @Content(schema = @Schema(implementation = WithIssuesRateDTO.class))),
+            @ApiResponse(responseCode = "401", description = "Não autenticado",
+                    content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
+    @GetMapping("/with-issues-rate")
+    public ResponseEntity<WithIssuesRateDTO> withIssuesRate() {
+        return ResponseEntity.ok(statsUseCase.withIssuesRate());
+    }
+
+    @Operation(
+            summary = "Heatmap de execuções por turno × dia da semana",
+            description = "Retorna células do heatmap com turno, dia da semana (0=dom … 6=sáb) e contagem."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Heatmap calculado com sucesso",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = HeatmapEntryDTO.class)))),
+            @ApiResponse(responseCode = "401", description = "Não autenticado",
+                    content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
+    @GetMapping("/heatmap")
+    public ResponseEntity<List<HeatmapEntryDTO>> heatmap() {
+        return ResponseEntity.ok(statsUseCase.heatmap());
+    }
+}

@@ -30,16 +30,9 @@ public interface ChecklistExecutionRepositoryPort extends ListCrudRepository<Che
             Pageable pageable
     );
 
-    @Query(value = """
-                SELECT COUNT(1)
-                    FROM checklist_execution
-                    WHERE user_id = :userId
-                    AND status = :status
-                """,nativeQuery = true)
+    @Query(value = "SELECT COUNT(1) FROM checklist_execution WHERE user_id = :userId AND status = :status", nativeQuery = true)
     long countByUserIdAndStatus(@Param("userId") UUID userId, @Param("status") String status);
 
     Page<ChecklistExecution> findAll(Pageable pageable);
-
-    Page<ChecklistExecution> findByClassIdIn(Iterable<UUID> classIds, Pageable pageable);
 
 }

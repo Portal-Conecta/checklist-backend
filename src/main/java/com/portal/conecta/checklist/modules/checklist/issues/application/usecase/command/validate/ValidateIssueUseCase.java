@@ -29,7 +29,7 @@ public class ValidateIssueUseCase {
 
     @Transactional
     public ChecklistIssue execute(UUID issueId) {
-        if (!contextProvider.getRequestContext().canManageIssues()) {
+        if (!contextProvider.getRequestContext().canOnlySenaiManageIssues()) {
             throw new AccessDeniedException("Apenas SENAI pode validar a resolucao de pendencias.");
         }
 
@@ -41,3 +41,4 @@ public class ValidateIssueUseCase {
         return repository.save(issue);
     }
 }
+

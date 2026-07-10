@@ -1,10 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.application.port.out.persistence;
 
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.CompletionRateDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.HeatmapEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.WithIssuesRateDTO;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -40,7 +36,7 @@ public interface ChecklistExecutionStatsPort {
     /**
      * Taxa de conclusão: execuções com {@code submitted_at IS NOT NULL} sobre o total.
      */
-    CompletionRateDTO completionRate();
+    List<StatsEntryDTO> completionRate();
 
     /**
      * Tempo médio de preenchimento em segundos, agrupado por dia.
@@ -49,7 +45,7 @@ public interface ChecklistExecutionStatsPort {
      * @param from início do intervalo (inclusive)
      * @param to   fim do intervalo (inclusive)
      */
-    List<AvgFillTimeEntryDTO> avgFillTimeByDay(LocalDate from, LocalDate to);
+    List<StatsEntryDTO> avgFillTimeByDay(LocalDate from, LocalDate to);
 
     /**
      * Série temporal de contagens por (dia, status) para gráfico de linhas empilhadas.
@@ -62,10 +58,10 @@ public interface ChecklistExecutionStatsPort {
     /**
      * Percentual de execuções que geraram ao menos uma issue.
      */
-    WithIssuesRateDTO withIssuesRate();
+    List<StatsEntryDTO> withIssuesRate();
 
     /**
      * Heatmap: contagem de execuções por turno e dia da semana.
      */
-    List<HeatmapEntryDTO> heatmapShiftByDayOfWeek();
+    List<StatsEntryDTO> heatmapShiftByDayOfWeek();
 }

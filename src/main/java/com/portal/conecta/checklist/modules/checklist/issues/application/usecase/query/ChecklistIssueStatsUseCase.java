@@ -1,11 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.issues.application.usecase.query;
 
 import com.portal.conecta.checklist.modules.checklist.issues.application.port.out.persistence.ChecklistIssueStatsPort;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgResolutionTimeDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.IssuesPerExecutionDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.OverdueIssuesDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.ResolutionRateDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.ResolutionSplitDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
 import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
 import lombok.RequiredArgsConstructor;
@@ -54,22 +49,22 @@ public class ChecklistIssueStatsUseCase {
     }
 
     /** Divisão entre issues abertas e resolvidas. */
-    public ResolutionSplitDTO resolutionSplit() {
+    public List<StatsEntryDTO> resolutionSplit() {
         return statsPort.resolutionSplit();
     }
 
     /** Taxa de resolução de issues. */
-    public ResolutionRateDTO resolutionRate() {
+    public List<StatsEntryDTO> resolutionRate() {
         return statsPort.resolutionRate();
     }
 
     /** Tempo médio de resolução em segundos. */
-    public AvgResolutionTimeDTO avgResolutionTime() {
+    public List<StatsEntryDTO> avgResolutionTime() {
         return statsPort.avgResolutionTime();
     }
 
     /** Total de issues vencidas e não resolvidas. */
-    public OverdueIssuesDTO overdueCount() {
+    public List<StatsEntryDTO> overdueCount() {
         return statsPort.overdueCount();
     }
 
@@ -94,7 +89,7 @@ public class ChecklistIssueStatsUseCase {
     }
 
     /** Média de issues por execução de checklist. */
-    public IssuesPerExecutionDTO issuesPerExecution() {
+    public List<StatsEntryDTO> issuesPerExecution() {
         return statsPort.issuesPerExecution();
     }
 

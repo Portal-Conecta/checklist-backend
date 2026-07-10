@@ -17,8 +17,8 @@ public record StatsEntryDTO(
         @Schema(description = "Rótulo da categoria (ex: 'SUBMITTED', '2026-06-01')", example = "SUBMITTED")
         String label,
 
-        @Schema(description = "Valor agregado (contagem, média, etc.)", example = "128")
-        long value
+        @Schema(description = "Valor agregado (contagem, média ou percentual)", example = "128")
+        Number value
 
 ) {
 }

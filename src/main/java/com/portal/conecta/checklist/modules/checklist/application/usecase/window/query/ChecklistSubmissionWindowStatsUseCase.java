@@ -1,7 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.application.usecase.window.query;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistSubmissionWindowStatsPort;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,7 @@ public class ChecklistSubmissionWindowStatsUseCase {
     }
 
     /** Duração média em minutos por tipo de checklist. */
-    public List<AvgFillTimeEntryDTO> avgDurationByType() {
+    public List<StatsEntryDTO> avgDurationByType() {
         return statsPort.avgDurationByType();
     }
 }

@@ -1,7 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.infrastructure.persistence;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistSubmissionWindowStatsPort;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -53,7 +52,7 @@ public class ChecklistSubmissionWindowStatsRepository implements ChecklistSubmis
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<AvgFillTimeEntryDTO> avgDurationByType() {
+    public List<StatsEntryDTO> avgDurationByType() {
         String sql = """
                 SELECT checklist_type                    AS label,
                        AVG(duration_minutes)            AS avg_seconds
@@ -63,7 +62,7 @@ public class ChecklistSubmissionWindowStatsRepository implements ChecklistSubmis
                 """;
         List<Object[]> rows = em.createNativeQuery(sql).getResultList();
         return rows.stream()
-                .map(r -> new AvgFillTimeEntryDTO((String) r[0], toDouble(r[1])))
+                .map(r -> new StatsEntryDTO((String) r[0], toDouble(r[1])))
                 .toList();
     }
 

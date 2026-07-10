@@ -1,11 +1,7 @@
 package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionStatsPort;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.CompletionRateDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.HeatmapEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.WithIssuesRateDTO;
 import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -61,7 +57,7 @@ public class ChecklistExecutionStatsUseCase {
     }
 
     /** Taxa de conclusão geral. */
-    public CompletionRateDTO completionRate() {
+    public List<StatsEntryDTO> completionRate() {
         return statsPort.completionRate();
     }
 
@@ -71,7 +67,7 @@ public class ChecklistExecutionStatsUseCase {
      * @param from início do intervalo; padrão: 30 dias atrás
      * @param to   fim do intervalo; padrão: hoje
      */
-    public List<AvgFillTimeEntryDTO> avgFillTimeByDay(LocalDate from, LocalDate to) {
+    public List<StatsEntryDTO> avgFillTimeByDay(LocalDate from, LocalDate to) {
         validateDateRange(from, to);
         LocalDate resolvedFrom = from != null ? from : LocalDate.now().minusDays(30);
         LocalDate resolvedTo   = to   != null ? to   : LocalDate.now();
@@ -93,12 +89,12 @@ public class ChecklistExecutionStatsUseCase {
     }
 
     /** Percentual de execuções que geraram ao menos 1 issue. */
-    public WithIssuesRateDTO withIssuesRate() {
+    public List<StatsEntryDTO> withIssuesRate() {
         return statsPort.withIssuesRate();
     }
 
     /** Heatmap de execuções por turno × dia da semana. */
-    public List<HeatmapEntryDTO> heatmap() {
+    public List<StatsEntryDTO> heatmap() {
         return statsPort.heatmapShiftByDayOfWeek();
     }
 

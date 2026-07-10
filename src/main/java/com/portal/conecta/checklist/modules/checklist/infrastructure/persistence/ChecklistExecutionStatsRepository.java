@@ -1,11 +1,7 @@
 package com.portal.conecta.checklist.modules.checklist.infrastructure.persistence;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionStatsPort;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.CompletionRateDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.HeatmapEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.WithIssuesRateDTO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
@@ -109,19 +105,25 @@ public class ChecklistExecutionStatsRepository implements ChecklistExecutionStat
 
     @Override
     @SuppressWarnings("unchecked")
-    public CompletionRateDTO completionRate() {
+    public List<StatsEntryDTO> completionRate() {
         String sql = """
                 SELECT COUNT(*) FILTER (WHERE submitted_at IS NOT NULL) AS submitted,
                        COUNT(*)                                         AS total
                 FROM checklist_execution
                 """;
         Object[] row = (Object[]) em.createNativeQuery(sql).getSingleResult();
-        return CompletionRateDTO.of(toLong(row[0]), toLong(row[1]));
+        long submitted = toLong(row[0]);
+        long total = toLong(row[1]);
+        return List.of(
+                new StatsEntryDTO("submitted", submitted),
+                new StatsEntryDTO("total", total),
+                new StatsEntryDTO("ratePercent", percentage(submitted, total))
+        );
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<AvgFillTimeEntryDTO> avgFillTimeByDay(LocalDate from, LocalDate to) {
+    public List<StatsEntryDTO> avgFillTimeByDay(LocalDate from, LocalDate to) {
         String sql = """
                 SELECT CAST(started_at AS date)::text                                AS label,
                        AVG(EXTRACT(EPOCH FROM (submitted_at - started_at)))          AS avg_seconds
@@ -137,7 +139,7 @@ public class ChecklistExecutionStatsRepository implements ChecklistExecutionStat
                 .setParameter("to", to.toString())
                 .getResultList();
         return rows.stream()
-                .map(r -> new AvgFillTimeEntryDTO((String) r[0], toDouble(r[1])))
+                .map(r -> new StatsEntryDTO((String) r[0], toDouble(r[1])))
                 .toList();
     }
 
@@ -164,7 +166,7 @@ public class ChecklistExecutionStatsRepository implements ChecklistExecutionStat
 
     @Override
     @SuppressWarnings("unchecked")
-    public WithIssuesRateDTO withIssuesRate() {
+    public List<StatsEntryDTO> withIssuesRate() {
         String sql = """
                 SELECT (SELECT COUNT(DISTINCT ce.id)
                         FROM checklist_execution ce
@@ -176,12 +178,18 @@ public class ChecklistExecutionStatsRepository implements ChecklistExecutionStat
                 WHERE status = 'SUBMITTED'
                 """;
         Object[] row = (Object[]) em.createNativeQuery(sql).getSingleResult();
-        return WithIssuesRateDTO.of(toLong(row[0]), toLong(row[1]));
+        long executionsWithIssues = toLong(row[0]);
+        long totalExecutions = toLong(row[1]);
+        return List.of(
+                new StatsEntryDTO("executionsWithIssues", executionsWithIssues),
+                new StatsEntryDTO("totalExecutions", totalExecutions),
+                new StatsEntryDTO("ratePercent", percentage(executionsWithIssues, totalExecutions))
+        );
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<HeatmapEntryDTO> heatmapShiftByDayOfWeek() {
+    public List<StatsEntryDTO> heatmapShiftByDayOfWeek() {
         String sql = """
                 SELECT shift                                   AS shift,
                        EXTRACT(DOW FROM started_at)::int       AS day_of_week,
@@ -192,9 +200,8 @@ public class ChecklistExecutionStatsRepository implements ChecklistExecutionStat
                 """;
         List<Object[]> rows = em.createNativeQuery(sql).getResultList();
         return rows.stream()
-                .map(r -> new HeatmapEntryDTO(
-                        (String) r[0],
-                        ((Number) r[1]).intValue(),
+                .map(r -> new StatsEntryDTO(
+                        r[0] + "|" + ((Number) r[1]).intValue(),
                         toLong(r[2])
                 ))
                 .toList();
@@ -208,5 +215,9 @@ public class ChecklistExecutionStatsRepository implements ChecklistExecutionStat
 
     private static double toDouble(Object value) {
         return value == null ? 0.0 : ((Number) value).doubleValue();
+    }
+
+    private static double percentage(long numerator, long denominator) {
+        return denominator == 0 ? 0.0 : Math.round(numerator * 10000.0 / denominator) / 100.0;
     }
 }

@@ -1,11 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.issues.infrastructure.persistence;
 
 import com.portal.conecta.checklist.modules.checklist.issues.application.port.out.persistence.ChecklistIssueStatsPort;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgResolutionTimeDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.IssuesPerExecutionDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.OverdueIssuesDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.ResolutionRateDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.ResolutionSplitDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -82,43 +77,52 @@ public class ChecklistIssueStatsRepository implements ChecklistIssueStatsPort {
 
     @Override
     @SuppressWarnings("unchecked")
-    public ResolutionSplitDTO resolutionSplit() {
+    public List<StatsEntryDTO> resolutionSplit() {
         String sql = """
                 SELECT COUNT(*) FILTER (WHERE resolved_at IS NULL)     AS open,
                        COUNT(*) FILTER (WHERE resolved_at IS NOT NULL) AS resolved
                 FROM checklist_issue
                 """;
         Object[] row = (Object[]) em.createNativeQuery(sql).getSingleResult();
-        return ResolutionSplitDTO.of(toLong(row[0]), toLong(row[1]));
+        return List.of(
+                new StatsEntryDTO("open", toLong(row[0])),
+                new StatsEntryDTO("resolved", toLong(row[1]))
+        );
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public ResolutionRateDTO resolutionRate() {
+    public List<StatsEntryDTO> resolutionRate() {
         String sql = """
                 SELECT COUNT(*) FILTER (WHERE resolved_at IS NOT NULL) AS resolved,
                        COUNT(*)                                        AS total
                 FROM checklist_issue
                 """;
         Object[] row = (Object[]) em.createNativeQuery(sql).getSingleResult();
-        return ResolutionRateDTO.of(toLong(row[0]), toLong(row[1]));
+        long resolved = toLong(row[0]);
+        long total = toLong(row[1]);
+        return List.of(
+                new StatsEntryDTO("resolved", resolved),
+                new StatsEntryDTO("total", total),
+                new StatsEntryDTO("ratePercent", percentage(resolved, total))
+        );
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public AvgResolutionTimeDTO avgResolutionTime() {
+    public List<StatsEntryDTO> avgResolutionTime() {
         String sql = """
                 SELECT AVG(EXTRACT(EPOCH FROM (resolved_at - due_at))) AS avg_seconds
                 FROM checklist_issue
                 WHERE resolved_at IS NOT NULL
                 """;
         Object result = em.createNativeQuery(sql).getSingleResult();
-        return new AvgResolutionTimeDTO(toDouble(result));
+        return List.of(new StatsEntryDTO("avgSeconds", toDouble(result)));
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public OverdueIssuesDTO overdueCount() {
+    public List<StatsEntryDTO> overdueCount() {
         String sql = """
                 SELECT COUNT(*) AS overdue
                 FROM checklist_issue
@@ -126,7 +130,7 @@ public class ChecklistIssueStatsRepository implements ChecklistIssueStatsPort {
                   AND resolved_at IS NULL
                 """;
         Object result = em.createNativeQuery(sql).getSingleResult();
-        return new OverdueIssuesDTO(toLong(result));
+        return List.of(new StatsEntryDTO("overdue", toLong(result)));
     }
 
     @Override
@@ -165,14 +169,23 @@ public class ChecklistIssueStatsRepository implements ChecklistIssueStatsPort {
 
     @Override
     @SuppressWarnings("unchecked")
-    public IssuesPerExecutionDTO issuesPerExecution() {
+    public List<StatsEntryDTO> issuesPerExecution() {
         String sql = """
                 SELECT COUNT(ci.id)                    AS total_issues,
                        COUNT(DISTINCT ci.checklist_execution_id) AS total_executions
                 FROM checklist_issue ci
                 """;
         Object[] row = (Object[]) em.createNativeQuery(sql).getSingleResult();
-        return IssuesPerExecutionDTO.of(toLong(row[0]), toLong(row[1]));
+        long totalIssues = toLong(row[0]);
+        long totalExecutions = toLong(row[1]);
+        double avgPerExecution = totalExecutions == 0
+                ? 0.0
+                : Math.round(totalIssues * 100.0 / totalExecutions) / 100.0;
+        return List.of(
+                new StatsEntryDTO("totalIssues", totalIssues),
+                new StatsEntryDTO("totalExecutions", totalExecutions),
+                new StatsEntryDTO("avgPerExecution", avgPerExecution)
+        );
     }
 
     // ─── helpers ────────────────────────────────────────────────────────────
@@ -183,5 +196,9 @@ public class ChecklistIssueStatsRepository implements ChecklistIssueStatsPort {
 
     private static double toDouble(Object value) {
         return value == null ? 0.0 : ((Number) value).doubleValue();
+    }
+
+    private static double percentage(long numerator, long denominator) {
+        return denominator == 0 ? 0.0 : Math.round(numerator * 10000.0 / denominator) / 100.0;
     }
 }

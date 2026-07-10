@@ -1,6 +1,5 @@
 package com.portal.conecta.checklist.modules.checklist.application.port.out.persistence;
 
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
 
 import java.util.List;
@@ -22,7 +21,6 @@ public interface ChecklistSubmissionWindowStatsPort {
     /**
      * Duração média em minutos por tipo de checklist.
      * O label é o tipo e o valor é a média arredondada.
-     * Reutiliza {@link AvgFillTimeEntryDTO} apenas para a projeção label + avgSeconds.
      */
-    List<AvgFillTimeEntryDTO> avgDurationByType();
+    List<StatsEntryDTO> avgDurationByType();
 }

@@ -1,11 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.issues.presentation.controller;
 
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.query.ChecklistIssueStatsUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgResolutionTimeDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.IssuesPerExecutionDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.OverdueIssuesDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.ResolutionRateDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.ResolutionSplitDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
 import com.portal.conecta.checklist.shared.exception.ApiError;
 import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
@@ -110,12 +105,12 @@ public class ChecklistIssueStatsController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Divisão calculada com sucesso",
-                    content = @Content(schema = @Schema(implementation = ResolutionSplitDTO.class))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
             @ApiResponse(responseCode = "401", description = "Não autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/resolution-split")
-    public ResponseEntity<ResolutionSplitDTO> resolutionSplit() {
+    public ResponseEntity<List<StatsEntryDTO>> resolutionSplit() {
         return ResponseEntity.ok(statsUseCase.resolutionSplit());
     }
 
@@ -125,12 +120,12 @@ public class ChecklistIssueStatsController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Taxa de resolução calculada com sucesso",
-                    content = @Content(schema = @Schema(implementation = ResolutionRateDTO.class))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
             @ApiResponse(responseCode = "401", description = "Não autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/resolution-rate")
-    public ResponseEntity<ResolutionRateDTO> resolutionRate() {
+    public ResponseEntity<List<StatsEntryDTO>> resolutionRate() {
         return ResponseEntity.ok(statsUseCase.resolutionRate());
     }
 
@@ -140,12 +135,12 @@ public class ChecklistIssueStatsController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Tempo médio calculado com sucesso",
-                    content = @Content(schema = @Schema(implementation = AvgResolutionTimeDTO.class))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
             @ApiResponse(responseCode = "401", description = "Não autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/avg-resolution-time")
-    public ResponseEntity<AvgResolutionTimeDTO> avgResolutionTime() {
+    public ResponseEntity<List<StatsEntryDTO>> avgResolutionTime() {
         return ResponseEntity.ok(statsUseCase.avgResolutionTime());
     }
 
@@ -155,12 +150,12 @@ public class ChecklistIssueStatsController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Total de issues vencidas calculado com sucesso",
-                    content = @Content(schema = @Schema(implementation = OverdueIssuesDTO.class))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
             @ApiResponse(responseCode = "401", description = "Não autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/overdue")
-    public ResponseEntity<OverdueIssuesDTO> overdue() {
+    public ResponseEntity<List<StatsEntryDTO>> overdue() {
         return ResponseEntity.ok(statsUseCase.overdueCount());
     }
 
@@ -170,12 +165,12 @@ public class ChecklistIssueStatsController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Média calculada com sucesso",
-                    content = @Content(schema = @Schema(implementation = IssuesPerExecutionDTO.class))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
             @ApiResponse(responseCode = "401", description = "Não autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/per-execution")
-    public ResponseEntity<IssuesPerExecutionDTO> perExecution() {
+    public ResponseEntity<List<StatsEntryDTO>> perExecution() {
         return ResponseEntity.ok(statsUseCase.issuesPerExecution());
     }
 

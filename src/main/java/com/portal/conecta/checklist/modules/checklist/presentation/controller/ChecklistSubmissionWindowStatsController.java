@@ -1,7 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.modules.checklist.application.usecase.window.query.ChecklistSubmissionWindowStatsUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
 import com.portal.conecta.checklist.shared.exception.ApiError;
 import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
@@ -74,12 +73,12 @@ public class ChecklistSubmissionWindowStatsController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Duração média calculada com sucesso",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = AvgFillTimeEntryDTO.class)))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
             @ApiResponse(responseCode = "401", description = "Não autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/avg-duration")
-    public ResponseEntity<List<AvgFillTimeEntryDTO>> avgDuration() {
+    public ResponseEntity<List<StatsEntryDTO>> avgDuration() {
         return ResponseEntity.ok(statsUseCase.avgDurationByType());
     }
 }

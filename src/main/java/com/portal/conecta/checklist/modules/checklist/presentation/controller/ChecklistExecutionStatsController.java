@@ -1,11 +1,7 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ChecklistExecutionStatsUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.CompletionRateDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.HeatmapEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.WithIssuesRateDTO;
 import com.portal.conecta.checklist.shared.exception.ApiError;
 import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -99,12 +95,12 @@ public class ChecklistExecutionStatsController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Taxa de conclusão calculada com sucesso",
-                    content = @Content(schema = @Schema(implementation = CompletionRateDTO.class))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
             @ApiResponse(responseCode = "401", description = "Não autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/completion-rate")
-    public ResponseEntity<CompletionRateDTO> completionRate() {
+    public ResponseEntity<List<StatsEntryDTO>> completionRate() {
         return ResponseEntity.ok(statsUseCase.completionRate());
     }
 
@@ -115,12 +111,12 @@ public class ChecklistExecutionStatsController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Tempo médio por dia calculado com sucesso",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = AvgFillTimeEntryDTO.class)))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
             @ApiResponse(responseCode = "401", description = "Não autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/avg-fill-time")
-    public ResponseEntity<List<AvgFillTimeEntryDTO>> avgFillTime(
+    public ResponseEntity<List<StatsEntryDTO>> avgFillTime(
             @Parameter(description = "Início do intervalo (YYYY-MM-DD); padrão: 30 dias atrás")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
 
@@ -136,12 +132,12 @@ public class ChecklistExecutionStatsController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Taxa calculada com sucesso",
-                    content = @Content(schema = @Schema(implementation = WithIssuesRateDTO.class))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
             @ApiResponse(responseCode = "401", description = "Não autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/with-issues-rate")
-    public ResponseEntity<WithIssuesRateDTO> withIssuesRate() {
+    public ResponseEntity<List<StatsEntryDTO>> withIssuesRate() {
         return ResponseEntity.ok(statsUseCase.withIssuesRate());
     }
 
@@ -151,12 +147,12 @@ public class ChecklistExecutionStatsController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Heatmap calculado com sucesso",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = HeatmapEntryDTO.class)))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
             @ApiResponse(responseCode = "401", description = "Não autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/heatmap")
-    public ResponseEntity<List<HeatmapEntryDTO>> heatmap() {
+    public ResponseEntity<List<StatsEntryDTO>> heatmap() {
         return ResponseEntity.ok(statsUseCase.heatmap());
     }
 

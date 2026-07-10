@@ -1,10 +1,5 @@
 package com.portal.conecta.checklist.modules.checklist.issues.application.port.out.persistence;
 
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgResolutionTimeDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.IssuesPerExecutionDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.OverdueIssuesDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.ResolutionRateDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.ResolutionSplitDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
 import java.time.LocalDate;
 import java.util.List;
@@ -32,19 +27,19 @@ public interface ChecklistIssueStatsPort {
     List<StatsEntryDTO> countByPriority();
 
     /** Divisão entre issues abertas ({@code resolved_at IS NULL}) e resolvidas. */
-    ResolutionSplitDTO resolutionSplit();
+    List<StatsEntryDTO> resolutionSplit();
 
     /** Taxa de resolução: issues com {@code resolved_at IS NOT NULL} / total. */
-    ResolutionRateDTO resolutionRate();
+    List<StatsEntryDTO> resolutionRate();
 
     /**
      * Tempo médio de resolução em segundos.
      * Considera apenas issues com {@code resolved_at IS NOT NULL}.
      */
-    AvgResolutionTimeDTO avgResolutionTime();
+    List<StatsEntryDTO> avgResolutionTime();
 
     /** Total de issues vencidas ({@code due_at < now()} e {@code resolved_at IS NULL}). */
-    OverdueIssuesDTO overdueCount();
+    List<StatsEntryDTO> overdueCount();
 
     /**
      * Top itens que mais geram issues, limitado a {@code limit} entradas.
@@ -59,5 +54,5 @@ public interface ChecklistIssueStatsPort {
     /**
      * Média de issues por execução de checklist ({@code total issues / distinct executions}).
      */
-    IssuesPerExecutionDTO issuesPerExecution();
+    List<StatsEntryDTO> issuesPerExecution();
 }

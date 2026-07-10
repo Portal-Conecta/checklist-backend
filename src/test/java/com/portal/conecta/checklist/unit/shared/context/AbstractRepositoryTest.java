@@ -1,6 +1,5 @@
 package com.portal.conecta.checklist.unit.shared.context;
 
-
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;

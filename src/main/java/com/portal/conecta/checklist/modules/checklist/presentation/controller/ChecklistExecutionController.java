@@ -264,6 +264,13 @@ public class ChecklistExecutionController {
         return ResponseEntity.ok(listExecutionsUseCase.execute(pageable).map(mapper::toResponse));
     }
 
+    @Operation(summary = "Listar histórico de execuções por turma", description = "Retorna o histórico de execuções de checklist para uma determinada turma.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Histórico listado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Token ausente ou inválido", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Sem permissão para acessar o histórico da turma", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Turma não encontrada", content = @Content)
+    })
     @GetMapping("/history/class/{classId}")
     public ResponseEntity<Page<ChecklistExecutionHistoryDTO>> listHistoryByClass(
             @PathVariable UUID classId,

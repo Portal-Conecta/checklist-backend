@@ -25,58 +25,58 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
- * Endpoints de agregaÁ„o para n„o-conformidades (issues).
+ * Endpoints de agrega√ß√£o para n√£o-conformidades (issues).
  *
- * <p>Toda a lÛgica de GROUP BY È executada no banco ? os endpoints devolvem
- * linhas j· somadas, prontas para consumo pelo Chart.js.</p>
+ * <p>Toda a l√≥gica de GROUP BY √© executada no banco ? os endpoints devolvem
+ * linhas j√° somadas, prontas para consumo pelo Chart.js.</p>
  *
  * <p>Base: {@code GET /api/checklist-issues/stats}</p>
  */
 @RestController
 @RequestMapping("/api/checklist-issues/stats")
 @RequiredArgsConstructor
-@Tag(name = "Checklist Issue Stats", description = "MÈtricas de agregaÁ„o de n„o-conformidades para dashboards")
+@Tag(name = "Checklist Issue Stats", description = "M√©tricas de agrega√ß√£o de n√£o-conformidades para dashboards")
 public class ChecklistIssueStatsController {
 
     private final ChecklistIssueStatsUseCase statsUseCase;
 
     // ????????????????????????????????????????????????????????????????????????
-    // GenÈrico por groupBy
+    // Gen√©rico por groupBy
     // ????????????????????????????????????????????????????????????????????????
 
     @Operation(
-            summary = "Agregar issues por dimens„o",
+            summary = "Agregar issues por dimens√£o",
             description = """
-                    Retorna contagem de issues agrupadas pela dimens„o indicada em `groupBy`.
+                    Retorna contagem de issues agrupadas pela dimens√£o indicada em `groupBy`.
                     
                     Valores aceitos para `groupBy`:
-                    - `day` ? por dia de criaÁ„o (requer `from`/`to`; padr„o: ˙ltimos 30 dias)
+                    - `day` ? por dia de cria√ß√£o (requer `from`/`to`; padr√£o: √∫ltimos 30 dias)
                     - `status` ? por status da issue
                     - `priority` ? por prioridade
-                    - `type` ? por tipo de checklist da execuÁ„o vinculada
-                    - `item` ? top itens que mais falham (use `limit` para controlar; padr„o: 10)
+                    - `type` ? por tipo de checklist da execu√ß√£o vinculada
+                    - `item` ? top itens que mais falham (use `limit` para controlar; padr√£o: 10)
                     """
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Dados de agregaÁ„o retornados com sucesso",
+            @ApiResponse(responseCode = "200", description = "Dados de agrega√ß√£o retornados com sucesso",
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
-            @ApiResponse(responseCode = "400", description = "Par‚metro groupBy inv·lido",
+            @ApiResponse(responseCode = "400", description = "Par√¢metro groupBy inv√°lido",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "401", description = "N„o autenticado",
+            @ApiResponse(responseCode = "401", description = "N√£o autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping
     public ResponseEntity<List<StatsEntryDTO>> aggregate(
-            @Parameter(description = "Dimens„o de agrupamento", example = "status")
+            @Parameter(description = "Dimens√£o de agrupamento", example = "status")
             @RequestParam String groupBy,
 
-            @Parameter(description = "InÌcio do intervalo (YYYY-MM-DD) ? usado quando groupBy=day")
+            @Parameter(description = "In√≠cio do intervalo (YYYY-MM-DD) ? usado quando groupBy=day")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
 
             @Parameter(description = "Fim do intervalo (YYYY-MM-DD) ? usado quando groupBy=day")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
 
-            @Parameter(description = "N˙mero de itens a retornar ? usado quando groupBy=item; padr„o: 10; m·ximo: 100")
+            @Parameter(description = "N√∫mero de itens a retornar ? usado quando groupBy=item; padr√£o: 10; m√°ximo: 100")
             @RequestParam(required = false) Integer limit
     ) {
         validateDateRange(from, to);
@@ -89,7 +89,7 @@ public class ChecklistIssueStatsController {
             case "type"     -> statsUseCase.countByChecklistType();
             case "item"     -> statsUseCase.topFailingItems(limit);
             default -> throw new InvalidRequestException(
-                    "groupBy inv·lido: '" + groupBy + "'. Valores aceitos: day, status, priority, type, item"
+                    "groupBy inv√°lido: '" + groupBy + "'. Valores aceitos: day, status, priority, type, item"
             );
         };
         return ResponseEntity.ok(result);
@@ -100,13 +100,13 @@ public class ChecklistIssueStatsController {
     // ????????????????????????????????????????????????????????????????????????
 
     @Operation(
-            summary = "Divis„o entre issues abertas e resolvidas",
-            description = "Retorna contagem de issues com e sem data de resoluÁ„o, mais o total."
+            summary = "Divis√£o entre issues abertas e resolvidas",
+            description = "Retorna contagem de issues com e sem data de resolu√ß√£o, mais o total."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Divis„o calculada com sucesso",
+            @ApiResponse(responseCode = "200", description = "Divis√£o calculada com sucesso",
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
-            @ApiResponse(responseCode = "401", description = "N„o autenticado",
+            @ApiResponse(responseCode = "401", description = "N√£o autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/resolution-split")
@@ -115,13 +115,13 @@ public class ChecklistIssueStatsController {
     }
 
     @Operation(
-            summary = "Taxa de resoluÁ„o de issues",
-            description = "Retorna issues resolvidas, total e percentual de resoluÁ„o."
+            summary = "Taxa de resolu√ß√£o de issues",
+            description = "Retorna issues resolvidas, total e percentual de resolu√ß√£o."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Taxa de resoluÁ„o calculada com sucesso",
+            @ApiResponse(responseCode = "200", description = "Taxa de resolu√ß√£o calculada com sucesso",
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
-            @ApiResponse(responseCode = "401", description = "N„o autenticado",
+            @ApiResponse(responseCode = "401", description = "N√£o autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/resolution-rate")
@@ -130,13 +130,13 @@ public class ChecklistIssueStatsController {
     }
 
     @Operation(
-            summary = "Tempo mÈdio de resoluÁ„o de issues",
-            description = "Retorna a mÈdia em segundos de (resolved_at - due_at) para issues resolvidas."
+            summary = "Tempo m√©dio de resolu√ß√£o de issues",
+            description = "Retorna a m√©dia em segundos de (resolved_at - due_at) para issues resolvidas."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Tempo mÈdio calculado com sucesso",
+            @ApiResponse(responseCode = "200", description = "Tempo m√©dio calculado com sucesso",
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
-            @ApiResponse(responseCode = "401", description = "N„o autenticado",
+            @ApiResponse(responseCode = "401", description = "N√£o autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/avg-resolution-time")
@@ -145,13 +145,13 @@ public class ChecklistIssueStatsController {
     }
 
     @Operation(
-            summary = "Issues vencidas e n„o resolvidas",
-            description = "Retorna o total de issues cujo prazo (due_at) j· passou e que ainda n„o foram resolvidas."
+            summary = "Issues vencidas e n√£o resolvidas",
+            description = "Retorna o total de issues cujo prazo (due_at) j√° passou e que ainda n√£o foram resolvidas."
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Total de issues vencidas calculado com sucesso",
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
-            @ApiResponse(responseCode = "401", description = "N„o autenticado",
+            @ApiResponse(responseCode = "401", description = "N√£o autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/overdue")
@@ -160,13 +160,13 @@ public class ChecklistIssueStatsController {
     }
 
     @Operation(
-            summary = "MÈdia de n„o-conformidades por execuÁ„o",
-            description = "Retorna o total de issues, total de execuÁıes com issues e a mÈdia."
+            summary = "M√©dia de n√£o-conformidades por execu√ß√£o",
+            description = "Retorna o total de issues, total de execu√ß√µes com issues e a m√©dia."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "MÈdia calculada com sucesso",
+            @ApiResponse(responseCode = "200", description = "M√©dia calculada com sucesso",
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
-            @ApiResponse(responseCode = "401", description = "N„o autenticado",
+            @ApiResponse(responseCode = "401", description = "N√£o autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/per-execution")
@@ -175,7 +175,7 @@ public class ChecklistIssueStatsController {
     }
 
     // ????????????????????????????????????????????????????????????????????????
-    // ValidaÁıes auxiliares
+    // Valida√ß√µes auxiliares
     // ????????????????????????????????????????????????????????????????????????
 
     /**
@@ -184,12 +184,12 @@ public class ChecklistIssueStatsController {
      * <p>Regras aplicadas:
      * <ul>
      *   <li>{@code from} deve ser anterior ou igual a {@code to}</li>
-     *   <li>intervalo m·ximo de 2 anos</li>
-     *   <li>datas n„o podem estar no futuro</li>
+     *   <li>intervalo m√°ximo de 2 anos</li>
+     *   <li>datas n√£o podem estar no futuro</li>
      * </ul>
      * </p>
      *
-     * @param from inÌcio do intervalo (pode ser {@code null})
+     * @param from in√≠cio do intervalo (pode ser {@code null})
      * @param to   fim do intervalo (pode ser {@code null})
      * @throws InvalidRequestException se alguma regra for violada
      */
@@ -204,7 +204,7 @@ public class ChecklistIssueStatsController {
 
         if (ChronoUnit.YEARS.between(from, to) > 2) {
             throw new InvalidRequestException(
-                    "Intervalo de data n„o pode exceder 2 anos. Solicitado: " +
+                    "Intervalo de data n√£o pode exceder 2 anos. Solicitado: " +
                     ChronoUnit.YEARS.between(from, to) + " anos"
             );
         }
@@ -212,23 +212,23 @@ public class ChecklistIssueStatsController {
         LocalDate hoje = LocalDate.now();
         if (from.isAfter(hoje) || to.isAfter(hoje)) {
             throw new InvalidRequestException(
-                    "Datas n„o podem ser no futuro. " +
-                    "from: " + from + " (m·x: " + hoje + "), " +
-                    "to: " + to + " (m·x: " + hoje + ")"
+                    "Datas n√£o podem ser no futuro. " +
+                    "from: " + from + " (m√°x: " + hoje + "), " +
+                    "to: " + to + " (m√°x: " + hoje + ")"
             );
         }
     }
 
     /**
-     * Valida o par‚metro {@code limit} usado no top de itens.
+     * Valida o par√¢metro {@code limit} usado no top de itens.
      *
-     * @param limit n˙mero de itens (pode ser {@code null})
+     * @param limit n√∫mero de itens (pode ser {@code null})
      * @throws InvalidRequestException se {@code limit < 1}
      */
     private void validateLimit(Integer limit) {
         if (limit != null && limit < 1) {
             throw new InvalidRequestException(
-                    "'limit' deve ser no mÌnimo 1. Valor informado: " + limit
+                    "'limit' deve ser no m√≠nimo 1. Valor informado: " + limit
             );
         }
     }

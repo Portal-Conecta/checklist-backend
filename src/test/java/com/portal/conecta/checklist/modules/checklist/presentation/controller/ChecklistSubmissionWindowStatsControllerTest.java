@@ -2,7 +2,6 @@ package com.portal.conecta.checklist.unit.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.modules.checklist.application.usecase.window.query.ChecklistSubmissionWindowStatsUseCase;
 import com.portal.conecta.checklist.modules.checklist.presentation.controller.ChecklistSubmissionWindowStatsController;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,9 +21,9 @@ import static org.mockito.Mockito.when;
 class ChecklistSubmissionWindowStatsControllerTest {
 
     private final ChecklistSubmissionWindowStatsUseCase statsUseCase =
-            mock(ChecklistSubmissionWindowStatsUseCase.class);
+        mock(ChecklistSubmissionWindowStatsUseCase.class);
     private final ChecklistSubmissionWindowStatsController controller =
-            new ChecklistSubmissionWindowStatsController(statsUseCase);
+        new ChecklistSubmissionWindowStatsController(statsUseCase);
 
     @Test
     @DisplayName("aggregate groupBy=type deve retornar 200 com dados do usecase")
@@ -56,16 +55,16 @@ class ChecklistSubmissionWindowStatsControllerTest {
     @DisplayName("aggregate com groupBy inválido deve lançar IllegalArgumentException")
     void aggregateComGroupByInvalidoDeveLancarExcecao() {
         assertThrows(InvalidRequestException.class,
-                () -> controller.aggregate("invalido"));
+            () -> controller.aggregate("invalido"));
     }
 
     @Test
     @DisplayName("avgDuration deve retornar 200 com dados do usecase")
     void avgDurationDeveRetornar200() {
-        List<AvgFillTimeEntryDTO> expected = List.of(new AvgFillTimeEntryDTO("ARRIVAL", 45.0));
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("ARRIVAL", 45L));
         when(statsUseCase.avgDurationByType()).thenReturn(expected);
 
-        ResponseEntity<List<AvgFillTimeEntryDTO>> result = controller.avgDuration();
+        ResponseEntity<List<StatsEntryDTO>> result = controller.avgDuration();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(expected, result.getBody());

@@ -1,12 +1,7 @@
-package com.portal.conecta.checklist.unit.checklist.presentation.controller;
+package com.portal.conecta.checklist.modules.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ChecklistExecutionStatsUseCase;
-import com.portal.conecta.checklist.modules.checklist.presentation.controller.ChecklistExecutionStatsController;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.CompletionRateDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.HeatmapEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.WithIssuesRateDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -27,7 +22,7 @@ class ChecklistExecutionStatsControllerTest {
 
     private final ChecklistExecutionStatsUseCase statsUseCase = mock(ChecklistExecutionStatsUseCase.class);
     private final ChecklistExecutionStatsController controller =
-            new ChecklistExecutionStatsController(statsUseCase);
+        new ChecklistExecutionStatsController(statsUseCase);
 
     // ────────────────────────────────────────────────────────────────────────
     // aggregate — dispatch por groupBy
@@ -119,7 +114,7 @@ class ChecklistExecutionStatsControllerTest {
     @DisplayName("aggregate com groupBy inválido deve lançar IllegalArgumentException")
     void aggregateComGroupByInvalidoDeveLancarExcecao() {
         assertThrows(InvalidRequestException.class,
-                () -> controller.aggregate("invalido", null, null));
+            () -> controller.aggregate("invalido", null, null));
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -129,10 +124,10 @@ class ChecklistExecutionStatsControllerTest {
     @Test
     @DisplayName("completionRate deve retornar 200 com dados do usecase")
     void completionRateDeveRetornar200() {
-        CompletionRateDTO expected = CompletionRateDTO.of(128L, 160L);
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("completed", 128L));
         when(statsUseCase.completionRate()).thenReturn(expected);
 
-        ResponseEntity<CompletionRateDTO> result = controller.completionRate();
+        ResponseEntity<List<StatsEntryDTO>> result = controller.completionRate();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(expected, result.getBody());
@@ -144,10 +139,10 @@ class ChecklistExecutionStatsControllerTest {
     void avgFillTimeDeveRetornar200() {
         LocalDate from = LocalDate.of(2026, 6, 1);
         LocalDate to = LocalDate.of(2026, 6, 30);
-        List<AvgFillTimeEntryDTO> expected = List.of(new AvgFillTimeEntryDTO("2026-06-01", 245.5));
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("2026-06-01", 245L));
         when(statsUseCase.avgFillTimeByDay(from, to)).thenReturn(expected);
 
-        ResponseEntity<List<AvgFillTimeEntryDTO>> result = controller.avgFillTime(from, to);
+        ResponseEntity<List<StatsEntryDTO>> result = controller.avgFillTime(from, to);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(expected, result.getBody());
@@ -157,10 +152,10 @@ class ChecklistExecutionStatsControllerTest {
     @Test
     @DisplayName("withIssuesRate deve retornar 200 com dados do usecase")
     void withIssuesRateDeveRetornar200() {
-        WithIssuesRateDTO expected = WithIssuesRateDTO.of(52L, 128L);
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("with_issues", 52L));
         when(statsUseCase.withIssuesRate()).thenReturn(expected);
 
-        ResponseEntity<WithIssuesRateDTO> result = controller.withIssuesRate();
+        ResponseEntity<List<StatsEntryDTO>> result = controller.withIssuesRate();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(expected, result.getBody());
@@ -170,10 +165,10 @@ class ChecklistExecutionStatsControllerTest {
     @Test
     @DisplayName("heatmap deve retornar 200 com dados do usecase")
     void heatmapDeveRetornar200() {
-        List<HeatmapEntryDTO> expected = List.of(new HeatmapEntryDTO("MORNING", 1, 34L));
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("MORNING|1", 34L));
         when(statsUseCase.heatmap()).thenReturn(expected);
 
-        ResponseEntity<List<HeatmapEntryDTO>> result = controller.heatmap();
+        ResponseEntity<List<StatsEntryDTO>> result = controller.heatmap();
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(expected, result.getBody());

@@ -1,4 +1,4 @@
-package com.portal.conecta.checklist.unit.checklist.presentation.controller;
+package com.portal.conecta.checklist.modules.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.ChecklistTemplateStatsUseCase;
 import com.portal.conecta.checklist.modules.checklist.presentation.controller.ChecklistTemplateStatsController;

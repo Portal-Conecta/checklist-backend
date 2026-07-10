@@ -33,6 +33,7 @@ public record ChecklistItem(
         @Size(max = 100, message = "item.category deve ter no maximo 100 caracteres.")
         String category
 ) {
+<<<<<<< HEAD
     public ChecklistItem {
         if(answerType == null){
             answerType = AnswerType.CONFORMITY;
@@ -41,5 +42,9 @@ public record ChecklistItem(
 
     public ChecklistItem(String key, String title, String description, AnswerType answerType, Boolean required, Integer order) {
         this(key, title, description, answerType, required, order, null);
+=======
+    public ChecklistItem(String key, String title, String description, Boolean required, Integer order) {
+        this(key, title, description, required, order, null);
+>>>>>>> 02e7cb3b7e26872d52e06b8aae70a43777a962eb
     }
 }

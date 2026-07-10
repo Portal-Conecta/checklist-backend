@@ -29,7 +29,7 @@ public class ChecklistMissedDeadlineScheduler {
     @Value("${checklist.timezone:America/Sao_Paulo}")
     private String timezone;
 
-    @Scheduled(cron = "0 0 22 * * *")
+    @Scheduled(cron = "0 0 22 * * *", zone = "${checklist.timezone:America/Sao_Paulo}")
     public void checkPendingChecklists() {
         log.info("Verificando turmas que não realizaram o checklist hoje...");
 
@@ -40,7 +40,12 @@ public class ChecklistMissedDeadlineScheduler {
         List<MissedChecklistSummary> missingClasses = executionRepository.findClassIdsWithMissedChecklist(startOfDay, endOfDay);
 
         for (MissedChecklistSummary summary : missingClasses) {
-            publishMissedNotification(summary.getClassId(), summary.getChecklistType());
+            try {
+                publishMissedNotification(summary.getClassId(), summary.getChecklistType());
+            } catch (Exception e) {
+                log.error("Falha ao publicar notificação de checklist perdido para a turma {}: {}",
+                        summary.getClassId(), e.getMessage(), e);
+            }
         }
     }
 

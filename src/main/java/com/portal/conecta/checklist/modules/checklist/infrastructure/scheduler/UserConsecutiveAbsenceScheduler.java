@@ -27,13 +27,18 @@ public class UserConsecutiveAbsenceScheduler {
     @Value("${checklist.timezone:America/Sao_Paulo}")
     private String timezone;
 
-    @Scheduled(cron = "0 0 7 * * *")
+    @Scheduled(cron = "0 0 7 * * *", zone = "${checklist.timezone:America/Sao_Paulo}")
     public void checkThreeDaysConsecutiveAbsences() {
-        log.info("Iniciando verficação de ausencia de checklist por 3 dias consegutivos...");
+        log.info("Iniciando verificação de ausência de checklist por 3 dias consecutivos...");
         List<UUID> delinquentUserIds = executionRepository.findUsersWithThreeConsecutiveDaysWithoutSubmission();
 
         for (UUID userId : delinquentUserIds) {
-            publishThreeDaysAbsenceNotification(userId);
+            try {
+                publishThreeDaysAbsenceNotification(userId);
+            } catch (Exception e) {
+                log.error("Falha ao publicar notificação de 3 dias sem checklist para o usuário {}: {}",
+                        userId, e.getMessage(), e);
+            }
         }
     }
 

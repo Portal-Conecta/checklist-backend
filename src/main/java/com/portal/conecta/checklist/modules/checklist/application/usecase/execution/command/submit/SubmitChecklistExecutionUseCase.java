@@ -20,6 +20,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Map;
@@ -76,7 +77,7 @@ public class SubmitChecklistExecutionUseCase {
 
         ChecklistExecution savedExecution = executionRepository.save(execution);
 
-        if (savedExecution.getComplianceScore().compareTo(new java.math.BigDecimal("100")) < 0) {
+        if (savedExecution.getComplianceScore().compareTo(BigDecimal.valueOf(100)) < 0) {
             applicationEventPublisher.publishEvent(new ChecklistNonComplianceEvent(savedExecution));
         }
 

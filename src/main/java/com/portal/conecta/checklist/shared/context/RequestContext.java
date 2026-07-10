@@ -40,6 +40,8 @@ public record RequestContext(
         return canManageChecklistTemplates();
     }
 
+    public boolean canOnlySenaiManageIssues() { return userType == TypeUser.SENAI; }
+
     public boolean canEditCompletedChecklist() {
         return canViewDashboard();
     }
@@ -95,3 +97,4 @@ public record RequestContext(
         return contextClass.hasRole(ClassRole.TEACHER);
     }
 }
+

@@ -36,6 +36,10 @@ public record RequestContext(
         return canManageChecklistTemplates();
     }
 
+    public boolean canManageIssues() {
+        return canManageChecklistTemplates();
+    }
+
     public boolean canEditCompletedChecklist() {
         return canViewDashboard();
     }

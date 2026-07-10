@@ -1,5 +1,14 @@
 package com.portal.conecta.checklist.modules.checklist.application.service.window;
 
+import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistSubmissionWindowRepositoryPort;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
+import com.portal.conecta.checklist.modules.checklist.domain.exception.SubmissionWindowViolationException;
+import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistSubmissionWindow;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Optional;
@@ -7,30 +16,25 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
-import com.portal.conecta.checklist.modules.checklist.domain.exception.SubmissionWindowViolationException;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistSubmissionWindow;
-import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistSubmissionWindowRepository;
 
 class SubmissionWindowValidatorTest {
 
     private static final ZoneId TIMEZONE = ZoneId.of("America/Sao_Paulo");
     private static final UUID CLASS_ID = UUID.fromString("22222222-2222-2222-2222-222222222221");
 
-    private final ChecklistSubmissionWindowRepository repository = mock(ChecklistSubmissionWindowRepository.class);
-    private final SubmissionWindowValidator validator = new SubmissionWindowValidator(repository);
+    // Relógio fixo em 14:00 BRT (17:00 UTC) — longe da meia-noite, determinístico
+    private static final Clock FIXED_CLOCK = Clock.fixed(
+            Instant.parse("2026-01-01T17:00:00Z"),
+            TIMEZONE
+    );
 
-    @BeforeEach
-    void setUp() {
-        ReflectionTestUtils.setField(validator, "timezone", "America/Sao_Paulo");
-    }
+    private final ChecklistSubmissionWindowRepositoryPort repository =
+            mock(ChecklistSubmissionWindowRepositoryPort.class);
+
+    private final SubmissionWindowValidator validator =
+            new SubmissionWindowValidator(repository, FIXED_CLOCK);
 
     @Test
     @DisplayName("deve permitir envio quando nao existe janela configurada")
@@ -44,7 +48,8 @@ class SubmissionWindowValidatorTest {
     @Test
     @DisplayName("deve permitir envio dentro da janela configurada")
     void devePermitirEnvioDentroDaJanelaConfigurada() {
-        LocalTime openAt = LocalTime.now(TIMEZONE).minusMinutes(5);
+        // clock fixo em 14:00 BRT → janela 13:55 até 14:25 → dentro
+        LocalTime openAt = LocalTime.of(13, 55);
         ChecklistSubmissionWindow window = window(openAt, 30);
 
         when(repository.findByClassIdAndChecklistType(CLASS_ID, ChecklistType.ARRIVAL))
@@ -56,7 +61,8 @@ class SubmissionWindowValidatorTest {
     @Test
     @DisplayName("deve rejeitar envio antes da janela configurada")
     void deveRejeitarEnvioAntesDaJanelaConfigurada() {
-        LocalTime openAt = LocalTime.now(TIMEZONE).plusMinutes(5);
+        // clock fixo em 14:00 BRT → janela 14:05 até 14:35 → antes
+        LocalTime openAt = LocalTime.of(14, 5);
         ChecklistSubmissionWindow window = window(openAt, 30);
 
         when(repository.findByClassIdAndChecklistType(CLASS_ID, ChecklistType.ARRIVAL))
@@ -69,7 +75,8 @@ class SubmissionWindowValidatorTest {
     @Test
     @DisplayName("deve rejeitar envio depois da janela configurada")
     void deveRejeitarEnvioDepoisDaJanelaConfigurada() {
-        LocalTime openAt = LocalTime.now(TIMEZONE).minusMinutes(40);
+        // clock fixo em 14:00 BRT → janela 13:00 até 13:30 → depois
+        LocalTime openAt = LocalTime.of(13, 0);
         ChecklistSubmissionWindow window = window(openAt, 30);
 
         when(repository.findByClassIdAndChecklistType(CLASS_ID, ChecklistType.ARRIVAL))

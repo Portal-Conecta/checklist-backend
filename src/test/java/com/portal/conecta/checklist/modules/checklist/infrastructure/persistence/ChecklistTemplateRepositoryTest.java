@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.modules.checklist.infrastructure.persistence;
 
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.shared.context.AbstractRepositoryTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ChecklistTemplateRepositoryTest {
+class ChecklistTemplateRepositoryTest extends AbstractRepositoryTest {
 
     private static final Pattern NAMED_PARAMETER = Pattern.compile("(?<!:):([A-Za-z][A-Za-z0-9_]*)");
 

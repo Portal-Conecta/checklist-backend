@@ -5,11 +5,10 @@ import com.portal.conecta.checklist.modules.checklist.domain.exception.Submissio
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistSubmissionWindow;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistSubmissionWindowRepositoryPort;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.time.Clock;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.UUID;
 
 /**
@@ -21,9 +20,7 @@ import java.util.UUID;
 public class SubmissionWindowValidator {
 
     private final ChecklistSubmissionWindowRepositoryPort windowRepository;
-
-    @Value("${checklist.timezone:America/Sao_Paulo}")
-    private String timezone;
+    private final Clock clock;
 
     public void validate(UUID classId, ChecklistType checklistType) {
         windowRepository.findByClassIdAndChecklistType(classId, checklistType)
@@ -31,8 +28,8 @@ public class SubmissionWindowValidator {
     }
 
     private void validateWindow(ChecklistSubmissionWindow window) {
-        LocalTime now = LocalTime.now(ZoneId.of(timezone));
-        LocalTime openAt  = window.getOpenAt();
+        LocalTime now = LocalTime.now(clock);
+        LocalTime openAt = window.getOpenAt();
         LocalTime closeAt = openAt.plusMinutes(window.getDurationMinutes());
 
         if (now.isBefore(openAt) || now.isAfter(closeAt)) {

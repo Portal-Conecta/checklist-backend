@@ -16,6 +16,7 @@ import static org.hamcrest.Matchers.containsString;
 @SpringBootTest(properties = {
 		"checklist.security.jwt.secret=dGVzdC1vbmx5LWp3dC1zZWNyZXQtMzItYnl0ZXMtbm90LXJlYWw=",
 		"hub.api.url=http://localhost:8080",
+		"spring.datasource.url=jdbc:h2:mem:actuator-test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;INIT=CREATE DOMAIN IF NOT EXISTS JSONB AS JSON",
 		"spring.jpa.hibernate.ddl-auto=none",
 		"spring.flyway.enabled=false",
 		"management.prometheus.metrics.export.enabled=true"

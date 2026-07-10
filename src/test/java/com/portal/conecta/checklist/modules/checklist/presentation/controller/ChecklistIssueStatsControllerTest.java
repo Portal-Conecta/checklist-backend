@@ -1,4 +1,4 @@
-﻿package com.portal.conecta.checklist.unit.checklist.presentation.controller;
+package com.portal.conecta.checklist.unit.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.query.ChecklistIssueStatsUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.presentation.controller.ChecklistIssueStatsController;
@@ -30,9 +30,9 @@ class ChecklistIssueStatsControllerTest {
     private final ChecklistIssueStatsController controller =
             new ChecklistIssueStatsController(statsUseCase);
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // aggregate â€” dispatch por groupBy
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ────────────────────────────────────────────────────────────────────────
+    // aggregate — dispatch por groupBy
+    // ────────────────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("aggregate groupBy=status deve retornar 200 com dados do usecase")
@@ -102,15 +102,15 @@ class ChecklistIssueStatsControllerTest {
     }
 
     @Test
-    @DisplayName("aggregate com groupBy invÃ¡lido deve lanÃ§ar IllegalArgumentException")
+    @DisplayName("aggregate com groupBy inválido deve lançar IllegalArgumentException")
     void aggregateComGroupByInvalidoDeveLancarExcecao() {
         assertThrows(InvalidRequestException.class,
                 () -> controller.aggregate("invalido", null, null, null));
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ────────────────────────────────────────────────────────────────────────
     // Sub-recursos
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ────────────────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("resolutionSplit deve retornar 200 com dados do usecase")

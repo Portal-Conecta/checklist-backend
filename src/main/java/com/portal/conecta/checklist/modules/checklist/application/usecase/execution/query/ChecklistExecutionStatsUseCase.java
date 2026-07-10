@@ -1,4 +1,4 @@
-﻿package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query;
+package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionStatsPort;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
@@ -15,11 +15,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
- * Caso de uso para agregaÃ§Ã£o de mÃ©tricas de execuÃ§Ãµes de checklist.
+ * Caso de uso para agregação de métricas de execuções de checklist.
  *
- * <p>Delega integralmente ao {@link ChecklistExecutionStatsPort} â€” toda a agregaÃ§Ã£o
- * acontece no banco. O UseCase Ã© responsÃ¡vel apenas por validaÃ§Ãµes de entrada,
- * regras de acesso e composiÃ§Ã£o de dados quando necessÃ¡rio.</p>
+ * <p>Delega integralmente ao {@link ChecklistExecutionStatsPort} — toda a agregação
+ * acontece no banco. O UseCase é responsável apenas por validações de entrada,
+ * regras de acesso e composição de dados quando necessário.</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -28,10 +28,10 @@ public class ChecklistExecutionStatsUseCase {
     private final ChecklistExecutionStatsPort statsPort;
 
     /**
-     * Contagem de execuÃ§Ãµes por dia dentro do intervalo.
+     * Contagem de execuções por dia dentro do intervalo.
      *
-     * @param from inÃ­cio do intervalo (inclusive); padrÃ£o: 30 dias atrÃ¡s
-     * @param to   fim do intervalo (inclusive); padrÃ£o: hoje
+     * @param from início do intervalo (inclusive); padrão: 30 dias atrás
+     * @param to   fim do intervalo (inclusive); padrão: hoje
      */
     public List<StatsEntryDTO> countByDay(LocalDate from, LocalDate to) {
         validateDateRange(from, to);
@@ -40,36 +40,36 @@ public class ChecklistExecutionStatsUseCase {
         return statsPort.countByDay(resolvedFrom, resolvedTo);
     }
 
-    /** Contagem de execuÃ§Ãµes por status. */
+    /** Contagem de execuções por status. */
     public List<StatsEntryDTO> countByStatus() {
         return statsPort.countByStatus();
     }
 
-    /** Contagem de execuÃ§Ãµes por tipo de checklist. */
+    /** Contagem de execuções por tipo de checklist. */
     public List<StatsEntryDTO> countByType() {
         return statsPort.countByType();
     }
 
-    /** Contagem de execuÃ§Ãµes por turno. */
+    /** Contagem de execuções por turno. */
     public List<StatsEntryDTO> countByShift() {
         return statsPort.countByShift();
     }
 
-    /** Contagem de execuÃ§Ãµes por perÃ­odo. */
+    /** Contagem de execuções por período. */
     public List<StatsEntryDTO> countByPeriod() {
         return statsPort.countByPeriod();
     }
 
-    /** Taxa de conclusÃ£o geral. */
+    /** Taxa de conclusão geral. */
     public CompletionRateDTO completionRate() {
         return statsPort.completionRate();
     }
 
     /**
-     * Tempo mÃ©dio de preenchimento por dia.
+     * Tempo médio de preenchimento por dia.
      *
-     * @param from inÃ­cio do intervalo; padrÃ£o: 30 dias atrÃ¡s
-     * @param to   fim do intervalo; padrÃ£o: hoje
+     * @param from início do intervalo; padrão: 30 dias atrás
+     * @param to   fim do intervalo; padrão: hoje
      */
     public List<AvgFillTimeEntryDTO> avgFillTimeByDay(LocalDate from, LocalDate to) {
         validateDateRange(from, to);
@@ -79,11 +79,11 @@ public class ChecklistExecutionStatsUseCase {
     }
 
     /**
-     * SÃ©rie temporal de contagens por (dia, status).
+     * Série temporal de contagens por (dia, status).
      * O {@code label} de cada entrada tem o formato {@code YYYY-MM-DD|STATUS}.
      *
-     * @param from inÃ­cio do intervalo; padrÃ£o: 30 dias atrÃ¡s
-     * @param to   fim do intervalo; padrÃ£o: hoje
+     * @param from início do intervalo; padrão: 30 dias atrás
+     * @param to   fim do intervalo; padrão: hoje
      */
     public List<StatsEntryDTO> countByDayAndStatus(LocalDate from, LocalDate to) {
         validateDateRange(from, to);
@@ -92,24 +92,24 @@ public class ChecklistExecutionStatsUseCase {
         return statsPort.countByDayAndStatus(resolvedFrom, resolvedTo);
     }
 
-    /** Percentual de execuÃ§Ãµes que geraram ao menos 1 issue. */
+    /** Percentual de execuções que geraram ao menos 1 issue. */
     public WithIssuesRateDTO withIssuesRate() {
         return statsPort.withIssuesRate();
     }
 
-    /** Heatmap de execuÃ§Ãµes por turno Ã— dia da semana. */
+    /** Heatmap de execuções por turno × dia da semana. */
     public List<HeatmapEntryDTO> heatmap() {
         return statsPort.heatmapShiftByDayOfWeek();
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // ValidaÃ§Ã£o auxiliar (defesa em profundidade)
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ────────────────────────────────────────────────────────────────────────
+    // Validação auxiliar (defesa em profundidade)
+    // ────────────────────────────────────────────────────────────────────────
 
     /**
-     * Valida o intervalo de datas â€” segunda linha de defesa apÃ³s o controller.
+     * Valida o intervalo de datas — segunda linha de defesa após o controller.
      *
-     * @param from inÃ­cio do intervalo (pode ser {@code null})
+     * @param from início do intervalo (pode ser {@code null})
      * @param to   fim do intervalo (pode ser {@code null})
      * @throws InvalidRequestException se {@code from > to}
      */

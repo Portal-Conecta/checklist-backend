@@ -1,4 +1,4 @@
-﻿package com.portal.conecta.checklist.modules.checklist.application.port.out.persistence;
+package com.portal.conecta.checklist.modules.checklist.application.port.out.persistence;
 
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
@@ -6,10 +6,10 @@ import com.portal.conecta.checklist.modules.checklist.application.dto.stats.Stat
 import java.util.List;
 
 /**
- * Port de saÃ­da (agregaÃ§Ã£o) para mÃ©tricas de janelas de submissÃ£o.
+ * Port de saída (agregação) para métricas de janelas de submissão.
  *
- * <p>Todas as consultas realizam GROUP BY diretamente no banco â€” nenhuma entidade
- * Ã© carregada em memÃ³ria.</p>
+ * <p>Todas as consultas realizam GROUP BY diretamente no banco — nenhuma entidade
+ * é carregada em memória.</p>
  */
 public interface ChecklistSubmissionWindowStatsPort {
 
@@ -20,9 +20,9 @@ public interface ChecklistSubmissionWindowStatsPort {
     List<StatsEntryDTO> countByShift();
 
     /**
-     * DuraÃ§Ã£o mÃ©dia em minutos por tipo de checklist.
-     * O label Ã© o tipo e o valor Ã© a mÃ©dia arredondada.
-     * Reutiliza {@link AvgFillTimeEntryDTO} apenas para a projeÃ§Ã£o label + avgSeconds.
+     * Duração média em minutos por tipo de checklist.
+     * O label é o tipo e o valor é a média arredondada.
+     * Reutiliza {@link AvgFillTimeEntryDTO} apenas para a projeção label + avgSeconds.
      */
     List<AvgFillTimeEntryDTO> avgDurationByType();
 }

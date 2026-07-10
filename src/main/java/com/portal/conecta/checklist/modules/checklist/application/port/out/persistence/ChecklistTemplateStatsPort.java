@@ -1,13 +1,13 @@
-﻿package com.portal.conecta.checklist.modules.checklist.application.port.out.persistence;
+package com.portal.conecta.checklist.modules.checklist.application.port.out.persistence;
 
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
 import java.util.List;
 
 /**
- * Port de saÃ­da (agregaÃ§Ã£o) para mÃ©tricas de templates de checklist.
+ * Port de saída (agregação) para métricas de templates de checklist.
  *
- * <p>Todas as consultas realizam GROUP BY diretamente no banco â€” nenhuma entidade
- * Ã© carregada em memÃ³ria.</p>
+ * <p>Todas as consultas realizam GROUP BY diretamente no banco — nenhuma entidade
+ * é carregada em memória.</p>
  */
 public interface ChecklistTemplateStatsPort {
 
@@ -21,8 +21,8 @@ public interface ChecklistTemplateStatsPort {
     List<StatsEntryDTO> countByDay();
 
     /**
-     * NÃºmero de versÃµes por grupo de template ({@code template_group_id}).
-     * O label Ã© o UUID do grupo como string.
+     * Número de versões por grupo de template ({@code template_group_id}).
+     * O label é o UUID do grupo como string.
      */
     List<StatsEntryDTO> countVersionsByGroup();
 }

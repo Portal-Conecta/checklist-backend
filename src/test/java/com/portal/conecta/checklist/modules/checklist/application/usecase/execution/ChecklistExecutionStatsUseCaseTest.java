@@ -1,4 +1,4 @@
-﻿package com.portal.conecta.checklist.unit.checklist.application.usecase.execution;
+package com.portal.conecta.checklist.unit.checklist.application.usecase.execution;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionStatsPort;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ChecklistExecutionStatsUseCase;
@@ -24,7 +24,7 @@ class ChecklistExecutionStatsUseCaseTest {
     private final ChecklistExecutionStatsUseCase useCase = new ChecklistExecutionStatsUseCase(statsPort);
 
     @Test
-    @DisplayName("countByDay com datas nulas deve usar padrÃ£o de 30 dias atrÃ¡s atÃ© hoje")
+    @DisplayName("countByDay com datas nulas deve usar padrão de 30 dias atrás até hoje")
     void countByDayComDatasNulasDeveUsarPadrao() {
         when(statsPort.countByDay(any(), any())).thenReturn(List.of());
 
@@ -37,7 +37,7 @@ class ChecklistExecutionStatsUseCaseTest {
     }
 
     @Test
-    @DisplayName("countByDay com datas explÃ­citas deve repassar ao port sem alteraÃ§Ã£o")
+    @DisplayName("countByDay com datas explícitas deve repassar ao port sem alteração")
     void countByDayComDatasExplicitasDeveRepassar() {
         LocalDate from = LocalDate.of(2026, 6, 1);
         LocalDate to = LocalDate.of(2026, 6, 30);

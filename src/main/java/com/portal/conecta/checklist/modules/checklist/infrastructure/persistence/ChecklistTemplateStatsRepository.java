@@ -1,4 +1,4 @@
-﻿package com.portal.conecta.checklist.modules.checklist.infrastructure.persistence;
+package com.portal.conecta.checklist.modules.checklist.infrastructure.persistence;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateStatsPort;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
@@ -9,10 +9,10 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * Adapter de persistÃªncia para mÃ©tricas de templates de checklist.
+ * Adapter de persistência para métricas de templates de checklist.
  *
- * <p>Todas as queries sÃ£o nativas e retornam projeÃ§Ãµes escalares â€” nenhuma entidade
- * Ã© carregada em memÃ³ria.</p>
+ * <p>Todas as queries são nativas e retornam projeções escalares — nenhuma entidade
+ * é carregada em memória.</p>
  */
 @Repository
 public class ChecklistTemplateStatsRepository implements ChecklistTemplateStatsPort {
@@ -82,7 +82,7 @@ public class ChecklistTemplateStatsRepository implements ChecklistTemplateStatsP
                 .toList();
     }
 
-    // â”€â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── helpers ────────────────────────────────────────────────────────────
 
     private static long toLong(Object value) {
         return value == null ? 0L : ((Number) value).longValue();

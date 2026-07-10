@@ -1,4 +1,4 @@
-﻿package com.portal.conecta.checklist.modules.checklist.issues.application.usecase.query;
+package com.portal.conecta.checklist.modules.checklist.issues.application.usecase.query;
 
 import com.portal.conecta.checklist.modules.checklist.issues.application.port.out.persistence.ChecklistIssueStatsPort;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgResolutionTimeDTO;
@@ -16,16 +16,16 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
- * Caso de uso para agregaÃ§Ã£o de mÃ©tricas de nÃ£o-conformidades (issues).
+ * Caso de uso para agregação de métricas de não-conformidades (issues).
  *
- * <p>Delega integralmente ao {@link ChecklistIssueStatsPort} â€” toda a agregaÃ§Ã£o
+ * <p>Delega integralmente ao {@link ChecklistIssueStatsPort} — toda a agregação
  * acontece no banco.</p>
  */
 @Service
 @RequiredArgsConstructor
 public class ChecklistIssueStatsUseCase {
 
-    /** Limite mÃ¡ximo permitido para o parÃ¢metro {@code limit} no top de itens. */
+    /** Limite máximo permitido para o parâmetro {@code limit} no top de itens. */
     private static final int MAX_LIMIT = 100;
 
     private final ChecklistIssueStatsPort statsPort;
@@ -33,8 +33,8 @@ public class ChecklistIssueStatsUseCase {
     /**
      * Contagem de issues por dia dentro do intervalo.
      *
-     * @param from inÃ­cio do intervalo; padrÃ£o: 30 dias atrÃ¡s
-     * @param to   fim do intervalo; padrÃ£o: hoje
+     * @param from início do intervalo; padrão: 30 dias atrás
+     * @param to   fim do intervalo; padrão: hoje
      */
     public List<StatsEntryDTO> countByDay(LocalDate from, LocalDate to) {
         validateDateRange(from, to);
@@ -53,22 +53,22 @@ public class ChecklistIssueStatsUseCase {
         return statsPort.countByPriority();
     }
 
-    /** DivisÃ£o entre issues abertas e resolvidas. */
+    /** Divisão entre issues abertas e resolvidas. */
     public ResolutionSplitDTO resolutionSplit() {
         return statsPort.resolutionSplit();
     }
 
-    /** Taxa de resoluÃ§Ã£o de issues. */
+    /** Taxa de resolução de issues. */
     public ResolutionRateDTO resolutionRate() {
         return statsPort.resolutionRate();
     }
 
-    /** Tempo mÃ©dio de resoluÃ§Ã£o em segundos. */
+    /** Tempo médio de resolução em segundos. */
     public AvgResolutionTimeDTO avgResolutionTime() {
         return statsPort.avgResolutionTime();
     }
 
-    /** Total de issues vencidas e nÃ£o resolvidas. */
+    /** Total de issues vencidas e não resolvidas. */
     public OverdueIssuesDTO overdueCount() {
         return statsPort.overdueCount();
     }
@@ -76,36 +76,36 @@ public class ChecklistIssueStatsUseCase {
     /**
      * Top itens que mais geram issues.
      *
-     * @param limit nÃºmero de itens a retornar; limitado a {@value MAX_LIMIT}; padrÃ£o: 10
+     * @param limit número de itens a retornar; limitado a {@value MAX_LIMIT}; padrão: 10
      */
     public List<StatsEntryDTO> topFailingItems(Integer limit) {
         if (limit != null && limit < 1) {
             throw new InvalidRequestException(
-                    "'limit' deve ser no mÃ­nimo 1. Valor informado: " + limit
+                    "'limit' deve ser no mínimo 1. Valor informado: " + limit
             );
         }
         int resolvedLimit = Math.min(limit != null ? limit : 10, MAX_LIMIT);
         return statsPort.topFailingItems(resolvedLimit);
     }
 
-    /** Contagem de issues por tipo de checklist da execuÃ§Ã£o vinculada. */
+    /** Contagem de issues por tipo de checklist da execução vinculada. */
     public List<StatsEntryDTO> countByChecklistType() {
         return statsPort.countByChecklistType();
     }
 
-    /** MÃ©dia de issues por execuÃ§Ã£o de checklist. */
+    /** Média de issues por execução de checklist. */
     public IssuesPerExecutionDTO issuesPerExecution() {
         return statsPort.issuesPerExecution();
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // ValidaÃ§Ã£o auxiliar (defesa em profundidade)
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ────────────────────────────────────────────────────────────────────────
+    // Validação auxiliar (defesa em profundidade)
+    // ────────────────────────────────────────────────────────────────────────
 
     /**
-     * Valida o intervalo de datas â€” segunda linha de defesa apÃ³s o controller.
+     * Valida o intervalo de datas — segunda linha de defesa após o controller.
      *
-     * @param from inÃ­cio do intervalo (pode ser {@code null})
+     * @param from início do intervalo (pode ser {@code null})
      * @param to   fim do intervalo (pode ser {@code null})
      * @throws InvalidRequestException se {@code from > to}
      */

@@ -1,15 +1,15 @@
-﻿package com.portal.conecta.checklist.modules.checklist.application.dto.stats;
+package com.portal.conecta.checklist.modules.checklist.application.dto.stats;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Taxa de resoluÃ§Ã£o de issues (resolvidas / total).
+ * Taxa de resolução de issues (resolvidas / total).
  *
  * @param resolved    total de issues resolvidas
  * @param total       total de issues
- * @param ratePercent percentual de resoluÃ§Ã£o
+ * @param ratePercent percentual de resolução
  */
-@Schema(description = "Taxa de resoluÃ§Ã£o de issues")
+@Schema(description = "Taxa de resolução de issues")
 public record ResolutionRateDTO(
 
         @Schema(description = "Issues resolvidas", example = "83")
@@ -18,7 +18,7 @@ public record ResolutionRateDTO(
         @Schema(description = "Total de issues", example = "128")
         long total,
 
-        @Schema(description = "Percentual de resoluÃ§Ã£o (0â€“100)", example = "64.84")
+        @Schema(description = "Percentual de resolução (0–100)", example = "64.84")
         double ratePercent
 
 ) {

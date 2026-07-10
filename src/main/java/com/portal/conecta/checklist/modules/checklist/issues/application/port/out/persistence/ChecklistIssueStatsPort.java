@@ -1,4 +1,4 @@
-﻿package com.portal.conecta.checklist.modules.checklist.issues.application.port.out.persistence;
+package com.portal.conecta.checklist.modules.checklist.issues.application.port.out.persistence;
 
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgResolutionTimeDTO;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.IssuesPerExecutionDTO;
@@ -10,17 +10,17 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Port de saÃ­da (agregaÃ§Ã£o) para mÃ©tricas de nÃ£o-conformidades (issues).
+ * Port de saída (agregação) para métricas de não-conformidades (issues).
  *
- * <p>Todas as consultas realizam GROUP BY diretamente no banco â€” nenhuma entidade
- * Ã© carregada em memÃ³ria.</p>
+ * <p>Todas as consultas realizam GROUP BY diretamente no banco — nenhuma entidade
+ * é carregada em memória.</p>
  */
 public interface ChecklistIssueStatsPort {
 
     /**
-     * Contagem de issues por dia de criaÃ§Ã£o ({@code CAST(due_at AS date)}).
+     * Contagem de issues por dia de criação ({@code CAST(due_at AS date)}).
      *
-     * @param from inÃ­cio do intervalo (inclusive)
+     * @param from início do intervalo (inclusive)
      * @param to   fim do intervalo (inclusive)
      */
     List<StatsEntryDTO> countByDay(LocalDate from, LocalDate to);
@@ -31,14 +31,14 @@ public interface ChecklistIssueStatsPort {
     /** Contagem de issues agrupadas por prioridade. */
     List<StatsEntryDTO> countByPriority();
 
-    /** DivisÃ£o entre issues abertas ({@code resolved_at IS NULL}) e resolvidas. */
+    /** Divisão entre issues abertas ({@code resolved_at IS NULL}) e resolvidas. */
     ResolutionSplitDTO resolutionSplit();
 
-    /** Taxa de resoluÃ§Ã£o: issues com {@code resolved_at IS NOT NULL} / total. */
+    /** Taxa de resolução: issues com {@code resolved_at IS NOT NULL} / total. */
     ResolutionRateDTO resolutionRate();
 
     /**
-     * Tempo mÃ©dio de resoluÃ§Ã£o em segundos.
+     * Tempo médio de resolução em segundos.
      * Considera apenas issues com {@code resolved_at IS NOT NULL}.
      */
     AvgResolutionTimeDTO avgResolutionTime();
@@ -49,15 +49,15 @@ public interface ChecklistIssueStatsPort {
     /**
      * Top itens que mais geram issues, limitado a {@code limit} entradas.
      *
-     * @param limit nÃºmero mÃ¡ximo de itens a retornar
+     * @param limit número máximo de itens a retornar
      */
     List<StatsEntryDTO> topFailingItems(int limit);
 
-    /** Contagem de issues agrupadas por tipo de checklist da execuÃ§Ã£o vinculada. */
+    /** Contagem de issues agrupadas por tipo de checklist da execução vinculada. */
     List<StatsEntryDTO> countByChecklistType();
 
     /**
-     * MÃ©dia de issues por execuÃ§Ã£o de checklist ({@code total issues / distinct executions}).
+     * Média de issues por execução de checklist ({@code total issues / distinct executions}).
      */
     IssuesPerExecutionDTO issuesPerExecution();
 }

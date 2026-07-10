@@ -1,4 +1,4 @@
-﻿package com.portal.conecta.checklist.modules.checklist.issues.infrastructure.persistence;
+package com.portal.conecta.checklist.modules.checklist.issues.infrastructure.persistence;
 
 import com.portal.conecta.checklist.modules.checklist.issues.application.port.out.persistence.ChecklistIssueStatsPort;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgResolutionTimeDTO;
@@ -15,13 +15,13 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Adapter de persistÃªncia para mÃ©tricas de nÃ£o-conformidades (issues).
+ * Adapter de persistência para métricas de não-conformidades (issues).
  *
- * <p>Todas as queries sÃ£o nativas e retornam projeÃ§Ãµes escalares â€” nenhuma entidade
- * Ã© carregada em memÃ³ria.</p>
+ * <p>Todas as queries são nativas e retornam projeções escalares — nenhuma entidade
+ * é carregada em memória.</p>
  *
- * <p>Timestamps com timezone: {@code due_at} e {@code resolved_at} sÃ£o {@code TIMESTAMPTZ}
- * no banco. A comparaÃ§Ã£o {@code due_at < now()} usa o timezone do servidor Postgres.</p>
+ * <p>Timestamps com timezone: {@code due_at} e {@code resolved_at} são {@code TIMESTAMPTZ}
+ * no banco. A comparação {@code due_at < now()} usa o timezone do servidor Postgres.</p>
  */
 @Repository
 public class ChecklistIssueStatsRepository implements ChecklistIssueStatsPort {
@@ -175,7 +175,7 @@ public class ChecklistIssueStatsRepository implements ChecklistIssueStatsPort {
         return IssuesPerExecutionDTO.of(toLong(row[0]), toLong(row[1]));
     }
 
-    // â”€â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── helpers ────────────────────────────────────────────────────────────
 
     private static long toLong(Object value) {
         return value == null ? 0L : ((Number) value).longValue();

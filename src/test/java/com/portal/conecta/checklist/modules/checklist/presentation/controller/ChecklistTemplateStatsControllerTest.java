@@ -1,4 +1,4 @@
-﻿package com.portal.conecta.checklist.unit.checklist.presentation.controller;
+package com.portal.conecta.checklist.unit.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.ChecklistTemplateStatsUseCase;
 import com.portal.conecta.checklist.modules.checklist.presentation.controller.ChecklistTemplateStatsController;
@@ -77,7 +77,7 @@ class ChecklistTemplateStatsControllerTest {
     }
 
     @Test
-    @DisplayName("aggregate com groupBy invÃ¡lido deve lanÃ§ar IllegalArgumentException")
+    @DisplayName("aggregate com groupBy inválido deve lançar IllegalArgumentException")
     void aggregateComGroupByInvalidoDeveLancarExcecao() {
         assertThrows(InvalidRequestException.class,
                 () -> controller.aggregate("invalido"));

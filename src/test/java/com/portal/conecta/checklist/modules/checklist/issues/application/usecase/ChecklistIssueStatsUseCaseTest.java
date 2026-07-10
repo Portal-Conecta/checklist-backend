@@ -1,4 +1,4 @@
-﻿package com.portal.conecta.checklist.unit.checklist.issues.application.usecase;
+package com.portal.conecta.checklist.unit.checklist.issues.application.usecase;
 
 import com.portal.conecta.checklist.modules.checklist.issues.application.port.out.persistence.ChecklistIssueStatsPort;
 import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.query.ChecklistIssueStatsUseCase;
@@ -22,7 +22,7 @@ class ChecklistIssueStatsUseCaseTest {
     private final ChecklistIssueStatsUseCase useCase = new ChecklistIssueStatsUseCase(statsPort);
 
     @Test
-    @DisplayName("countByDay com datas nulas deve usar padrÃ£o de 30 dias atrÃ¡s atÃ© hoje")
+    @DisplayName("countByDay com datas nulas deve usar padrão de 30 dias atrás até hoje")
     void countByDayComDatasNulasDeveUsarPadrao() {
         when(statsPort.countByDay(any(), any())).thenReturn(List.of());
 
@@ -35,7 +35,7 @@ class ChecklistIssueStatsUseCaseTest {
     }
 
     @Test
-    @DisplayName("topFailingItems com limit nulo deve usar padrÃ£o 10")
+    @DisplayName("topFailingItems com limit nulo deve usar padrão 10")
     void topFailingItemsComLimitNuloDeveUsarPadrao() {
         when(statsPort.topFailingItems(10)).thenReturn(List.of());
 
@@ -55,7 +55,7 @@ class ChecklistIssueStatsUseCaseTest {
     }
 
     @Test
-    @DisplayName("topFailingItems com limit vÃ¡lido deve repassar ao port sem alteraÃ§Ã£o")
+    @DisplayName("topFailingItems com limit válido deve repassar ao port sem alteração")
     void topFailingItemsComLimitValidoDeveRepassar() {
         List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("quadro", 50L));
         when(statsPort.topFailingItems(5)).thenReturn(expected);

@@ -1,4 +1,4 @@
-﻿package com.portal.conecta.checklist.modules.checklist.infrastructure.persistence;
+package com.portal.conecta.checklist.modules.checklist.infrastructure.persistence;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistSubmissionWindowStatsPort;
 import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
@@ -10,10 +10,10 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * Adapter de persistÃªncia para mÃ©tricas de janelas de submissÃ£o.
+ * Adapter de persistência para métricas de janelas de submissão.
  *
- * <p>Todas as queries sÃ£o nativas e retornam projeÃ§Ãµes escalares â€” nenhuma entidade
- * Ã© carregada em memÃ³ria.</p>
+ * <p>Todas as queries são nativas e retornam projeções escalares — nenhuma entidade
+ * é carregada em memória.</p>
  */
 @Repository
 public class ChecklistSubmissionWindowStatsRepository implements ChecklistSubmissionWindowStatsPort {
@@ -67,7 +67,7 @@ public class ChecklistSubmissionWindowStatsRepository implements ChecklistSubmis
                 .toList();
     }
 
-    // â”€â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── helpers ────────────────────────────────────────────────────────────
 
     private static long toLong(Object value) {
         return value == null ? 0L : ((Number) value).longValue();

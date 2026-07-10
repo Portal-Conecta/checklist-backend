@@ -27,7 +27,7 @@ public class StartIssueProgressUseCase {
 
     @Transactional
     public ChecklistIssue execute(UUID issueId) {
-        if (!contextProvider.getRequestContext().canManageChecklistTemplates()) {
+        if (!contextProvider.getRequestContext().canManageIssues()) {
             throw new AccessDeniedException("Apenas SENAI e WEG podem iniciar o atendimento de pendencias.");
         }
 

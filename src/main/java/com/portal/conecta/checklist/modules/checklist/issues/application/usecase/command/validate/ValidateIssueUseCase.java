@@ -29,8 +29,7 @@ public class ValidateIssueUseCase {
 
     @Transactional
     public ChecklistIssue execute(UUID issueId) {
-        RequestContext context = contextProvider.getRequestContext();
-        if (context.userType() != TypeUser.SENAI) {
+        if (!contextProvider.getRequestContext().canManageIssues()) {
             throw new AccessDeniedException("Apenas SENAI pode validar a resolucao de pendencias.");
         }
 

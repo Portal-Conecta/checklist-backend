@@ -29,8 +29,7 @@ public class ReopenIssueUseCase {
 
     @Transactional
     public ChecklistIssue execute(UUID issueId) {
-        RequestContext context = contextProvider.getRequestContext();
-        if (context.userType() != TypeUser.SENAI) {
+        if (!contextProvider.getRequestContext().canManageIssues()) {
             throw new AccessDeniedException("Apenas SENAI pode reabrir pendencias.");
         }
 

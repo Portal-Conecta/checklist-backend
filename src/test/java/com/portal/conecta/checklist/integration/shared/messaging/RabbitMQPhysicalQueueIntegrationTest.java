@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
                 "checklist.security.swagger-public=true",
                 "hub.api.url=http://localhost:8080",
                 "spring.docker.compose.enabled=false",
+                "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
                 "app.rabbitmq.enabled=true",
                 "app.rabbitmq.exchange=notifications.exchange",
                 "app.rabbitmq.queue=notifications.dispatch.q",

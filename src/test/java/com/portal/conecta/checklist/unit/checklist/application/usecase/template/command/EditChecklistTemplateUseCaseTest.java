@@ -5,6 +5,7 @@ import com.portal.conecta.checklist.modules.checklist.application.port.out.integ
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.edit.UpdateChecklistTemplateCommand;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.edit.UpdateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.AnswerType;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
@@ -163,8 +164,8 @@ class EditChecklistTemplateUseCaseTest {
                 null,
                 new ChecklistSchema(List.of(
                         new ChecklistSection("secao-1", "Secao 1", 1, List.of(
-                                new ChecklistItem("item-1", "Item 1", "", true, 1),
-                                new ChecklistItem("item-1", "Item duplicado", "", true, 2)
+                                new ChecklistItem("item-1", "Item 1", "", AnswerType.CONFORMITY, true, 1),
+                                new ChecklistItem("item-1", "Item duplicado", "", AnswerType.CONFORMITY, true, 2)
                         ))
                 ))
         );
@@ -173,7 +174,7 @@ class EditChecklistTemplateUseCaseTest {
     private ChecklistSchema schema(String sectionKey, String itemKey) {
         return new ChecklistSchema(List.of(
                 new ChecklistSection(sectionKey, "Secao", 1, List.of(
-                        new ChecklistItem(itemKey, "Item", "Observacao", true, 1)
+                        new ChecklistItem(itemKey, "Item", "Observacao", AnswerType.CONFORMITY, true, 1)
                 ))
         ));
     }

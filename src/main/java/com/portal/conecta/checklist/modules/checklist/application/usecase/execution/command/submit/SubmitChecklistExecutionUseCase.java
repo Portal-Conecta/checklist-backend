@@ -14,6 +14,7 @@ import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSch
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
@@ -26,6 +27,10 @@ import java.time.ZoneId;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Caso de uso responsavel por submeter uma execucao de checklist.
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubmitChecklistExecutionUseCase {
@@ -45,6 +50,8 @@ public class SubmitChecklistExecutionUseCase {
 
     @Transactional
     public ChecklistExecution execute(UUID executionId, SubmitChecklistExecutionCommand command) {
+        log.info("Submetendo checklist executionId={}", executionId);
+
         ChecklistExecution execution = executionRepository.findById(executionId)
                 .orElseThrow(() -> new EntityNotFoundException("Execucao de checklist nao encontrada."));
 
@@ -65,7 +72,9 @@ public class SubmitChecklistExecutionUseCase {
                 execution.getChecklistTemplate().getSchemaJson(),
                 ChecklistSchema.class
         );
-
+        // TODO: O campo AnswerType foi introduzido no schema (ChecklistItem), mas as validacoes
+        // de formato de resposta (TEXT, NUMBER) serao implementadas em uma PR futura.
+        // Atualmente, apenas respostas COMPLIANT/NON_COMPLIANT sao validadas.
         Map<String, ChecklistItem> itemsByKey = answerValidationService.validate(schema, command.answers());
 
         execution.setAnswersJson(executionMapper.toAnswersJson(command));
@@ -75,12 +84,14 @@ public class SubmitChecklistExecutionUseCase {
 
         issueService.createIssuesForNonCompliantAnswers(execution, command.answers(), itemsByKey);
 
-        ChecklistExecution savedExecution = executionRepository.save(execution);
+        ChecklistExecution submitted = executionRepository.save(execution);
+        log.info("Checklist submetido com sucesso executionId={} classId={} score={}%",
+                submitted.getId(), submitted.getClassId(), submitted.getComplianceScore());
 
-        if (savedExecution.getComplianceScore().compareTo(BigDecimal.valueOf(100)) < 0) {
-            applicationEventPublisher.publishEvent(new ChecklistNonComplianceEvent(savedExecution));
+        if (submitted.getComplianceScore().compareTo(BigDecimal.valueOf(100)) < 0) {
+            applicationEventPublisher.publishEvent(new ChecklistNonComplianceEvent(submitted));
         }
 
-        return savedExecution;
+        return submitted;
     }
 }

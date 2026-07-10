@@ -3,7 +3,9 @@ package com.portal.conecta.checklist.unit.checklist.presentation.controller;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.cancel.CancelChecklistExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create.CreateChecklistExecutionCommand;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create.CreateChecklistExecutionUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.FindChecklistExecutionByIdUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ListChecklistHistoryByClassUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ListChecklistExecutionsUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
@@ -38,14 +40,18 @@ class ChecklistExecutionControllerTest {
     private final SubmitChecklistExecutionUseCase submitUseCase = mock(SubmitChecklistExecutionUseCase.class);
     private final CancelChecklistExecutionUseCase cancelUseCase = mock(CancelChecklistExecutionUseCase.class);
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase = mock(ListChecklistHistoryByClassUseCase.class);
+    private final ListChecklistExecutionsUseCase listExecutionsUseCase = mock(ListChecklistExecutionsUseCase.class);
     private final UpdateChecklistExecutionAnswersUseCase updateAnswersUseCase = mock(UpdateChecklistExecutionAnswersUseCase.class);
+    private final FindChecklistExecutionByIdUseCase findByIdUseCase = mock(FindChecklistExecutionByIdUseCase.class);
     private final ChecklistExecutionMapper mapper = mock(ChecklistExecutionMapper.class);
     private final ChecklistExecutionController controller = new ChecklistExecutionController(
             createUseCase,
             submitUseCase,
             cancelUseCase,
             listHistoryByClassUseCase,
+            listExecutionsUseCase,
             updateAnswersUseCase,
+            findByIdUseCase,
             mapper
     );
 
@@ -152,5 +158,23 @@ class ChecklistExecutionControllerTest {
         assertSame(response, result.getBody());
         verify(listHistoryByClassUseCase).execute(classId, pageable);
         verify(mapper).toPageHistory(executions);
+    }
+
+    @Test
+    @DisplayName("deve retornar ok ao buscar por ID")
+    void deveRetornarOkAoBuscarPorId() {
+        UUID executionId = UUID.randomUUID();
+        ChecklistExecution execution = mock(ChecklistExecution.class);
+        ChecklistExecutionResponseDTO response = mock(ChecklistExecutionResponseDTO.class);
+
+        when(findByIdUseCase.execute(executionId)).thenReturn(execution);
+        when(mapper.toResponse(execution)).thenReturn(response);
+
+        ResponseEntity<ChecklistExecutionResponseDTO> result = controller.findById(executionId);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(response, result.getBody());
+        verify(findByIdUseCase).execute(executionId);
+        verify(mapper).toResponse(execution);
     }
 }

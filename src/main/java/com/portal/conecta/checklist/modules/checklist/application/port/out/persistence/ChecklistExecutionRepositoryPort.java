@@ -38,9 +38,8 @@ public interface ChecklistExecutionRepositoryPort extends ListCrudRepository<Che
                 """,nativeQuery = true)
     long countByUserIdAndStatus(@Param("userId") UUID userId, @Param("status") String status);
 
+    Page<ChecklistExecution> findAll(Pageable pageable);
 
-
-
-
+    Page<ChecklistExecution> findByClassIdIn(Iterable<UUID> classIds, Pageable pageable);
 
 }

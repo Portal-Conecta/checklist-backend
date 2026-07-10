@@ -3,6 +3,8 @@ package com.portal.conecta.checklist.modules.checklist.presentation.controller;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.cancel.CancelChecklistExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create.CreateChecklistExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ListChecklistHistoryByClassUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ListChecklistExecutionsUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.FindChecklistExecutionByIdUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request.ChecklistExecutionDraftCreateDTO;
@@ -39,7 +41,9 @@ public class ChecklistExecutionController {
     private final SubmitChecklistExecutionUseCase submitUseCase;
     private final CancelChecklistExecutionUseCase cancelUseCase;
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase;
+    private final ListChecklistExecutionsUseCase listExecutionsUseCase;
     private final UpdateChecklistExecutionAnswersUseCase updateAnswersUseCase;
+    private final FindChecklistExecutionByIdUseCase findByIdUseCase;
     private final ChecklistExecutionMapper mapper;
 
     @Operation(
@@ -193,6 +197,71 @@ public class ChecklistExecutionController {
     @PatchMapping("/{executionId}/cancel")
     public ResponseEntity<ChecklistExecutionResponseDTO> cancel(@PathVariable UUID executionId) {
         return ResponseEntity.ok(mapper.toResponse(cancelUseCase.execute(executionId)));
+    }
+
+    @Operation(
+            summary = "Buscar execução por ID",
+            description = "Retorna os detalhes de uma execução de checklist específica pelo seu identificador único."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Execução encontrada com sucesso",
+                    content = @Content(schema = @Schema(implementation = ChecklistExecutionResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Não autenticado — token JWT ausente ou inválido",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Sem permissão para acessar esta execução",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Execução não encontrada para o ID informado",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno inesperado no servidor",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            )
+    })
+    @GetMapping("/{executionId}")
+    public ResponseEntity<ChecklistExecutionResponseDTO> findById(
+            @Parameter(description = "UUID da execução a ser buscada", required = true)
+            @PathVariable UUID executionId
+    ) {
+        return ResponseEntity.ok(mapper.toResponse(findByIdUseCase.execute(executionId)));
+    }
+
+    @Operation(
+            summary = "Listar execuções de checklist",
+            description = "Retorna uma lista paginada de execuções de checklist, aplicando os filtros de permissão de acesso conforme o perfil do usuário."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Execuções listadas com sucesso",
+                    content = @Content(schema = @Schema(implementation = Page.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Não autenticado — token JWT ausente ou inválido",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno inesperado no servidor",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            )
+    })
+    @GetMapping
+    public ResponseEntity<Page<ChecklistExecutionResponseDTO>> listAll(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(listExecutionsUseCase.execute(pageable).map(mapper::toResponse));
     }
 
     @GetMapping("/history/class/{classId}")

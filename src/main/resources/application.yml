@@ -11,7 +11,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: "prometheus,health,info"
   endpoint:
     health:
       show-details: when_authorized
@@ -33,10 +33,19 @@ hub:
   api:
     url: ${HUB_API_URL:http://localhost:8080}
 
-app:
-  rabbitmq:
-    enabled: ${RABBITMQ_ENABLED:true}
-    exchange: ${RABBITMQ_NOTIFICATIONS_EXCHANGE:notifications.exchange}
-    queue: ${RABBITMQ_NOTIFICATIONS_QUEUE:notifications.dispatch.q}
-    dlq: ${RABBITMQ_NOTIFICATIONS_DLQ:notifications.dispatch.dlq}
-    routing-key: ${RABBITMQ_NOTIFICATIONS_ROUTING_KEY:notification.requested}
+---
+
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true

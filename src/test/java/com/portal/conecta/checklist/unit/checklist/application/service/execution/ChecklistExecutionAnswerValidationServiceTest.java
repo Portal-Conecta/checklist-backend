@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.unit.checklist.application.service.execution;
 
 import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.AnswerType;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ConformityAnswerValue;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistAnswerCommand;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
@@ -78,7 +79,7 @@ class ChecklistExecutionAnswerValidationServiceTest {
     }
 
     private ChecklistItem item(String key, String title) {
-        return new ChecklistItem(key, title, null, true, 1);
+        return new ChecklistItem(key, title, null, AnswerType.CONFORMITY, true, 1);
     }
 
     private UpdateChecklistAnswerCommand answer(

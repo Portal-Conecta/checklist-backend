@@ -1,8 +1,20 @@
 package com.portal.conecta.checklist.unit.checklist.issues.application.usecase.query;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.springframework.security.access.AccessDeniedException;
+
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
-import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.query.ListIssuesByExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.domain.model.ChecklistIssue;
 import com.portal.conecta.checklist.modules.checklist.issues.infrastructure.persistence.ChecklistIssueRepository;
 import com.portal.conecta.checklist.shared.context.ClassRole;
@@ -10,20 +22,8 @@ import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
+
 import jakarta.persistence.EntityNotFoundException;
-import org.junit.jupiter.api.Test;
-import org.springframework.security.access.AccessDeniedException;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class ListIssuesByExecutionUseCaseTest {
 

@@ -6,6 +6,7 @@ import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemp
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistItemQueryRepository;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistTemplateRepository;
+import com.portal.conecta.checklist.shared.context.AbstractRepositoryTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ChecklistItemQueryRepositoryTest {
+class ChecklistItemQueryRepositoryTest extends AbstractRepositoryTest {
 
     @Mock
     private ChecklistTemplateRepository checklistTemplateRepository;

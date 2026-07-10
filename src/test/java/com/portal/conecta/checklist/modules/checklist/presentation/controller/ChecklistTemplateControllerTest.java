@@ -9,7 +9,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.templa
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchChecklistItemUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchItemsByCategoryUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemSearchResponseDTO;
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemByCategorySearchResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.mapper.ChecklistTemplateMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -66,11 +66,11 @@ class ChecklistTemplateControllerTest {
     @DisplayName("deve buscar itens por categoria com sucesso")
     void deveBuscarItensPorCategoriaComSucesso() {
         String category = "Limpeza";
-        List<ChecklistItemSearchResponseDTO> expectedResponse = List.of(mock(ChecklistItemSearchResponseDTO.class));
+        List<ChecklistItemByCategorySearchResponseDTO> expectedResponse = List.of(mock(ChecklistItemByCategorySearchResponseDTO.class));
 
         when(searchItemsByCategoryUseCase.execute(category)).thenReturn(expectedResponse);
 
-        ResponseEntity<List<ChecklistItemSearchResponseDTO>> result = controller.searchItemsByCategory(category);
+        ResponseEntity<List<ChecklistItemByCategorySearchResponseDTO>> result = controller.searchItemsByCategory(category);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(expectedResponse, result.getBody());

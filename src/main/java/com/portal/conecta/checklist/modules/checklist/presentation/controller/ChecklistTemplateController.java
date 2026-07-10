@@ -9,6 +9,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.templa
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchChecklistItemUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchItemsByCategoryUseCase;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateCreateRequest;
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemByCategorySearchResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemSearchResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateEditRequest;
@@ -261,7 +262,7 @@ public class ChecklistTemplateController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Itens encontrados com sucesso (pode ser lista vazia)",
-                    content = @Content(schema = @Schema(implementation = ChecklistItemSearchResponseDTO.class))
+                    content = @Content(schema = @Schema(implementation = ChecklistItemByCategorySearchResponseDTO.class))
             ),
             @ApiResponse(
                     responseCode = "401",
@@ -280,7 +281,7 @@ public class ChecklistTemplateController {
             )
     })
     @GetMapping(value = "/items/search", params = "category")
-    public ResponseEntity<List<ChecklistItemSearchResponseDTO>> searchItemsByCategory(@RequestParam String category) {
+    public ResponseEntity<List<ChecklistItemByCategorySearchResponseDTO>> searchItemsByCategory(@RequestParam("category") String category) {
         return ResponseEntity.ok(searchItemsByCategoryUseCase.execute(category));
     }
 }

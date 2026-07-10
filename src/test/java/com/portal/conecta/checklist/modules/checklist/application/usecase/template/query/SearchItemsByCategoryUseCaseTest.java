@@ -5,7 +5,7 @@ import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemp
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchItemsByCategoryUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistTemplateRepository;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemSearchResponseDTO;
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemByCategorySearchResponseDTO;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
@@ -44,8 +44,8 @@ class SearchItemsByCategoryUseCaseTest {
     void shouldReturnEmptyListIfCategoryNameIsBlank() {
         when(contextProvider.getRequestContext()).thenReturn(senai());
 
-        List<ChecklistItemSearchResponseDTO> resultNull = useCase.execute(null);
-        List<ChecklistItemSearchResponseDTO> resultBlank = useCase.execute("   ");
+        List<ChecklistItemByCategorySearchResponseDTO> resultNull = useCase.execute(null);
+        List<ChecklistItemByCategorySearchResponseDTO> resultBlank = useCase.execute("   ");
 
         assertEquals(0, resultNull.size());
         assertEquals(0, resultBlank.size());
@@ -96,10 +96,10 @@ class SearchItemsByCategoryUseCaseTest {
                 .thenReturn(List.of(activeTemplate));
 
         // Test search
-        List<ChecklistItemSearchResponseDTO> results = useCase.execute("  limpeza  ");
+        List<ChecklistItemByCategorySearchResponseDTO> results = useCase.execute("  limpeza  ");
 
         assertEquals(1, results.size());
-        ChecklistItemSearchResponseDTO item = results.getFirst();
+        ChecklistItemByCategorySearchResponseDTO item = results.getFirst();
         assertEquals(templateId, item.templateId());
         assertEquals("Checklist de Sala", item.templateTitle());
         assertEquals("sec-1", item.sectionKey());
@@ -110,6 +110,56 @@ class SearchItemsByCategoryUseCaseTest {
         assertEquals(true, item.required());
         assertEquals(1, item.order());
         assertEquals("Limpeza", item.category());
+    }
+
+    @Test
+    void shouldSkipTemplateWithInvalidSchema() {
+        UUID validTemplateId = UUID.randomUUID();
+        UUID invalidTemplateId = UUID.randomUUID();
+
+        Map<String, Object> validSchema = Map.of(
+                "sections", List.of(
+                        Map.of(
+                                "key", "sec-1",
+                                "title", "Seção",
+                                "order", 1,
+                                "items", List.of(
+                                        Map.of(
+                                                "key", "item-1",
+                                                "title", "Item válido",
+                                                "required", true,
+                                                "order", 1,
+                                                "category", "Limpeza"
+                                        )
+                                )
+                        )
+                )
+        );
+
+        ChecklistTemplate validTemplate = ChecklistTemplate.builder()
+                .id(validTemplateId)
+                .title("Template válido")
+                .active(true)
+                .status(ChecklistTemplateStatus.ACTIVE)
+                .schemaJson(validSchema)
+                .build();
+
+        ChecklistTemplate invalidTemplate = ChecklistTemplate.builder()
+                .id(invalidTemplateId)
+                .title("Template inválido")
+                .active(true)
+                .status(ChecklistTemplateStatus.ACTIVE)
+                .schemaJson(Map.of("sections", "schema-invalido"))
+                .build();
+
+        when(contextProvider.getRequestContext()).thenReturn(senai());
+        when(templateRepository.findAllByActiveTrueAndStatus(ChecklistTemplateStatus.ACTIVE))
+                .thenReturn(List.of(invalidTemplate, validTemplate));
+
+        List<ChecklistItemByCategorySearchResponseDTO> results = useCase.execute("Limpeza");
+
+        assertEquals(1, results.size());
+        assertEquals(validTemplateId, results.getFirst().templateId());
     }
 
     private RequestContext apprentice() {

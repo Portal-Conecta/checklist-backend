@@ -3,6 +3,7 @@ package com.portal.conecta.checklist.modules.checklist.presentation.controller;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.ChecklistTemplateStatsUseCase;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.StatsEntryDTO;
 import com.portal.conecta.checklist.shared.exception.ApiError;
+import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -63,7 +64,7 @@ public class ChecklistTemplateStatsController {
             case "active" -> statsUseCase.countByActive();
             case "day"    -> statsUseCase.countByDay();
             case "group"  -> statsUseCase.countVersionsByGroup();
-            default -> throw new IllegalArgumentException(
+            default -> throw new InvalidRequestException(
                     "groupBy inválido: '" + groupBy + "'. Valores aceitos: status, active, day, group"
             );
         };

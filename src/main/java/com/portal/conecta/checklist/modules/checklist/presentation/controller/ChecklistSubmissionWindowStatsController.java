@@ -4,6 +4,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.window
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.AvgFillTimeEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.StatsEntryDTO;
 import com.portal.conecta.checklist.shared.exception.ApiError;
+import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -60,7 +61,7 @@ public class ChecklistSubmissionWindowStatsController {
         List<StatsEntryDTO> result = switch (groupBy) {
             case "type"  -> statsUseCase.countByType();
             case "shift" -> statsUseCase.countByShift();
-            default -> throw new IllegalArgumentException(
+            default -> throw new InvalidRequestException(
                     "groupBy inválido: '" + groupBy + "'. Valores aceitos: type, shift"
             );
         };

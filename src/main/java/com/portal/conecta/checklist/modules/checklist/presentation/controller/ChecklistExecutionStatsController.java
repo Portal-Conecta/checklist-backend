@@ -7,6 +7,7 @@ import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.Hea
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.StatsEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.WithIssuesRateDTO;
 import com.portal.conecta.checklist.shared.exception.ApiError;
+import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -79,6 +81,8 @@ public class ChecklistExecutionStatsController {
             @Parameter(description = "Fim do intervalo (YYYY-MM-DD) — usado quando groupBy=day ou day+status")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
     ) {
+        validateDateRange(from, to);
+
         List<StatsEntryDTO> result = switch (groupBy) {
             case "day"        -> statsUseCase.countByDay(from, to);
             case "status"     -> statsUseCase.countByStatus();
@@ -86,7 +90,7 @@ public class ChecklistExecutionStatsController {
             case "shift"      -> statsUseCase.countByShift();
             case "period"     -> statsUseCase.countByPeriod();
             case "day+status" -> statsUseCase.countByDayAndStatus(from, to);
-            default -> throw new IllegalArgumentException(
+            default -> throw new InvalidRequestException(
                     "groupBy inválido: '" + groupBy + "'. Valores aceitos: day, status, type, shift, period, day+status"
             );
         };
@@ -162,5 +166,50 @@ public class ChecklistExecutionStatsController {
     @GetMapping("/heatmap")
     public ResponseEntity<List<HeatmapEntryDTO>> heatmap() {
         return ResponseEntity.ok(statsUseCase.heatmap());
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Validações auxiliares
+    // ────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Valida o intervalo de datas informado pelo cliente.
+     *
+     * <p>Regras aplicadas:
+     * <ul>
+     *   <li>{@code from} deve ser anterior ou igual a {@code to}</li>
+     *   <li>intervalo máximo de 2 anos</li>
+     *   <li>datas não podem estar no futuro (métricas são históricas)</li>
+     * </ul>
+     * </p>
+     *
+     * @param from início do intervalo (pode ser {@code null})
+     * @param to   fim do intervalo (pode ser {@code null})
+     * @throws InvalidRequestException se alguma regra for violada
+     */
+    private void validateDateRange(LocalDate from, LocalDate to) {
+        if (from == null || to == null) return;
+
+        if (from.isAfter(to)) {
+            throw new InvalidRequestException(
+                    "'from' (" + from + ") deve ser anterior ou igual a 'to' (" + to + ")"
+            );
+        }
+
+        if (ChronoUnit.YEARS.between(from, to) > 2) {
+            throw new InvalidRequestException(
+                    "Intervalo de data não pode exceder 2 anos. Solicitado: " +
+                    ChronoUnit.YEARS.between(from, to) + " anos"
+            );
+        }
+
+        LocalDate hoje = LocalDate.now();
+        if (from.isAfter(hoje) || to.isAfter(hoje)) {
+            throw new InvalidRequestException(
+                    "Datas não podem ser no futuro. " +
+                    "from: " + from + " (máx: " + hoje + "), " +
+                    "to: " + to + " (máx: " + hoje + ")"
+            );
+        }
     }
 }

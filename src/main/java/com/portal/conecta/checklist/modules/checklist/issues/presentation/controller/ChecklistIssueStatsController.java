@@ -8,6 +8,7 @@ import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.Res
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.ResolutionSplitDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.StatsEntryDTO;
 import com.portal.conecta.checklist.shared.exception.ApiError;
+import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -82,13 +84,16 @@ public class ChecklistIssueStatsController {
             @Parameter(description = "Número de itens a retornar — usado quando groupBy=item; padrão: 10; máximo: 100")
             @RequestParam(required = false) Integer limit
     ) {
+        validateDateRange(from, to);
+        validateLimit(limit);
+
         List<StatsEntryDTO> result = switch (groupBy) {
             case "day"      -> statsUseCase.countByDay(from, to);
             case "status"   -> statsUseCase.countByStatus();
             case "priority" -> statsUseCase.countByPriority();
             case "type"     -> statsUseCase.countByChecklistType();
             case "item"     -> statsUseCase.topFailingItems(limit);
-            default -> throw new IllegalArgumentException(
+            default -> throw new InvalidRequestException(
                     "groupBy inválido: '" + groupBy + "'. Valores aceitos: day, status, priority, type, item"
             );
         };
@@ -172,5 +177,64 @@ public class ChecklistIssueStatsController {
     @GetMapping("/per-execution")
     public ResponseEntity<IssuesPerExecutionDTO> perExecution() {
         return ResponseEntity.ok(statsUseCase.issuesPerExecution());
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Validações auxiliares
+    // ────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Valida o intervalo de datas informado pelo cliente.
+     *
+     * <p>Regras aplicadas:
+     * <ul>
+     *   <li>{@code from} deve ser anterior ou igual a {@code to}</li>
+     *   <li>intervalo máximo de 2 anos</li>
+     *   <li>datas não podem estar no futuro</li>
+     * </ul>
+     * </p>
+     *
+     * @param from início do intervalo (pode ser {@code null})
+     * @param to   fim do intervalo (pode ser {@code null})
+     * @throws InvalidRequestException se alguma regra for violada
+     */
+    private void validateDateRange(LocalDate from, LocalDate to) {
+        if (from == null || to == null) return;
+
+        if (from.isAfter(to)) {
+            throw new InvalidRequestException(
+                    "'from' (" + from + ") deve ser anterior ou igual a 'to' (" + to + ")"
+            );
+        }
+
+        if (ChronoUnit.YEARS.between(from, to) > 2) {
+            throw new InvalidRequestException(
+                    "Intervalo de data não pode exceder 2 anos. Solicitado: " +
+                    ChronoUnit.YEARS.between(from, to) + " anos"
+            );
+        }
+
+        LocalDate hoje = LocalDate.now();
+        if (from.isAfter(hoje) || to.isAfter(hoje)) {
+            throw new InvalidRequestException(
+                    "Datas não podem ser no futuro. " +
+                    "from: " + from + " (máx: " + hoje + "), " +
+                    "to: " + to + " (máx: " + hoje + ")"
+            );
+        }
+    }
+
+    /**
+     * Valida o parâmetro {@code limit} usado no top de itens.
+     *
+     * @param limit número de itens (pode ser {@code null})
+     * @throws InvalidRequestException se {@code limit < 1}
+     */
+    private void validateLimit(Integer limit) {
+        if (limit != null && limit < 1) {
+            throw new InvalidRequestException(
+                    "'limit' deve ser no mínimo 1. Valor informado: " + limit
+            );
+        }
     }
 }

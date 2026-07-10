@@ -7,10 +7,12 @@ import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.Ove
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.ResolutionRateDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.ResolutionSplitDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.StatsEntryDTO;
+import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -35,6 +37,7 @@ public class ChecklistIssueStatsUseCase {
      * @param to   fim do intervalo; padrão: hoje
      */
     public List<StatsEntryDTO> countByDay(LocalDate from, LocalDate to) {
+        validateDateRange(from, to);
         LocalDate resolvedFrom = from != null ? from : LocalDate.now().minusDays(30);
         LocalDate resolvedTo   = to   != null ? to   : LocalDate.now();
         return statsPort.countByDay(resolvedFrom, resolvedTo);
@@ -76,6 +79,11 @@ public class ChecklistIssueStatsUseCase {
      * @param limit número de itens a retornar; limitado a {@value MAX_LIMIT}; padrão: 10
      */
     public List<StatsEntryDTO> topFailingItems(Integer limit) {
+        if (limit != null && limit < 1) {
+            throw new InvalidRequestException(
+                    "'limit' deve ser no mínimo 1. Valor informado: " + limit
+            );
+        }
         int resolvedLimit = Math.min(limit != null ? limit : 10, MAX_LIMIT);
         return statsPort.topFailingItems(resolvedLimit);
     }
@@ -88,5 +96,24 @@ public class ChecklistIssueStatsUseCase {
     /** Média de issues por execução de checklist. */
     public IssuesPerExecutionDTO issuesPerExecution() {
         return statsPort.issuesPerExecution();
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Validação auxiliar (defesa em profundidade)
+    // ────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Valida o intervalo de datas — segunda linha de defesa após o controller.
+     *
+     * @param from início do intervalo (pode ser {@code null})
+     * @param to   fim do intervalo (pode ser {@code null})
+     * @throws InvalidRequestException se {@code from > to}
+     */
+    private void validateDateRange(LocalDate from, LocalDate to) {
+        if (from != null && to != null && from.isAfter(to)) {
+            throw new InvalidRequestException(
+                    "'from' (" + from + ") deve ser anterior ou igual a 'to' (" + to + ")"
+            );
+        }
     }
 }

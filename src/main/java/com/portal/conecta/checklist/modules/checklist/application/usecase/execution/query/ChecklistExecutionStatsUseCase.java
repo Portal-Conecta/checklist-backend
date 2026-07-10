@@ -6,10 +6,12 @@ import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.Com
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.HeatmapEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.StatsEntryDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.WithIssuesRateDTO;
+import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -32,6 +34,7 @@ public class ChecklistExecutionStatsUseCase {
      * @param to   fim do intervalo (inclusive); padrão: hoje
      */
     public List<StatsEntryDTO> countByDay(LocalDate from, LocalDate to) {
+        validateDateRange(from, to);
         LocalDate resolvedFrom = from != null ? from : LocalDate.now().minusDays(30);
         LocalDate resolvedTo   = to   != null ? to   : LocalDate.now();
         return statsPort.countByDay(resolvedFrom, resolvedTo);
@@ -69,6 +72,7 @@ public class ChecklistExecutionStatsUseCase {
      * @param to   fim do intervalo; padrão: hoje
      */
     public List<AvgFillTimeEntryDTO> avgFillTimeByDay(LocalDate from, LocalDate to) {
+        validateDateRange(from, to);
         LocalDate resolvedFrom = from != null ? from : LocalDate.now().minusDays(30);
         LocalDate resolvedTo   = to   != null ? to   : LocalDate.now();
         return statsPort.avgFillTimeByDay(resolvedFrom, resolvedTo);
@@ -82,6 +86,7 @@ public class ChecklistExecutionStatsUseCase {
      * @param to   fim do intervalo; padrão: hoje
      */
     public List<StatsEntryDTO> countByDayAndStatus(LocalDate from, LocalDate to) {
+        validateDateRange(from, to);
         LocalDate resolvedFrom = from != null ? from : LocalDate.now().minusDays(30);
         LocalDate resolvedTo   = to   != null ? to   : LocalDate.now();
         return statsPort.countByDayAndStatus(resolvedFrom, resolvedTo);
@@ -95,5 +100,24 @@ public class ChecklistExecutionStatsUseCase {
     /** Heatmap de execuções por turno × dia da semana. */
     public List<HeatmapEntryDTO> heatmap() {
         return statsPort.heatmapShiftByDayOfWeek();
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Validação auxiliar (defesa em profundidade)
+    // ────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Valida o intervalo de datas — segunda linha de defesa após o controller.
+     *
+     * @param from início do intervalo (pode ser {@code null})
+     * @param to   fim do intervalo (pode ser {@code null})
+     * @throws InvalidRequestException se {@code from > to}
+     */
+    private void validateDateRange(LocalDate from, LocalDate to) {
+        if (from != null && to != null && from.isAfter(to)) {
+            throw new InvalidRequestException(
+                    "'from' (" + from + ") deve ser anterior ou igual a 'to' (" + to + ")"
+            );
+        }
     }
 }

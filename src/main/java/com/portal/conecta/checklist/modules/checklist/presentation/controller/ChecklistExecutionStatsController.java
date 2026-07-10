@@ -1,11 +1,11 @@
-package com.portal.conecta.checklist.modules.checklist.presentation.controller;
+﻿package com.portal.conecta.checklist.modules.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ChecklistExecutionStatsUseCase;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.AvgFillTimeEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.CompletionRateDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.HeatmapEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.StatsEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.WithIssuesRateDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.CompletionRateDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.HeatmapEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.WithIssuesRateDTO;
 import com.portal.conecta.checklist.shared.exception.ApiError;
 import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,56 +29,56 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
- * Endpoints de agregação para execuções de checklist.
+ * Endpoints de agregaÃ§Ã£o para execuÃ§Ãµes de checklist.
  *
- * <p>Toda a lógica de GROUP BY é executada no banco — os endpoints devolvem
- * linhas já somadas, prontas para consumo pelo Chart.js.</p>
+ * <p>Toda a lÃ³gica de GROUP BY Ã© executada no banco â€” os endpoints devolvem
+ * linhas jÃ¡ somadas, prontas para consumo pelo Chart.js.</p>
  *
  * <p>Base: {@code GET /api/checklist-executions/stats}</p>
  */
 @RestController
 @RequestMapping("/api/checklist-executions/stats")
 @RequiredArgsConstructor
-@Tag(name = "Checklist Execution Stats", description = "Métricas de agregação de execuções de checklist para dashboards")
+@Tag(name = "Checklist Execution Stats", description = "MÃ©tricas de agregaÃ§Ã£o de execuÃ§Ãµes de checklist para dashboards")
 public class ChecklistExecutionStatsController {
 
     private final ChecklistExecutionStatsUseCase statsUseCase;
 
-    // ────────────────────────────────────────────────────────────────────────
-    // Genérico por groupBy
-    // ────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // GenÃ©rico por groupBy
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Operation(
-            summary = "Agregar execuções por dimensão",
+            summary = "Agregar execuÃ§Ãµes por dimensÃ£o",
             description = """
-                    Retorna contagem de execuções agrupadas pela dimensão indicada em `groupBy`.
+                    Retorna contagem de execuÃ§Ãµes agrupadas pela dimensÃ£o indicada em `groupBy`.
                     
                     Valores aceitos para `groupBy`:
-                    - `day` — por dia (requer `from`/`to`; padrão: últimos 30 dias)
-                    - `status` — por status (DRAFT, SUBMITTED, CANCELED)
-                    - `type` — por tipo de checklist
-                    - `shift` — por turno
-                    - `period` — por período
-                    - `day+status` — série temporal por dia **e** status (label = `YYYY-MM-DD|STATUS`)
+                    - `day` â€” por dia (requer `from`/`to`; padrÃ£o: Ãºltimos 30 dias)
+                    - `status` â€” por status (DRAFT, SUBMITTED, CANCELED)
+                    - `type` â€” por tipo de checklist
+                    - `shift` â€” por turno
+                    - `period` â€” por perÃ­odo
+                    - `day+status` â€” sÃ©rie temporal por dia **e** status (label = `YYYY-MM-DD|STATUS`)
                     """
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Dados de agregação retornados com sucesso",
+            @ApiResponse(responseCode = "200", description = "Dados de agregaÃ§Ã£o retornados com sucesso",
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
-            @ApiResponse(responseCode = "400", description = "Parâmetro groupBy inválido",
+            @ApiResponse(responseCode = "400", description = "ParÃ¢metro groupBy invÃ¡lido",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "401", description = "Não autenticado",
+            @ApiResponse(responseCode = "401", description = "NÃ£o autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping
     public ResponseEntity<List<StatsEntryDTO>> aggregate(
-            @Parameter(description = "Dimensão de agrupamento", example = "status")
+            @Parameter(description = "DimensÃ£o de agrupamento", example = "status")
             @RequestParam String groupBy,
 
-            @Parameter(description = "Início do intervalo (YYYY-MM-DD) — usado quando groupBy=day ou day+status")
+            @Parameter(description = "InÃ­cio do intervalo (YYYY-MM-DD) â€” usado quando groupBy=day ou day+status")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
 
-            @Parameter(description = "Fim do intervalo (YYYY-MM-DD) — usado quando groupBy=day ou day+status")
+            @Parameter(description = "Fim do intervalo (YYYY-MM-DD) â€” usado quando groupBy=day ou day+status")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
     ) {
         validateDateRange(from, to);
@@ -91,24 +91,24 @@ public class ChecklistExecutionStatsController {
             case "period"     -> statsUseCase.countByPeriod();
             case "day+status" -> statsUseCase.countByDayAndStatus(from, to);
             default -> throw new InvalidRequestException(
-                    "groupBy inválido: '" + groupBy + "'. Valores aceitos: day, status, type, shift, period, day+status"
+                    "groupBy invÃ¡lido: '" + groupBy + "'. Valores aceitos: day, status, type, shift, period, day+status"
             );
         };
         return ResponseEntity.ok(result);
     }
 
-    // ────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Sub-recursos fixos
-    // ────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Operation(
-            summary = "Taxa de conclusão de execuções",
-            description = "Retorna o total de execuções submetidas, o total geral e o percentual de conclusão."
+            summary = "Taxa de conclusÃ£o de execuÃ§Ãµes",
+            description = "Retorna o total de execuÃ§Ãµes submetidas, o total geral e o percentual de conclusÃ£o."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Taxa de conclusão calculada com sucesso",
+            @ApiResponse(responseCode = "200", description = "Taxa de conclusÃ£o calculada com sucesso",
                     content = @Content(schema = @Schema(implementation = CompletionRateDTO.class))),
-            @ApiResponse(responseCode = "401", description = "Não autenticado",
+            @ApiResponse(responseCode = "401", description = "NÃ£o autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/completion-rate")
@@ -117,35 +117,35 @@ public class ChecklistExecutionStatsController {
     }
 
     @Operation(
-            summary = "Tempo médio de preenchimento por dia",
-            description = "Retorna a média de segundos entre início e submissão, por dia. " +
-                    "Somente execuções com submitted_at preenchido são consideradas."
+            summary = "Tempo mÃ©dio de preenchimento por dia",
+            description = "Retorna a mÃ©dia de segundos entre inÃ­cio e submissÃ£o, por dia. " +
+                    "Somente execuÃ§Ãµes com submitted_at preenchido sÃ£o consideradas."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Tempo médio por dia calculado com sucesso",
+            @ApiResponse(responseCode = "200", description = "Tempo mÃ©dio por dia calculado com sucesso",
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = AvgFillTimeEntryDTO.class)))),
-            @ApiResponse(responseCode = "401", description = "Não autenticado",
+            @ApiResponse(responseCode = "401", description = "NÃ£o autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/avg-fill-time")
     public ResponseEntity<List<AvgFillTimeEntryDTO>> avgFillTime(
-            @Parameter(description = "Início do intervalo (YYYY-MM-DD); padrão: 30 dias atrás")
+            @Parameter(description = "InÃ­cio do intervalo (YYYY-MM-DD); padrÃ£o: 30 dias atrÃ¡s")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
 
-            @Parameter(description = "Fim do intervalo (YYYY-MM-DD); padrão: hoje")
+            @Parameter(description = "Fim do intervalo (YYYY-MM-DD); padrÃ£o: hoje")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
     ) {
         return ResponseEntity.ok(statsUseCase.avgFillTimeByDay(from, to));
     }
 
     @Operation(
-            summary = "Percentual de execuções com ao menos uma não-conformidade",
-            description = "Retorna execuções com issue, total de execuções submetidas e o percentual."
+            summary = "Percentual de execuÃ§Ãµes com ao menos uma nÃ£o-conformidade",
+            description = "Retorna execuÃ§Ãµes com issue, total de execuÃ§Ãµes submetidas e o percentual."
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Taxa calculada com sucesso",
                     content = @Content(schema = @Schema(implementation = WithIssuesRateDTO.class))),
-            @ApiResponse(responseCode = "401", description = "Não autenticado",
+            @ApiResponse(responseCode = "401", description = "NÃ£o autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/with-issues-rate")
@@ -154,13 +154,13 @@ public class ChecklistExecutionStatsController {
     }
 
     @Operation(
-            summary = "Heatmap de execuções por turno × dia da semana",
-            description = "Retorna células do heatmap com turno, dia da semana (0=dom … 6=sáb) e contagem."
+            summary = "Heatmap de execuÃ§Ãµes por turno Ã— dia da semana",
+            description = "Retorna cÃ©lulas do heatmap com turno, dia da semana (0=dom â€¦ 6=sÃ¡b) e contagem."
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Heatmap calculado com sucesso",
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = HeatmapEntryDTO.class)))),
-            @ApiResponse(responseCode = "401", description = "Não autenticado",
+            @ApiResponse(responseCode = "401", description = "NÃ£o autenticado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/heatmap")
@@ -168,9 +168,9 @@ public class ChecklistExecutionStatsController {
         return ResponseEntity.ok(statsUseCase.heatmap());
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // Validações auxiliares
-    // ────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ValidaÃ§Ãµes auxiliares
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Valida o intervalo de datas informado pelo cliente.
@@ -178,12 +178,12 @@ public class ChecklistExecutionStatsController {
      * <p>Regras aplicadas:
      * <ul>
      *   <li>{@code from} deve ser anterior ou igual a {@code to}</li>
-     *   <li>intervalo máximo de 2 anos</li>
-     *   <li>datas não podem estar no futuro (métricas são históricas)</li>
+     *   <li>intervalo mÃ¡ximo de 2 anos</li>
+     *   <li>datas nÃ£o podem estar no futuro (mÃ©tricas sÃ£o histÃ³ricas)</li>
      * </ul>
      * </p>
      *
-     * @param from início do intervalo (pode ser {@code null})
+     * @param from inÃ­cio do intervalo (pode ser {@code null})
      * @param to   fim do intervalo (pode ser {@code null})
      * @throws InvalidRequestException se alguma regra for violada
      */
@@ -198,7 +198,7 @@ public class ChecklistExecutionStatsController {
 
         if (ChronoUnit.YEARS.between(from, to) > 2) {
             throw new InvalidRequestException(
-                    "Intervalo de data não pode exceder 2 anos. Solicitado: " +
+                    "Intervalo de data nÃ£o pode exceder 2 anos. Solicitado: " +
                     ChronoUnit.YEARS.between(from, to) + " anos"
             );
         }
@@ -206,9 +206,9 @@ public class ChecklistExecutionStatsController {
         LocalDate hoje = LocalDate.now();
         if (from.isAfter(hoje) || to.isAfter(hoje)) {
             throw new InvalidRequestException(
-                    "Datas não podem ser no futuro. " +
-                    "from: " + from + " (máx: " + hoje + "), " +
-                    "to: " + to + " (máx: " + hoje + ")"
+                    "Datas nÃ£o podem ser no futuro. " +
+                    "from: " + from + " (mÃ¡x: " + hoje + "), " +
+                    "to: " + to + " (mÃ¡x: " + hoje + ")"
             );
         }
     }

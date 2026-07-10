@@ -1,11 +1,11 @@
-package com.portal.conecta.checklist.modules.checklist.infrastructure.persistence;
+﻿package com.portal.conecta.checklist.modules.checklist.infrastructure.persistence;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionStatsPort;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.AvgFillTimeEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.CompletionRateDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.HeatmapEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.StatsEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.WithIssuesRateDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.CompletionRateDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.HeatmapEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.WithIssuesRateDTO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
@@ -14,11 +14,11 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Adapter de persistência para métricas de execuções de checklist.
+ * Adapter de persistÃªncia para mÃ©tricas de execuÃ§Ãµes de checklist.
  *
- * <p>Todas as queries são nativas e retornam projeções escalares — nenhuma entidade
- * é carregada em memória. O timezone assumido para corte diário é o servidor do banco
- * (sem conversão explícita); alinhar com o banco se necessário.</p>
+ * <p>Todas as queries sÃ£o nativas e retornam projeÃ§Ãµes escalares â€” nenhuma entidade
+ * Ã© carregada em memÃ³ria. O timezone assumido para corte diÃ¡rio Ã© o servidor do banco
+ * (sem conversÃ£o explÃ­cita); alinhar com o banco se necessÃ¡rio.</p>
  */
 @Repository
 public class ChecklistExecutionStatsRepository implements ChecklistExecutionStatsPort {
@@ -200,7 +200,7 @@ public class ChecklistExecutionStatsRepository implements ChecklistExecutionStat
                 .toList();
     }
 
-    // ─── helpers ────────────────────────────────────────────────────────────
+    // â”€â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private static long toLong(Object value) {
         return value == null ? 0L : ((Number) value).longValue();

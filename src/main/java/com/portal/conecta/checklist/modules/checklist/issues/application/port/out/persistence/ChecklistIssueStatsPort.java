@@ -1,26 +1,26 @@
-package com.portal.conecta.checklist.modules.checklist.issues.application.port.out.persistence;
+﻿package com.portal.conecta.checklist.modules.checklist.issues.application.port.out.persistence;
 
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.AvgResolutionTimeDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.IssuesPerExecutionDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.OverdueIssuesDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.ResolutionRateDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.ResolutionSplitDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.StatsEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgResolutionTimeDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.IssuesPerExecutionDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.OverdueIssuesDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.ResolutionRateDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.ResolutionSplitDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
 import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Port de saída (agregação) para métricas de não-conformidades (issues).
+ * Port de saÃ­da (agregaÃ§Ã£o) para mÃ©tricas de nÃ£o-conformidades (issues).
  *
- * <p>Todas as consultas realizam GROUP BY diretamente no banco — nenhuma entidade
- * é carregada em memória.</p>
+ * <p>Todas as consultas realizam GROUP BY diretamente no banco â€” nenhuma entidade
+ * Ã© carregada em memÃ³ria.</p>
  */
 public interface ChecklistIssueStatsPort {
 
     /**
-     * Contagem de issues por dia de criação ({@code CAST(due_at AS date)}).
+     * Contagem de issues por dia de criaÃ§Ã£o ({@code CAST(due_at AS date)}).
      *
-     * @param from início do intervalo (inclusive)
+     * @param from inÃ­cio do intervalo (inclusive)
      * @param to   fim do intervalo (inclusive)
      */
     List<StatsEntryDTO> countByDay(LocalDate from, LocalDate to);
@@ -31,14 +31,14 @@ public interface ChecklistIssueStatsPort {
     /** Contagem de issues agrupadas por prioridade. */
     List<StatsEntryDTO> countByPriority();
 
-    /** Divisão entre issues abertas ({@code resolved_at IS NULL}) e resolvidas. */
+    /** DivisÃ£o entre issues abertas ({@code resolved_at IS NULL}) e resolvidas. */
     ResolutionSplitDTO resolutionSplit();
 
-    /** Taxa de resolução: issues com {@code resolved_at IS NOT NULL} / total. */
+    /** Taxa de resoluÃ§Ã£o: issues com {@code resolved_at IS NOT NULL} / total. */
     ResolutionRateDTO resolutionRate();
 
     /**
-     * Tempo médio de resolução em segundos.
+     * Tempo mÃ©dio de resoluÃ§Ã£o em segundos.
      * Considera apenas issues com {@code resolved_at IS NOT NULL}.
      */
     AvgResolutionTimeDTO avgResolutionTime();
@@ -49,15 +49,15 @@ public interface ChecklistIssueStatsPort {
     /**
      * Top itens que mais geram issues, limitado a {@code limit} entradas.
      *
-     * @param limit número máximo de itens a retornar
+     * @param limit nÃºmero mÃ¡ximo de itens a retornar
      */
     List<StatsEntryDTO> topFailingItems(int limit);
 
-    /** Contagem de issues agrupadas por tipo de checklist da execução vinculada. */
+    /** Contagem de issues agrupadas por tipo de checklist da execuÃ§Ã£o vinculada. */
     List<StatsEntryDTO> countByChecklistType();
 
     /**
-     * Média de issues por execução de checklist ({@code total issues / distinct executions}).
+     * MÃ©dia de issues por execuÃ§Ã£o de checklist ({@code total issues / distinct executions}).
      */
     IssuesPerExecutionDTO issuesPerExecution();
 }

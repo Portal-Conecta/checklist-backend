@@ -1,71 +1,71 @@
-package com.portal.conecta.checklist.modules.checklist.application.port.out.persistence;
+﻿package com.portal.conecta.checklist.modules.checklist.application.port.out.persistence;
 
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.AvgFillTimeEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.CompletionRateDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.HeatmapEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.StatsEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.WithIssuesRateDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.CompletionRateDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.HeatmapEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.WithIssuesRateDTO;
 import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Port de saída (agregação) para métricas de execuções de checklist.
+ * Port de saÃ­da (agregaÃ§Ã£o) para mÃ©tricas de execuÃ§Ãµes de checklist.
  *
- * <p>Todas as consultas realizam GROUP BY diretamente no banco — nenhuma entidade
- * é carregada em memória.</p>
+ * <p>Todas as consultas realizam GROUP BY diretamente no banco â€” nenhuma entidade
+ * Ã© carregada em memÃ³ria.</p>
  */
 public interface ChecklistExecutionStatsPort {
 
     /**
-     * Contagem de execuções por dia dentro do intervalo {@code [from, to]}.
-     * A agregação usa {@code CAST(started_at AS date)}.
+     * Contagem de execuÃ§Ãµes por dia dentro do intervalo {@code [from, to]}.
+     * A agregaÃ§Ã£o usa {@code CAST(started_at AS date)}.
      *
-     * @param from início do intervalo (inclusive)
+     * @param from inÃ­cio do intervalo (inclusive)
      * @param to   fim do intervalo (inclusive)
      */
     List<StatsEntryDTO> countByDay(LocalDate from, LocalDate to);
 
-    /** Contagem de execuções agrupadas por status ({@code DRAFT}, {@code SUBMITTED}, {@code CANCELED}). */
+    /** Contagem de execuÃ§Ãµes agrupadas por status ({@code DRAFT}, {@code SUBMITTED}, {@code CANCELED}). */
     List<StatsEntryDTO> countByStatus();
 
-    /** Contagem de execuções agrupadas por tipo de checklist ({@code checklistType}). */
+    /** Contagem de execuÃ§Ãµes agrupadas por tipo de checklist ({@code checklistType}). */
     List<StatsEntryDTO> countByType();
 
-    /** Contagem de execuções agrupadas por turno ({@code shift}). */
+    /** Contagem de execuÃ§Ãµes agrupadas por turno ({@code shift}). */
     List<StatsEntryDTO> countByShift();
 
-    /** Contagem de execuções agrupadas por período ({@code period}). */
+    /** Contagem de execuÃ§Ãµes agrupadas por perÃ­odo ({@code period}). */
     List<StatsEntryDTO> countByPeriod();
 
     /**
-     * Taxa de conclusão: execuções com {@code submitted_at IS NOT NULL} sobre o total.
+     * Taxa de conclusÃ£o: execuÃ§Ãµes com {@code submitted_at IS NOT NULL} sobre o total.
      */
     CompletionRateDTO completionRate();
 
     /**
-     * Tempo médio de preenchimento em segundos, agrupado por dia.
-     * Considera apenas execuções com {@code submitted_at IS NOT NULL}.
+     * Tempo mÃ©dio de preenchimento em segundos, agrupado por dia.
+     * Considera apenas execuÃ§Ãµes com {@code submitted_at IS NOT NULL}.
      *
-     * @param from início do intervalo (inclusive)
+     * @param from inÃ­cio do intervalo (inclusive)
      * @param to   fim do intervalo (inclusive)
      */
     List<AvgFillTimeEntryDTO> avgFillTimeByDay(LocalDate from, LocalDate to);
 
     /**
-     * Série temporal de contagens por (dia, status) para gráfico de linhas empilhadas.
+     * SÃ©rie temporal de contagens por (dia, status) para grÃ¡fico de linhas empilhadas.
      *
-     * @param from início do intervalo (inclusive)
+     * @param from inÃ­cio do intervalo (inclusive)
      * @param to   fim do intervalo (inclusive)
      */
     List<StatsEntryDTO> countByDayAndStatus(LocalDate from, LocalDate to);
 
     /**
-     * Percentual de execuções que geraram ao menos uma issue.
+     * Percentual de execuÃ§Ãµes que geraram ao menos uma issue.
      */
     WithIssuesRateDTO withIssuesRate();
 
     /**
-     * Heatmap: contagem de execuções por turno e dia da semana.
+     * Heatmap: contagem de execuÃ§Ãµes por turno e dia da semana.
      */
     List<HeatmapEntryDTO> heatmapShiftByDayOfWeek();
 }

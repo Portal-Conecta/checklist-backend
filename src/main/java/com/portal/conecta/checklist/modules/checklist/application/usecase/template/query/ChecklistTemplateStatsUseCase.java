@@ -1,16 +1,16 @@
-package com.portal.conecta.checklist.modules.checklist.application.usecase.template.query;
+﻿package com.portal.conecta.checklist.modules.checklist.application.usecase.template.query;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateStatsPort;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.StatsEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
- * Caso de uso para agregação de métricas de templates de checklist.
+ * Caso de uso para agregaÃ§Ã£o de mÃ©tricas de templates de checklist.
  *
- * <p>Delega integralmente ao {@link ChecklistTemplateStatsPort} — toda a agregação
+ * <p>Delega integralmente ao {@link ChecklistTemplateStatsPort} â€” toda a agregaÃ§Ã£o
  * acontece no banco.</p>
  */
 @Service
@@ -34,7 +34,7 @@ public class ChecklistTemplateStatsUseCase {
         return statsPort.countByDay();
     }
 
-    /** Número de versões por grupo de template. */
+    /** NÃºmero de versÃµes por grupo de template. */
     public List<StatsEntryDTO> countVersionsByGroup() {
         return statsPort.countVersionsByGroup();
     }

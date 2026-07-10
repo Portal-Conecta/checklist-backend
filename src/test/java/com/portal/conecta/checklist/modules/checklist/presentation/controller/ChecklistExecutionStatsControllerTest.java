@@ -1,12 +1,12 @@
-package com.portal.conecta.checklist.unit.checklist.presentation.controller;
+﻿package com.portal.conecta.checklist.unit.checklist.presentation.controller;
 
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ChecklistExecutionStatsUseCase;
 import com.portal.conecta.checklist.modules.checklist.presentation.controller.ChecklistExecutionStatsController;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.AvgFillTimeEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.CompletionRateDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.HeatmapEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.StatsEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.stats.WithIssuesRateDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.AvgFillTimeEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.CompletionRateDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.HeatmapEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
+import com.portal.conecta.checklist.modules.checklist.application.dto.stats.WithIssuesRateDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -18,6 +18,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,9 +29,9 @@ class ChecklistExecutionStatsControllerTest {
     private final ChecklistExecutionStatsController controller =
             new ChecklistExecutionStatsController(statsUseCase);
 
-    // ────────────────────────────────────────────────────────────────────────
-    // aggregate — dispatch por groupBy
-    // ────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // aggregate â€” dispatch por groupBy
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     @DisplayName("aggregate groupBy=status deve retornar 200 com dados do usecase")
@@ -115,15 +116,15 @@ class ChecklistExecutionStatsControllerTest {
     }
 
     @Test
-    @DisplayName("aggregate com groupBy inválido deve lançar IllegalArgumentException")
+    @DisplayName("aggregate com groupBy invÃ¡lido deve lanÃ§ar IllegalArgumentException")
     void aggregateComGroupByInvalidoDeveLancarExcecao() {
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(InvalidRequestException.class,
                 () -> controller.aggregate("invalido", null, null));
     }
 
-    // ────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Sub-recursos
-    // ────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     @DisplayName("completionRate deve retornar 200 com dados do usecase")

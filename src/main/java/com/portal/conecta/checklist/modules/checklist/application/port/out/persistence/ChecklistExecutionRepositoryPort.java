@@ -35,4 +35,6 @@ public interface ChecklistExecutionRepositoryPort extends ListCrudRepository<Che
 
     Page<ChecklistExecution> findAll(Pageable pageable);
 
+    Page<ChecklistExecution> findByClassIdIn(Iterable<UUID> classIds, Pageable pageable);
+
 }

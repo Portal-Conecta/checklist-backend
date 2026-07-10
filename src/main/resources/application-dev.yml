@@ -26,3 +26,7 @@ logging:
   level:
     root: INFO
     com.portal.conecta: DEBUG
+management:
+  endpoint:
+    health:
+      show-details: always

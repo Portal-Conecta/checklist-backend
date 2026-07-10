@@ -13,6 +13,7 @@ import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemp
 import com.portal.conecta.checklist.modules.checklist.domain.enums.Shift;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.AnswerType;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSection;
@@ -139,7 +140,7 @@ class ChecklistExecutionAuthorizationTest {
     private ChecklistTemplate activeTemplateWithSchema(UUID templateId, UUID roomId) throws Exception {
         ChecklistSchema schema = new ChecklistSchema(List.of(new ChecklistSection(
                 "estrutura", "Estrutura", 1,
-                List.of(new ChecklistItem("quadro", "Quadro em bom estado?", "Verificar quadro", true, 1))
+                List.of(new ChecklistItem("quadro", "Quadro em bom estado?", "Verificar quadro", AnswerType.CONFORMITY, true, 1))
         )));
         Map<String, Object> schemaJson = objectMapper.convertValue(schema, new TypeReference<>() {
         });

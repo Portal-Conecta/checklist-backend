@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.AnswerType;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSection;
@@ -118,7 +119,7 @@ class ChecklistTemplateAuthorizationTest {
     private String validCreateBody() throws Exception {
         var schema = new ChecklistSchema(List.of(new ChecklistSection(
                 "estrutura", "Estrutura", 1,
-                List.of(new ChecklistItem("quadro", "Quadro em bom estado?", "Verificar quadro", true, 1))
+                List.of(new ChecklistItem("quadro", "Quadro em bom estado?", "Verificar quadro", AnswerType.CONFORMITY, true, 1))
         )));
         String body = """
                 {"roomId":"%s","title":"Checklist padrao","description":"desc","schemaJson":%s}

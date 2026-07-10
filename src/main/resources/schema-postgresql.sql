@@ -34,3 +34,6 @@ DROP CONSTRAINT IF EXISTS uq_window_shift_type;
 CREATE UNIQUE INDEX IF NOT EXISTS uidx_window_class_type
 ON checklist_submission_window (class_id, checklist_type)
 WHERE class_id IS NOT NULL;
+
+ALTER TABLE IF EXISTS checklist_execution
+ADD COLUMN IF NOT EXISTS shift VARCHAR(20);

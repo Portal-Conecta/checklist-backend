@@ -16,6 +16,7 @@ import org.springframework.security.access.AccessDeniedException;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import com.portal.conecta.checklist.modules.checklist.issues.domain.model.ChecklistIssue;
+import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.query.ListIssuesByExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.issues.infrastructure.persistence.ChecklistIssueRepository;
 import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.ContextClass;

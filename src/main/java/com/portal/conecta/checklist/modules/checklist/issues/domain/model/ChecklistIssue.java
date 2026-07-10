@@ -23,7 +23,7 @@ import java.util.UUID;
  *   <li>IN_PROGRESS → RESOLVED ({@link #resolve()})</li>
  *   <li>RESOLVED → VALIDATED ({@link #validate()})</li>
  *   <li>RESOLVED → REOPENED ({@link #reopen()})</li>
- *   <li>REOPENED → IN_PROGRESS ({@link #resume()})</li>
+ *   <li>REOPENED → IN_PROGRESS ({@link #restartProgress()})</li>
  *   <li>OPEN → CANCELED ({@link #cancel()})</li>
  *   <li>IN_PROGRESS → CANCELED ({@link #cancel()})</li>
  * </ul>
@@ -77,6 +77,10 @@ public class ChecklistIssue {
     @Column(name = "resolved_at")
     private Instant resolvedAt;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     /**
      * OPEN → IN_PROGRESS.
      * Assume o atendimento da pendencia.
@@ -120,6 +124,7 @@ public class ChecklistIssue {
             throw new InvalidIssueTransitionException(this.status, IssueStatus.REOPENED);
         }
         this.status = IssueStatus.REOPENED;
+        this.resolvedAt = null;
     }
 
     /**
@@ -131,6 +136,7 @@ public class ChecklistIssue {
             throw new InvalidIssueTransitionException(this.status, IssueStatus.IN_PROGRESS);
         }
         this.status = IssueStatus.IN_PROGRESS;
+        this.resolvedAt = null;
     }
 
     /**

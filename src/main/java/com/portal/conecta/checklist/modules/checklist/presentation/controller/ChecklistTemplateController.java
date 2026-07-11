@@ -282,6 +282,19 @@ public class ChecklistTemplateController {
     })
     @GetMapping(value = "/items/search", params = "category")
     public ResponseEntity<List<ChecklistItemByCategorySearchResponseDTO>> searchItemsByCategory(@RequestParam("category") String category) {
-        return ResponseEntity.ok(searchItemsByCategoryUseCase.execute(category));
+        List<ChecklistItemByCategorySearchResponseDTO> response = searchItemsByCategoryUseCase.execute(category).stream()
+                .map(result -> new ChecklistItemByCategorySearchResponseDTO(
+                        result.templateId(),
+                        result.templateTitle(),
+                        result.sectionKey(),
+                        result.sectionTitle(),
+                        result.key(),
+                        result.title(),
+                        result.description(),
+                        result.required(),
+                        result.order(),
+                        result.category()))
+                .toList();
+        return ResponseEntity.ok(response);
     }
 }

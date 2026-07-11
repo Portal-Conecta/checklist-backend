@@ -5,7 +5,7 @@ import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemp
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchItemsByCategoryUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistTemplateRepository;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemByCategorySearchResponseDTO;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.ChecklistItemByCategoryResult;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
@@ -44,8 +44,8 @@ class SearchItemsByCategoryUseCaseTest {
     void shouldReturnEmptyListIfCategoryNameIsBlank() {
         when(contextProvider.getRequestContext()).thenReturn(senai());
 
-        List<ChecklistItemByCategorySearchResponseDTO> resultNull = useCase.execute(null);
-        List<ChecklistItemByCategorySearchResponseDTO> resultBlank = useCase.execute("   ");
+        List<ChecklistItemByCategoryResult> resultNull = useCase.execute(null);
+        List<ChecklistItemByCategoryResult> resultBlank = useCase.execute("   ");
 
         assertEquals(0, resultNull.size());
         assertEquals(0, resultBlank.size());
@@ -96,10 +96,10 @@ class SearchItemsByCategoryUseCaseTest {
                 .thenReturn(List.of(activeTemplate));
 
         // Test search
-        List<ChecklistItemByCategorySearchResponseDTO> results = useCase.execute("  limpeza  ");
+        List<ChecklistItemByCategoryResult> results = useCase.execute("  limpeza  ");
 
         assertEquals(1, results.size());
-        ChecklistItemByCategorySearchResponseDTO item = results.getFirst();
+        ChecklistItemByCategoryResult item = results.getFirst();
         assertEquals(templateId, item.templateId());
         assertEquals("Checklist de Sala", item.templateTitle());
         assertEquals("sec-1", item.sectionKey());
@@ -156,7 +156,7 @@ class SearchItemsByCategoryUseCaseTest {
         when(templateRepository.findAllByActiveTrueAndStatus(ChecklistTemplateStatus.ACTIVE))
                 .thenReturn(List.of(invalidTemplate, validTemplate));
 
-        List<ChecklistItemByCategorySearchResponseDTO> results = useCase.execute("Limpeza");
+        List<ChecklistItemByCategoryResult> results = useCase.execute("Limpeza");
 
         assertEquals(1, results.size());
         assertEquals(validTemplateId, results.getFirst().templateId());

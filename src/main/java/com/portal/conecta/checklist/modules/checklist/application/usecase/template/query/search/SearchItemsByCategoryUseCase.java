@@ -5,7 +5,6 @@ import com.portal.conecta.checklist.modules.checklist.application.port.out.persi
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemByCategorySearchResponseDTO;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +29,7 @@ public class SearchItemsByCategoryUseCase {
     private final ObjectMapper objectMapper;
 
     @Transactional(readOnly = true)
-    public List<ChecklistItemByCategorySearchResponseDTO> execute(String categoryName) {
+    public List<ChecklistItemByCategoryResult> execute(String categoryName) {
         RequestContext currentUser = contextProvider.getRequestContext();
 
         if (!currentUser.canAccessChecklistModule()) {
@@ -43,7 +42,7 @@ public class SearchItemsByCategoryUseCase {
 
         String searchCategory = categoryName.trim();
         List<ChecklistTemplate> activeTemplates = templateRepository.findAllByActiveTrueAndStatus(ChecklistTemplateStatus.ACTIVE);
-        List<ChecklistItemByCategorySearchResponseDTO> results = new ArrayList<>();
+        List<ChecklistItemByCategoryResult> results = new ArrayList<>();
 
         for (ChecklistTemplate template : activeTemplates) {
             if (template.getSchemaJson() != null && !template.getSchemaJson().isEmpty()) {
@@ -54,7 +53,7 @@ public class SearchItemsByCategoryUseCase {
                             if (section.items() != null) {
                                 section.items().forEach(item -> {
                                     if (item.category() != null && item.category().trim().equalsIgnoreCase(searchCategory)) {
-                                        results.add(new ChecklistItemByCategorySearchResponseDTO(
+                                        results.add(new ChecklistItemByCategoryResult(
                                                 template.getId(),
                                                 template.getTitle(),
                                                 section.key(),

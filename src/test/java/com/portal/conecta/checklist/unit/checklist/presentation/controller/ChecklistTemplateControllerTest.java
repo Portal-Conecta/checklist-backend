@@ -9,6 +9,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.templa
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchChecklistItemUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchItemsByCategoryUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.ChecklistItemByCategoryResult;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemByCategorySearchResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.controller.ChecklistTemplateController;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
@@ -67,14 +68,17 @@ class ChecklistTemplateControllerTest {
     @DisplayName("deve buscar itens por categoria com sucesso")
     void deveBuscarItensPorCategoriaComSucesso() {
         String category = "Limpeza";
-        List<ChecklistItemByCategorySearchResponseDTO> expectedResponse = List.of(mock(ChecklistItemByCategorySearchResponseDTO.class));
+        ChecklistItemByCategoryResult resultItem = new ChecklistItemByCategoryResult(
+                UUID.randomUUID(), "Template", "sec-1", "Secao", "item-1", "Item", "Descricao", true, 1, category);
 
-        when(searchItemsByCategoryUseCase.execute(category)).thenReturn(expectedResponse);
+        when(searchItemsByCategoryUseCase.execute(category)).thenReturn(List.of(resultItem));
 
         ResponseEntity<List<ChecklistItemByCategorySearchResponseDTO>> result = controller.searchItemsByCategory(category);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertSame(expectedResponse, result.getBody());
+        assertEquals(1, result.getBody().size());
+        assertEquals("item-1", result.getBody().get(0).key());
+        assertEquals(category, result.getBody().get(0).category());
         verify(searchItemsByCategoryUseCase).execute(category);
     }
 

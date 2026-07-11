@@ -24,7 +24,7 @@ public interface HubClassProvider {
     }
 
     default Optional<Shift> findShiftByClassId(UUID classId) {
-        return findById(classId).map(classReference -> classReference.getShift());
+        return findById(classId).map((ClassReference classReference) -> classReference.getShift());
     }
 
     List<ClassReference> findByIds(List<UUID> classIds);

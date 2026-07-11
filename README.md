@@ -134,10 +134,30 @@ For deployed environments, configure sensitive values as GitHub Environment Secr
 - `DB_PASSWORD`
 - `DB_USER`, if the database username is sensitive in your environment
 
-### Run PostgreSQL
+### Primeira Execucao
+
+1. Instale e abra o Docker Desktop.
+2. Copie `.env.example` para `.env` e configure `JWT_SECRET` com o segredo Base64 HS256 do Hub local. Esse valor e obrigatorio e nunca deve ser versionado.
+3. Inicie a API pelo IntelliJ ou Maven. No profile `local`, o Spring Boot inicia automaticamente o PostgreSQL definido no `docker-compose.yml` e aguarda o health check.
+
+Windows:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+Na primeira execucao, a imagem do PostgreSQL sera baixada. As proximas reutilizam o container e o volume de dados existentes. A aplicacao nao encerra o banco ao finalizar.
+
+A porta padrao do PostgreSQL local e `5433`, evitando conflito com uma instalacao ja existente na maquina. Altere `DB_PORT` no `.env` somente se essa porta tambem estiver indisponivel.
+
+`DB_USER` e `DB_PASSWORD` presentes no `.env.example` sao credenciais exclusivas do container local e descartavel do PostgreSQL. Elas nao sao validas para ambientes compartilhados ou de producao.
+
+### Gerenciar Infraestrutura Local Manualmente
+
+Normalmente, nenhum comando manual do Docker e necessario. Use os comandos abaixo apenas para inspecionar ou gerenciar diretamente a infraestrutura local.
 
 ```bash
-docker compose up -d
+docker compose up -d postgres
 ```
 
 Check the container status:
@@ -156,6 +176,12 @@ Remove the local database volume:
 
 ```bash
 docker compose down -v
+```
+
+Para iniciar o Grafana como ferramenta local opcional de observabilidade:
+
+```bash
+docker compose --profile observability up -d
 ```
 
 ### Run the API
@@ -198,12 +224,18 @@ OpenAPI JSON should be available at:
 http://localhost:8083/v3/api-docs
 ```
 
-## Health Check
+## Health Check and Metrics
 
 Actuator health endpoint:
 
 ```text
 http://localhost:8083/actuator/health
+```
+
+Prometheus metrics endpoint (JVM metrics, HTTP requests, and latency):
+
+```text
+http://localhost:8083/actuator/prometheus
 ```
 
 ## Testing
@@ -310,10 +342,11 @@ $env:HUB_API_URL="http://localhost:8080"
 mvn spring-boot:run
 ```
 
-Health check does not require token:
+Health check and metrics do not require a token:
 
 ```text
 GET http://localhost:8083/actuator/health
+GET http://localhost:8083/actuator/prometheus
 ```
 
 #### Create A Postman Environment

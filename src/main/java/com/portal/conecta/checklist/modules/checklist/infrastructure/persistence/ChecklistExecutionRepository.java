@@ -14,24 +14,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Repositório responsável pelo acesso às execuções de checklist persistidas.
- */
 @Repository
 public interface ChecklistExecutionRepository
         extends JpaRepository<ChecklistExecution, UUID>, ChecklistExecutionRepositoryPort {
 
-    /**
-     * Verifica se já existe uma execução de checklist com os mesmos dados principais no mesmo dia.
-     *
-     * @param classId identificação de uma turma.
-     * @param roomId identificação de uma sala.
-     * @param period período da checklist.
-     * @param checklistType tipo da checklist.
-     * @param startOfDay início do intervalo do dia.
-     * @param endOfDay fim do intervalo do dia.
-     * @return {@code true} caso exista checklist duplicada.
-     */
     @Query(value = """
             select exists (
                 select 1
@@ -54,84 +40,83 @@ public interface ChecklistExecutionRepository
             @Param("endOfDay") LocalDateTime endOfDay
     );
 
-    /**
-     * Busca execuções de uma turma filtradas por status, ordenando as mais recentes primeiro.
-     *
-     * @param classId identificador único da turma.
-     * @param status status usado como filtro da consulta.
-     * @return lista de execuções encontradas para a turma e status informados.
-     */
     Page<ChecklistExecution> findByClassIdAndStatusOrderBySubmittedAtDesc(
             UUID classId,
             ChecklistExecutionStatus status,
             Pageable pageable
     );
 
-    /**
-     * verifica se um usuário ficou três dias consecutivos sem enviar checklists
-     * @param userId indentificação de um usuário
-     * @return true caso não existam submissões nos últimos 3 dias consecutivos
-     */
-        @Query(value = """
-                with expected_days as (
-                    select (current_date - s)::date as day
-                    from generate_series(1, 3) s
-                )
-                select count(*) = 3
+    @Query(value = """
+            with expected_days as (
+                select (current_date - s)::date as day
+                from generate_series(1, 3) s
+            ),
+            active_users as (
+                select distinct user_id
+                from checklist_execution
+                where user_id is not null
+                  and submitted_at >= current_date - interval '30 days'
+            )
+            select au.user_id
+            from active_users au
+            where (
+                select count(*)
                 from expected_days d
                 where not exists (
                     select 1
                     from checklist_execution ce
-                    where ce.user_id = :userId
+                    where ce.user_id = au.user_id
                       and ce.status = 'SUBMITTED'
                       and ce.submitted_at >= d.day
                       and ce.submitted_at < d.day + interval '1 day'
                 )
-                """, nativeQuery = true)
-        boolean hasThreeConsecutiveDaysWithoutSubmission(
-                @Param("userId") UUID userId
-        );
+            ) = 3
+            """, nativeQuery = true)
+    List<UUID> findUsersWithThreeConsecutiveDaysWithoutSubmission();
 
-    /**
-     *Busca todas as execuções de checklist de uma turma em um intervalo de data
-     * @param classId indentificação de uma turma
-     * @param startOfDay início do intervalo do dia
-     * @param endOfDay fim do intervalo do dia
-     * @return lista de execuções encontradas
-     */
-        @Query(value = """
-        select *
-        from checklist_execution ce
-        where ce.class_id = :classId
-          and ce.started_at >= :startOfDay
-          and ce.started_at < :endOfDay
-        order by ce.started_at asc
-        """, nativeQuery = true)
-        List<ChecklistExecution> findByClassAndDateNative(
-                @Param("classId") UUID classId,
-                @Param("startOfDay") LocalDateTime startOfDay,
-                @Param("endOfDay") LocalDateTime endOfDay
-        );
-
-    /**
-     *Verifica se existem itens não conformes sem justificativa preenchida.
-     * @param executionId indentificação de uma execução de checklist
-     * @return true caso exista item não conforme sem justificativa
-     */
-        @Query(value = """
-        select exists (
-            select 1
+    @Query(value = """
+            select *
             from checklist_execution ce
-            cross join lateral jsonb_array_elements(ce.answers_json -> 'items') as item(value)
-            where ce.id = :executionId
-              and (item.value ->> 'conforme')::boolean = false
-              and nullif(btrim(coalesce(item.value ->> 'justificativa', '')), '') is null
-        )
-        """, nativeQuery = true)
-        boolean hasNonConformingItemWithoutJustification(
-                @Param("executionId") UUID executionId
-        );
+            where ce.class_id = :classId
+              and ce.started_at >= :startOfDay
+              and ce.started_at < :endOfDay
+            order by ce.started_at asc
+            """, nativeQuery = true)
+    List<ChecklistExecution> findByClassAndDateNative(
+            @Param("classId") UUID classId,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay
+    );
 
+    @Query(value = """
+            select exists (
+                select 1
+                from checklist_execution ce
+                cross join lateral jsonb_array_elements(ce.answers_json -> 'items') as item(value)
+                where ce.id = :executionId
+                  and (item.value ->> 'conforme')::boolean = false
+                  and nullif(btrim(coalesce(item.value ->> 'justificativa', '')), '') is null
+            )
+            """, nativeQuery = true)
+    boolean hasNonConformingItemWithoutJustification(
+            @Param("executionId") UUID executionId
+    );
 
-
-    }
+    @Query(value = """
+            select distinct csw.class_id as classId, csw.checklist_type as checklistType
+            from checklist_submission_window csw
+            where not exists (
+                select 1
+                from checklist_execution ce
+                where ce.class_id = csw.class_id
+                  and ce.checklist_type = csw.checklist_type
+                  and ce.status = 'SUBMITTED'
+                  and ce.submitted_at >= :startOfDay
+                  and ce.submitted_at < :endOfDay
+            )
+            """, nativeQuery = true)
+    List<MissedChecklistSummary> findClassIdsWithMissedChecklist(
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay
+    );
+}

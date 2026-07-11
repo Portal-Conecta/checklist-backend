@@ -4,10 +4,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 import com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.shared.RoomResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateCreateRequest;
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemSearchResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -136,6 +138,18 @@ public class ChecklistTemplateMapper {
         template.setActive(true);
 
         return template;
+    }
+
+    public ChecklistItemSearchResponseDTO toItemSearchResponseDTO(ChecklistItem item){
+        if (item == null) return null;
+
+        return new ChecklistItemSearchResponseDTO(
+                item.key(),
+                item.title(),
+                item.description(),
+                item.required(),
+                item.order()
+        );
     }
 
 }

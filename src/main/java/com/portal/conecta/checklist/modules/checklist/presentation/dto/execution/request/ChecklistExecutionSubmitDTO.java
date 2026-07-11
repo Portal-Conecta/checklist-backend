@@ -1,6 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.SubmitChecklistExecutionCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 
@@ -21,7 +21,7 @@ public record ChecklistExecutionSubmitDTO(
         return new SubmitChecklistExecutionCommand(
                 answers == null
                         ? List.of()
-                        : answers.stream().map(answer -> answer.toCommand()).toList()
+                        : answers.stream().map((ChecklistAnswerRequestDTO answer) -> answer.toCommand()).toList()
         );
     }
 }

@@ -1,6 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.application.service.execution;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.ChecklistAnswerCommand;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistAnswerCommand;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ConformityAnswerValue;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
@@ -20,10 +20,10 @@ public class ChecklistExecutionAnswerValidationService {
 
     public Map<String, ChecklistItem> validate(
             ChecklistSchema schema,
-            List<ChecklistAnswerCommand> answers
+            List<UpdateChecklistAnswerCommand> answers
     ) {
         Map<String, ChecklistItem> itemsByKey = itemsByKey(schema);
-        Map<String, ChecklistAnswerCommand> answersByItemKey = answersByItemKey(answers);
+        Map<String, UpdateChecklistAnswerCommand> answersByItemKey = answersByItemKey(answers);
 
         validateAnswers(itemsByKey, answersByItemKey);
 
@@ -34,7 +34,7 @@ public class ChecklistExecutionAnswerValidationService {
         return schema.sections().stream()
                 .flatMap(section -> section.items().stream())
                 .collect(Collectors.toMap(
-                        item -> item.key(),
+                        (ChecklistItem item) -> item.key(),
                         Function.identity(),
                         (first, duplicated) -> {
                             throw new IllegalArgumentException("item.key duplicado no template: " + first.key());
@@ -43,10 +43,10 @@ public class ChecklistExecutionAnswerValidationService {
                 ));
     }
 
-    private Map<String, ChecklistAnswerCommand> answersByItemKey(List<ChecklistAnswerCommand> answers) {
+    private Map<String, UpdateChecklistAnswerCommand> answersByItemKey(List<UpdateChecklistAnswerCommand> answers) {
         return answers.stream()
                 .collect(Collectors.toMap(
-                        answer -> answer.itemKey(),
+                    (UpdateChecklistAnswerCommand answer) -> answer.itemKey(),
                         Function.identity(),
                         (first, duplicated) -> {
                             throw new IllegalArgumentException("Resposta duplicada para itemKey: " + first.itemKey());
@@ -57,7 +57,7 @@ public class ChecklistExecutionAnswerValidationService {
 
     private void validateAnswers(
             Map<String, ChecklistItem> itemsByKey,
-            Map<String, ChecklistAnswerCommand> answersByItemKey
+            Map<String, UpdateChecklistAnswerCommand> answersByItemKey
     ) {
         for (String answerItemKey : answersByItemKey.keySet()) {
             if (!itemsByKey.containsKey(answerItemKey)) {
@@ -66,7 +66,7 @@ public class ChecklistExecutionAnswerValidationService {
         }
 
         for (ChecklistItem item : itemsByKey.values()) {
-            ChecklistAnswerCommand answer = answersByItemKey.get(item.key());
+            UpdateChecklistAnswerCommand answer = answersByItemKey.get(item.key());
 
             if (Boolean.TRUE.equals(item.required()) && answer == null) {
                 throw new IllegalArgumentException("Item obrigatorio sem resposta: " + item.key());

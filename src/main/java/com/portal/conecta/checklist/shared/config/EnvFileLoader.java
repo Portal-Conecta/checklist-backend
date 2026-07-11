@@ -6,14 +6,14 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Utilitario para carregar variaveis locais a partir de um arquivo {@code ..env}.
+ * Utilitario para carregar variaveis locais a partir de um arquivo {@code .env}.
  *
  * <p>Define propriedades de sistema antes da inicializacao do Spring, sem
  * sobrescrever variaveis ja configuradas no ambiente da JVM ou do sistema.</p>
  */
 public final class EnvFileLoader {
 
-    private static final String ENV_FILE_NAME = "..env";
+    private static final String ENV_FILE_NAME = ".env";
 
     private EnvFileLoader() {
     }
@@ -24,13 +24,15 @@ public final class EnvFileLoader {
 
     public static void load(Path envFile) {
         if (envFile == null || !Files.isRegularFile(envFile)) {
+            System.out.println("[EnvFileLoader] Arquivo .env nao encontrado em: " + (envFile != null ? envFile.toAbsolutePath() : "null"));
             return;
         }
 
         try {
+            System.out.println("[EnvFileLoader] Carregando variaveis de: " + envFile.toAbsolutePath());
             loadLines(Files.readAllLines(envFile));
         } catch (IOException exception) {
-            throw new IllegalStateException("Nao foi possivel carregar o arquivo ..env.", exception);
+            throw new IllegalStateException("Nao foi possivel carregar o arquivo .env.", exception);
         }
     }
 
@@ -64,28 +66,27 @@ public final class EnvFileLoader {
         String key = line.substring(0, separatorIndex).trim();
         String value = line.substring(separatorIndex + 1).trim();
 
-        if (!isValidKey(key) || alreadyDefined(key)) {
+        if (!isValidKey(key)) {
             return;
         }
 
         String resolvedValue = unquote(value);
 
-        System.setProperty(key, resolvedValue);
-        setSpringAliasIfNeeded(key, resolvedValue);
+        // System property tem precedencia
+        if (System.getProperty(key) == null) {
+            System.setProperty(key, resolvedValue);
+            setSpringAliasIfNeeded(key, resolvedValue);
+        }
     }
 
     private static void setSpringAliasIfNeeded(String key, String value) {
-        if ("SPRING_PROFILES_ACTIVE".equals(key) && System.getProperty("spring.profiles.active") == null) {
+        if ("SPRING_PROFILES_ACTIVE".equals(key)) {
             System.setProperty("spring.profiles.active", value);
         }
     }
 
     private static boolean isValidKey(String key) {
         return key.matches("[A-Za-z_][A-Za-z0-9_]*");
-    }
-
-    private static boolean alreadyDefined(String key) {
-        return System.getProperty(key) != null || System.getenv(key) != null;
     }
 
     private static String unquote(String value) {

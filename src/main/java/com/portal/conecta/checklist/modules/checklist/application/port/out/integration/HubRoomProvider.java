@@ -2,6 +2,7 @@ package com.portal.conecta.checklist.modules.checklist.application.port.out.inte
 
 import com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,4 +21,6 @@ public interface HubRoomProvider {
                 ? Optional.of(new RoomReference(roomId))
                 : Optional.empty();
     }
+
+    List<RoomReference> findByIds(List<UUID> roomIds);
 }

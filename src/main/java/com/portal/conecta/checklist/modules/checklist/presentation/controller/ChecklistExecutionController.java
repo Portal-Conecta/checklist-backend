@@ -276,7 +276,7 @@ public class ChecklistExecutionController {
             @PathVariable UUID classId,
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        return ResponseEntity.ok(mapper.toPageHistory(listHistoryByClassUseCase.execute(classId, pageable)));
+        return ResponseEntity.ok(mapper.toPageHistoryWithEnrichment(listHistoryByClassUseCase.execute(classId, pageable), classId));
     }
 
     @Operation(

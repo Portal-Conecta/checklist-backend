@@ -54,14 +54,14 @@ class ChecklistTemplateControllerTest {
         ChecklistTemplateResponseDTO response = mock(ChecklistTemplateResponseDTO.class);
 
         when(activateUseCase.execute(templateId)).thenReturn(template);
-        when(mapper.toResponse(template)).thenReturn(response);
+        when(mapper.toResponseWithEnrichment(template)).thenReturn(response);
 
         ResponseEntity<ChecklistTemplateResponseDTO> result = controller.activateTemplate(templateId);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
         verify(activateUseCase).execute(templateId);
-        verify(mapper).toResponse(template);
+        verify(mapper).toResponseWithEnrichment(template);
     }
 
     @Test

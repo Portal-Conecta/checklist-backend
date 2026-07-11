@@ -84,7 +84,7 @@ public class ChecklistTemplateController {
     })
     @PostMapping
     public ResponseEntity<ChecklistTemplateResponseDTO> createTemplate(@RequestBody @Valid ChecklistTemplateCreateRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(createUseCase.execute(request.toCommand())));
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponseWithEnrichment(createUseCase.execute(request.toCommand())));
     }
 
     @Operation(
@@ -130,7 +130,7 @@ public class ChecklistTemplateController {
     })
     @PatchMapping("/{templateId}/activate")
     public ResponseEntity<ChecklistTemplateResponseDTO> activateTemplate(@PathVariable UUID templateId) {
-        return ResponseEntity.ok(mapper.toResponse(activateUseCase.execute(templateId)));
+        return ResponseEntity.ok(mapper.toResponseWithEnrichment(activateUseCase.execute(templateId)));
     }
 
     @Operation(
@@ -171,7 +171,7 @@ public class ChecklistTemplateController {
     })
     @GetMapping("/{templateId}")
     public ResponseEntity<ChecklistTemplateResponseDTO> findTemplateById(@PathVariable UUID templateId) {
-        return ResponseEntity.ok(mapper.toResponse(findByIdUseCase.execute(templateId)));
+        return ResponseEntity.ok(mapper.toResponseWithEnrichment(findByIdUseCase.execute(templateId)));
     }
 
     @Operation(
@@ -202,7 +202,7 @@ public class ChecklistTemplateController {
     })
     @GetMapping
     public ResponseEntity<List<ChecklistTemplateResponseDTO>> listTemplates() {
-        return ResponseEntity.ok(mapper.toResponseList(listUseCase.execute()));
+        return ResponseEntity.ok(mapper.toResponseListWithEnrichment(listUseCase.execute()));
     }
 
     @Operation(summary = "Editar Template", description = "Atualiza parcialmente um template com status DRAFT. Campos não informados são mantidos.")
@@ -216,7 +216,7 @@ public class ChecklistTemplateController {
     })
     @PatchMapping("/{templateId}")
     public ResponseEntity<ChecklistTemplateResponseDTO> editTemplate(@PathVariable UUID templateId, @RequestBody @Valid ChecklistTemplateEditRequest request){
-        return ResponseEntity.ok(mapper.toResponse(editUseCase.execute(templateId, request.toCommand())));
+        return ResponseEntity.ok(mapper.toResponseWithEnrichment(editUseCase.execute(templateId, request.toCommand())));
     }
 
     @Operation(summary = "Criar nova versão", description = "Cria uma nova versão em DRAFT a partir de um template ACTIVE, preservando o histórico")
@@ -231,7 +231,7 @@ public class ChecklistTemplateController {
     public ResponseEntity<ChecklistTemplateResponseDTO> createNewVersion(
             @PathVariable UUID templateId) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(mapper.toResponse(createVersionUseCase.execute(templateId)));
+                .body(mapper.toResponseWithEnrichment(createVersionUseCase.execute(templateId)));
     }
 
     @Operation(

@@ -9,11 +9,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.templa
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchChecklistItemUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchItemsByCategoryUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
-<<<<<<< HEAD
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemByCategorySearchResponseDTO;
-=======
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemSearchResponseDTO;
->>>>>>> 02e7cb3b7e26872d52e06b8aae70a43777a962eb
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.mapper.ChecklistTemplateMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -70,25 +66,16 @@ class ChecklistTemplateControllerTest {
     @DisplayName("deve buscar itens por categoria com sucesso")
     void deveBuscarItensPorCategoriaComSucesso() {
         String category = "Limpeza";
-<<<<<<< HEAD
         List<ChecklistItemByCategorySearchResponseDTO> expectedResponse = List.of(mock(ChecklistItemByCategorySearchResponseDTO.class));
 
         when(searchItemsByCategoryUseCase.execute(category)).thenReturn(expectedResponse);
 
         ResponseEntity<List<ChecklistItemByCategorySearchResponseDTO>> result = controller.searchItemsByCategory(category);
-=======
-        List<ChecklistItemSearchResponseDTO> expectedResponse = List.of(mock(ChecklistItemSearchResponseDTO.class));
-
-        when(searchItemsByCategoryUseCase.execute(category)).thenReturn(expectedResponse);
-
-        ResponseEntity<List<ChecklistItemSearchResponseDTO>> result = controller.searchItemsByCategory(category);
->>>>>>> 02e7cb3b7e26872d52e06b8aae70a43777a962eb
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(expectedResponse, result.getBody());
         verify(searchItemsByCategoryUseCase).execute(category);
     }
-<<<<<<< HEAD
 
     @Test
     @DisplayName("deve expor busca por categoria pela rota HTTP")
@@ -104,6 +91,3 @@ class ChecklistTemplateControllerTest {
         verify(searchItemsByCategoryUseCase).execute(category);
     }
 }
-=======
-}
->>>>>>> 02e7cb3b7e26872d52e06b8aae70a43777a962eb

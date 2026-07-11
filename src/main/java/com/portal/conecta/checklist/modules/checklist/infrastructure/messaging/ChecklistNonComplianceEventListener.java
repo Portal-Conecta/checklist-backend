@@ -6,6 +6,7 @@ import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExec
 import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
 import com.portal.conecta.checklist.shared.messaging.notification.NotificationEventType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@ConditionalOnProperty(prefix = "app.rabbitmq", name = "enabled", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
 public class ChecklistNonComplianceEventListener {
 

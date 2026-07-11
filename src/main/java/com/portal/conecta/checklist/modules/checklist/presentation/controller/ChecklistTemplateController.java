@@ -7,7 +7,9 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.templa
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.find.FindChecklistTemplateByIdUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.list.ListChecklistTemplatesUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchChecklistItemUseCase;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchItemsByCategoryUseCase;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateCreateRequest;
+import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemByCategorySearchResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemSearchResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistTemplateResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateEditRequest;
@@ -35,6 +37,7 @@ import java.util.UUID;
 public class ChecklistTemplateController {
 
     private final SearchChecklistItemUseCase searchChecklistItemUseCase;
+    private final SearchItemsByCategoryUseCase searchItemsByCategoryUseCase;
     private final CreateChecklistTemplateUseCase createUseCase;
     private final ActivateChecklistTemplateUseCase activateUseCase;
     private final FindChecklistTemplateByIdUseCase findByIdUseCase;
@@ -232,8 +235,8 @@ public class ChecklistTemplateController {
     }
 
     @Operation(
-            summary = "Buscar itens do template por categoria",
-            description = "Retorna os itens de um template filtrados por categoria. Requer template ativo ou draft visível ao perfil."
+            summary = "Buscar itens do template por texto",
+            description = "Retorna os itens de templates que correspondem ao termo de busca informado."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Itens encontrados"),
@@ -241,13 +244,57 @@ public class ChecklistTemplateController {
             @ApiResponse(responseCode = "403", description = "Perfil sem acesso ao template draft", content = @Content),
             @ApiResponse(responseCode = "404", description = "Template não encontrado", content = @Content)
     })
-    @GetMapping("/items/search")
+    @GetMapping(value = "/items/search", params = "query")
     public ResponseEntity<List<ChecklistItemSearchResponseDTO>> searchItems(@RequestParam("query") String query) {
         List<ChecklistItemSearchResponseDTO> response = searchChecklistItemUseCase.execute(query)
                 .stream()
                 .map(mapper::toItemSearchResponseDTO)
                 .toList();
 
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+            summary = "Buscar itens por categoria",
+            description = "Retorna uma lista de itens de templates ativos que correspondem à categoria fornecida."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Itens encontrados com sucesso (pode ser lista vazia)",
+                    content = @Content(schema = @Schema(implementation = ChecklistItemByCategorySearchResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Não autenticado — token JWT ausente ou inválido",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Sem permissão para acessar o módulo de checklist",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno inesperado no servidor",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            )
+    })
+    @GetMapping(value = "/items/search", params = "category")
+    public ResponseEntity<List<ChecklistItemByCategorySearchResponseDTO>> searchItemsByCategory(@RequestParam("category") String category) {
+        List<ChecklistItemByCategorySearchResponseDTO> response = searchItemsByCategoryUseCase.execute(category).stream()
+                .map(result -> new ChecklistItemByCategorySearchResponseDTO(
+                        result.templateId(),
+                        result.templateTitle(),
+                        result.sectionKey(),
+                        result.sectionTitle(),
+                        result.key(),
+                        result.title(),
+                        result.description(),
+                        result.required(),
+                        result.order(),
+                        result.category()))
+                .toList();
         return ResponseEntity.ok(response);
     }
 }

@@ -29,7 +29,7 @@ public class ListChecklistExecutionsUseCase {
             return repositoryPort.findAll(pageable);
         } else {
             List<UUID> classIds = context.classes().stream()
-                    .map(ContextClass::classId)
+                    .map((ContextClass contextClass) -> contextClass.classId())
                     .collect(Collectors.toList());
             
             if (classIds.isEmpty()) {

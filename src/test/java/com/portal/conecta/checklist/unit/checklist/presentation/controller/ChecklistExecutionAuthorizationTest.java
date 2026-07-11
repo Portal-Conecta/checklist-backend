@@ -115,10 +115,6 @@ class ChecklistExecutionAuthorizationTest {
         return new RequestContext(UUID.randomUUID(), TypeUser.SENAI);
     }
 
-    private RequestContext weg() {
-        return new RequestContext(UUID.randomUUID(), TypeUser.WEG);
-    }
-
     private RequestContext teacherOf(UUID classId) {
         return new RequestContext(UUID.randomUUID(), TypeUser.TEACHER, List.of(new ContextClass(classId, ClassRole.TEACHER)));
     }

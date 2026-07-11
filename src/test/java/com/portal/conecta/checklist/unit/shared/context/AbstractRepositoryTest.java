@@ -22,15 +22,14 @@ public abstract class AbstractRepositoryTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName("checklist_test")
-            .withUsername("test")
-            .withPassword("test");
+    static final PostgreSQLContainer<?> postgres = createPostgresContainer();
 
-
-
-
-
-
+    @SuppressWarnings("resource")
+    private static PostgreSQLContainer<?> createPostgresContainer() {
+        return new PostgreSQLContainer<>("postgres:16-alpine")
+                .withDatabaseName("checklist_test")
+                .withUsername("test")
+                .withPassword("test");
+    }
 
 }

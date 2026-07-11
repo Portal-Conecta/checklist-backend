@@ -141,7 +141,7 @@ class ChecklistTemplateRepositoryTest extends AbstractRepositoryTest {
         Set<String> queryParams = extractQueryParams(query.value());
         Set<String> methodParams = Arrays.stream(method.getParameters())
                 .flatMap(parameter -> Arrays.stream(parameter.getAnnotationsByType(Param.class)))
-                .map(Param::value)
+                .map((Param param) -> param.value())
                 .collect(Collectors.toCollection(TreeSet::new));
 
         assertEquals(queryParams, methodParams);

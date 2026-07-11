@@ -97,7 +97,7 @@ public class ChecklistTemplate {
      * <b>Define os campos, tipos e validações do checklist. A estrutura é livre e interpretada pelo frontend em tempo de execução</b>
      */
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "schema_json", columnDefinition = "jsonb", nullable = false)
+    @Column(name = "schema_json", nullable = false)
     private Map<String, Object> schemaJson;
 
     /**

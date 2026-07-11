@@ -16,10 +16,12 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Map;
@@ -41,6 +43,7 @@ public class SubmitChecklistExecutionUseCase {
     private final ChecklistIssueService issueService;
     private final ChecklistExecutionScoringService scoringService;
     private final ChecklistExecutionAnswerValidationService answerValidationService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Value("${checklist.timezone:America/Sao_Paulo}")
     private String timezone;
@@ -69,18 +72,25 @@ public class SubmitChecklistExecutionUseCase {
                 execution.getChecklistTemplate().getSchemaJson(),
                 ChecklistSchema.class
         );
-
+        // TODO: O campo AnswerType foi introduzido no schema (ChecklistItem), mas as validacoes
+        // de formato de resposta (TEXT, NUMBER) serao implementadas em uma PR futura.
+        // Atualmente, apenas respostas COMPLIANT/NON_COMPLIANT sao validadas.
         Map<String, ChecklistItem> itemsByKey = answerValidationService.validate(schema, command.answers());
 
         execution.setAnswersJson(executionMapper.toAnswersJson(command));
         execution.setComplianceScore(scoringService.calculateComplianceScore(command.answers()));
         execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
         execution.setSubmittedAt(LocalDateTime.now(ZoneId.of(timezone)));
+
         issueService.createIssuesForNonCompliantAnswers(execution, command.answers(), itemsByKey);
 
         ChecklistExecution submitted = executionRepository.save(execution);
         log.info("Checklist submetido com sucesso executionId={} classId={} score={}%",
                 submitted.getId(), submitted.getClassId(), submitted.getComplianceScore());
+
+        if (submitted.getComplianceScore().compareTo(BigDecimal.valueOf(100)) < 0) {
+            applicationEventPublisher.publishEvent(new ChecklistNonComplianceEvent(submitted));
+        }
 
         return submitted;
     }

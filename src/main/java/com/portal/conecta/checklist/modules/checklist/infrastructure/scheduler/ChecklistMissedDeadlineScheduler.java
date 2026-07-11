@@ -4,9 +4,11 @@ import com.portal.conecta.checklist.modules.checklist.application.port.out.messa
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.MissedChecklistSummary;
 import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
+import com.portal.conecta.checklist.shared.messaging.notification.NotificationEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Component
+@ConditionalOnProperty(prefix = "app.rabbitmq", name = "enabled", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
 @Slf4j
 public class ChecklistMissedDeadlineScheduler {
@@ -63,7 +66,7 @@ public class ChecklistMissedDeadlineScheduler {
                 "checklist-missed-" + classId + "-" + checklistType + "-" + LocalDate.now(ZoneId.of(timezone)),
                 classId.toString(),
                 "checklist-service",
-                "checklist.missed_deadline",
+                NotificationEventType.CHECKLIST_MISSED_DEADLINE,
                 Instant.now(),
                 "Checklist Não Realizado!",
                 "O prazo de hoje expirou e o checklist " + checklistType + " da sua turma não foi preenchido.",

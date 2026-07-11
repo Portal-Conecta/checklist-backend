@@ -3,9 +3,11 @@ package com.portal.conecta.checklist.modules.checklist.infrastructure.scheduler;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.messaging.NotificationEventPublisher;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
+import com.portal.conecta.checklist.shared.messaging.notification.NotificationEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Component
+@ConditionalOnProperty(prefix = "app.rabbitmq", name = "enabled", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
 @Slf4j
 public class UserConsecutiveAbsenceScheduler {
@@ -55,7 +58,7 @@ public class UserConsecutiveAbsenceScheduler {
                 "user-absence-3days-" + userId + "-" + LocalDate.now(ZoneId.of(timezone)),
                 userId.toString(),
                 "checklist-service",
-                "checklist.three_days_missing",
+                NotificationEventType.CHECKLIST_THREE_DAYS_MISSING,
                 Instant.now(),
                 "Alerta: Ausência de Checklist",
                 "O usuário responsável está há 3 dias consecutivos sem realizar nenhuma submissão de checklist.",

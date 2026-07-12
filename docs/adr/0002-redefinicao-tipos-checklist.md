@@ -2,7 +2,7 @@
 
 - **Status:** Implementado
 - **Data:** 2026-05-28 (revisado em 2026-06-24)
-- **Autor:** Daniel
+- **Autor:** danielsismer
 - **Relacionado:** [ADR-0003](0003-modelagem-execucao-post-break.md), [ADR-0004](0004-janela-de-envio-por-shift.md), [Fluxo operacional](../dominio/fluxo-operacional.md)
 
 ---

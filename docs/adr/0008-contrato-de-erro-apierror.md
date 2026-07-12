@@ -2,7 +2,7 @@
 
 - **Status:** Implementado
 - **Data:** 2026-06-24 (PR #143)
-- **Autor:** Daniel
+- **Autor:** danielsismer
 - **Relacionado:** [ADR-0006](0006-autorizacao-local-checklist.md), [ADR-0001](0001-arquitetura-modular.md), [Riscos](../riscos.md)
 
 ---

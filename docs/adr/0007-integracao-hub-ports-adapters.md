@@ -2,7 +2,7 @@
 
 - **Status:** Implementado — com pendências de contrato
 - **Data:** 2026-06-11 (revisado em 2026-06-24)
-- **Autor:** Daniel
+- **Autor:** danielsismer
 - **Relacionado:** [ADR-0001](0001-arquitetura-modular.md), [ADR-0004](0004-janela-de-envio-por-shift.md), [ADR-0005](0005-autenticacao-token-hub.md), [Riscos](../riscos.md)
 
 ---

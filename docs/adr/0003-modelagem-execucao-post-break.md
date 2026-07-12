@@ -2,7 +2,7 @@
 
 - **Status:** Implementado
 - **Data:** 2026-05-28 (revisado em 2026-06-24)
-- **Autor:** Daniel
+- **Autor:** danielsismer
 - **Depende de:** [ADR-0002](0002-redefinicao-tipos-checklist.md)
 - **Relacionado:** [Fluxo operacional](../dominio/fluxo-operacional.md), [Riscos](../riscos.md)
 

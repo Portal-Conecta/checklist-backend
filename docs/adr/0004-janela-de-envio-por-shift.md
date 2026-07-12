@@ -2,7 +2,7 @@
 
 - **Status:** Implementado
 - **Data:** 2026-05-28 (revisado em 2026-06-24)
-- **Autor:** Daniel
+- **Autor:** danielsismer
 - **Depende de:** [ADR-0002](0002-redefinicao-tipos-checklist.md), [ADR-0003](0003-modelagem-execucao-post-break.md)
 - **Relacionado:** [ADR-0007](0007-integracao-hub-ports-adapters.md), [Fluxo operacional](../dominio/fluxo-operacional.md), [Riscos](../riscos.md)
 

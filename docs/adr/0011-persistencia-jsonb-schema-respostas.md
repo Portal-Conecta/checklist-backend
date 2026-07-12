@@ -2,7 +2,7 @@
 
 - **Status:** Implementado
 - **Data:** 2026-07-05
-- **Autor:** Daniel
+- **Autor:** danielsismer
 - **Relacionado:** [ADR-0001](0001-arquitetura-modular.md), [ADR-0012](0012-versionamento-imutabilidade-template.md), [ADR-0013](0013-conformidade-e-geracao-de-issues.md)
 
 ---

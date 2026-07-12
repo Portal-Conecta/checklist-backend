@@ -2,7 +2,7 @@
 
 - **Status:** Implementado
 - **Data:** 2026-06-12 (revisado e ampliado em 2026-06-24)
-- **Autor:** Equipe Checklist
+- **Autor:** danielsismer
 - **Relacionado:** [ADR-0007](0007-integracao-hub-ports-adapters.md), [ADR-0008](0008-contrato-de-erro-apierror.md), [Visão de arquitetura](../arquitetura/visao-geral.md)
 
 > Este ADR consolida em pt-BR o antigo `0001-modular-layered-architecture.md` (inglês) e absorve a

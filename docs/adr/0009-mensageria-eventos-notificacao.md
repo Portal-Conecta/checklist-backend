@@ -2,7 +2,7 @@
 
 - **Status:** Aceito (implementação na branch `feature/#182-implementa-mensageria`, ainda fora do `develop`)
 - **Data:** 2026-07-05
-- **Autor:** Daniel
+- **Autor:** danielsismer
 - **Depende de:** [ADR-0007](0007-integracao-hub-ports-adapters.md)
 - **Relacionado:** [ADR-0010](0010-modulo-notificacoes.md), [ADR-0013](0013-conformidade-e-geracao-de-issues.md)
 

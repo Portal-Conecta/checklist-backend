@@ -2,7 +2,7 @@
 
 - **Status:** Proposto
 - **Data:** 2026-07-05
-- **Autor:** Daniel
+- **Autor:** danielsismer
 - **Depende de:** [ADR-0009](0009-mensageria-eventos-notificacao.md)
 - **Relacionado:** [ADR-0007](0007-integracao-hub-ports-adapters.md)
 

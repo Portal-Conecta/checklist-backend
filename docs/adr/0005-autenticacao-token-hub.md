@@ -2,7 +2,7 @@
 
 - **Status:** Aceito — pendente ajuste fino do endpoint de validação de usuário
 - **Data:** 2026-06-11 (revisado em 2026-06-24)
-- **Autor:** Daniel
+- **Autor:** danielsismer
 - **Relacionado:** [ADR-0006](0006-autorizacao-local-checklist.md), [ADR-0007](0007-integracao-hub-ports-adapters.md), [Riscos](../riscos.md)
 
 ---

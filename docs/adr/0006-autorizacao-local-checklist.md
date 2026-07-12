@@ -2,7 +2,7 @@
 
 - **Status:** Implementado
 - **Data:** 2026-06-11 (revisado em 2026-06-24)
-- **Autor:** Daniel
+- **Autor:** danielsismer
 - **Depende de:** [ADR-0005](0005-autenticacao-token-hub.md)
 - **Relacionado:** [Fluxo operacional](../dominio/fluxo-operacional.md)
 

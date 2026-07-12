@@ -2,7 +2,7 @@
 
 - **Status:** Implementado
 - **Data:** 2026-07-05
-- **Autor:** Daniel
+- **Autor:** danielsismer
 - **Depende de:** [ADR-0011](0011-persistencia-jsonb-schema-respostas.md)
 - **Relacionado:** [ADR-0013](0013-conformidade-e-geracao-de-issues.md), [Fluxo operacional](../dominio/fluxo-operacional.md)
 

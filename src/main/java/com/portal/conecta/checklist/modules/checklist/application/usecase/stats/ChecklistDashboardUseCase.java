@@ -43,11 +43,9 @@ public class ChecklistDashboardUseCase {
      */
     @Cacheable(cacheNames = "checklist-dashboard", key = "#from + '_' + #to")
     public DashboardStatsResponseDTO execute(LocalDate from, LocalDate to) {
-        // Autorizacao: alinhada ao restante do modulo. Se o painel dever ser
-        // restrito a gestao (SENAI/WEG), trocar canAccessChecklistModule() pelo
-        // predicado correspondente (ex.: canManageIssues()).
-        if (!contextProvider.getRequestContext().canAccessChecklistModule()) {
-            throw new AccessDeniedException("Usuario nao tem permissao para acessar o modulo Checklist.");
+        // Autorizacao: o dashboard e restrito a gestao (SENAI/WEG) — ver ADR-0017.
+        if (!contextProvider.getRequestContext().canViewDashboard()) {
+            throw new AccessDeniedException("Apenas a gestao (SENAI/WEG) pode acessar o dashboard.");
         }
 
         LocalDate resolvedTo = (to == null) ? LocalDate.now() : to;

@@ -35,7 +35,7 @@ class ChecklistDashboardUseCaseTest {
     @BeforeEach
     void setUp() {
         when(contextProvider.getRequestContext()).thenReturn(context);
-        when(context.canAccessChecklistModule()).thenReturn(true);
+        when(context.canViewDashboard()).thenReturn(true);
     }
 
     @Test
@@ -73,7 +73,7 @@ class ChecklistDashboardUseCaseTest {
     @Test
     @DisplayName("deve negar acesso sem permissao no modulo")
     void deveNegarSemPermissao() {
-        when(context.canAccessChecklistModule()).thenReturn(false);
+        when(context.canViewDashboard()).thenReturn(false);
 
         assertThrows(AccessDeniedException.class,
                 () -> useCase.execute(LocalDate.now().minusDays(5), LocalDate.now()));

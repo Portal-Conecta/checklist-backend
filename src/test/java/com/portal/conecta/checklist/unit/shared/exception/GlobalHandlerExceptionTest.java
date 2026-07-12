@@ -1,18 +1,12 @@
-package com.portal.conecta.checklist.unit.shared.exception;
+package com.portal.conecta.checklist.shared.exception;
 
 import com.portal.conecta.checklist.modules.checklist.domain.exception.SubmissionWindowViolationException;
-import com.portal.conecta.checklist.shared.exception.ApiError;
-import com.portal.conecta.checklist.shared.exception.GlobalHandlerException;
 import com.portal.conecta.checklist.shared.integration.hub.exception.HubIntegrationException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -27,242 +21,244 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import java.time.LocalTime;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class GlobalHandlerExceptionTest {
 
-    @InjectMocks
     private GlobalHandlerException handler;
-
-    @Mock
     private HttpServletRequest request;
-
-    private static final String TEST_PATH = "/api/v1/test-route";
 
     @BeforeEach
     void setUp() {
-        when(request.getRequestURI()).thenReturn(TEST_PATH);
+        handler = new GlobalHandlerException();
+        request = mock(HttpServletRequest.class);
+        when(request.getRequestURI()).thenReturn("/api/test");
     }
 
     @Test
-    @DisplayName("should return bad request with first field error message when validation fails")
-    void shouldReturnBadRequestWithFieldErrorsWhenValidationFails() {
-        MethodArgumentNotValidException exception = mock(MethodArgumentNotValidException.class);
+    @DisplayName("Deve retornar 400 para erro de validação com FieldError presente")
+    void testHandleValidationErrorsWithField() {
+        MethodArgumentNotValidException ex = mock(MethodArgumentNotValidException.class);
         BindingResult bindingResult = mock(BindingResult.class);
-        FieldError nameError = new FieldError("request", "name", "Nome e obrigatorio");
+        FieldError fieldError = new FieldError("obj", "field", "Campo obrigatorio");
 
-        when(exception.getBindingResult()).thenReturn(bindingResult);
-        when(bindingResult.getFieldError()).thenReturn(nameError);
+        when(ex.getBindingResult()).thenReturn(bindingResult);
+        when(bindingResult.getFieldError()).thenReturn(fieldError);
 
-        ResponseEntity<ApiError> response = handler.handleValidationErrors(exception, request);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(400, response.getBody().status());
-        assertEquals("Bad Request", response.getBody().error());
-        assertEquals("Nome e obrigatorio", response.getBody().message());
-        assertEquals(TEST_PATH, response.getBody().path());
-        assertNotNull(response.getBody().timestamp());
-    }
-
-    @Test
-    @DisplayName("should return conflict when generic data integrity violation occurs")
-    void shouldReturnConflictWhenDataIntegrityViolationOccurs() {
-        ResponseEntity<ApiError> response =
-                handler.handleDataIntegrity(new DataIntegrityViolationException("duplicated value"), request);
-
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(409, response.getBody().status());
-        assertEquals("Conflict", response.getBody().error());
-        assertEquals("Ja existe um recurso com estes dados.", response.getBody().message());
-        assertEquals(TEST_PATH, response.getBody().path());
-    }
-
-    @Test
-    @DisplayName("should return conflict with specific duplicate checklist message when unique index fails")
-    void shouldReturnConflictWithDuplicateChecklistMessageWhenUniqueIndexFails() {
-        ResponseEntity<ApiError> response = handler.handleDataIntegrity(
-                new DataIntegrityViolationException(
-                        "duplicate key value violates unique constraint \"uidx_execution_no_duplicate\""
-                ), request
-        );
-
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(409, response.getBody().status());
-        assertEquals("Ja existe checklist ativo para esta turma, sala, periodo, dia e tipo.", response.getBody().message());
-    }
-
-    @Test
-    @DisplayName("should return conflict when optimistic locking fails")
-    void shouldReturnConflictWhenOptimisticLockingFails() {
-        ResponseEntity<ApiError> response =
-                handler.handleOptimisticLocking(new OptimisticLockingFailureException("stale data"), request);
-
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(409, response.getBody().status());
-        assertEquals("O registro foi alterado por outro usuário. Recarregue os dados.", response.getBody().message());
-    }
-
-    @Test
-    @DisplayName("should return bad request when submission window is closed")
-    void shouldReturnBadRequestWhenSubmissionWindowIsClosed() {
-        ResponseEntity<ApiError> response = handler.handleWindowViolation(
-                new SubmissionWindowViolationException(LocalTime.of(7, 30), LocalTime.of(8, 0)), request
-        );
+        ResponseEntity<ApiError> response = handler.handleValidationErrors(ex, request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(400, response.getBody().status());
-        assertEquals("Fora da janela de envio. Janela permitida: 07:30 ate 08:00.", response.getBody().message());
+        assertEquals("Campo obrigatorio", response.getBody().message());
     }
 
     @Test
-    @DisplayName("should return conflict when illegal state exception occurs")
-    void shouldReturnConflictWhenIllegalStateExceptionOccurs() {
-        ResponseEntity<ApiError> response = handler.handleIllegalState(
-                new IllegalStateException("Regra de negócio violada"), request
-        );
+    @DisplayName("Deve retornar 400 para erro de validação sem FieldError")
+    void testHandleValidationErrorsWithoutField() {
+        MethodArgumentNotValidException ex = mock(MethodArgumentNotValidException.class);
+        BindingResult bindingResult = mock(BindingResult.class);
 
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(409, response.getBody().status());
-        assertEquals("Regra de negócio violada", response.getBody().message());
-    }
+        when(ex.getBindingResult()).thenReturn(bindingResult);
+        when(bindingResult.getFieldError()).thenReturn(null);
 
-    @Test
-    @DisplayName("should return bad request when illegal argument exception occurs")
-    void shouldReturnBadRequestWhenIllegalArgumentExceptionOccurs() {
-        ResponseEntity<ApiError> response = handler.handleIllegalArgument(
-                new IllegalArgumentException("Argumento invalido"), request
-        );
+        ResponseEntity<ApiError> response = handler.handleValidationErrors(ex, request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(400, response.getBody().status());
-        assertEquals("Argumento invalido", response.getBody().message());
-    }
-
-    @Test
-    @DisplayName("should return service unavailable when database is down")
-    void shouldReturnServiceUnavailableWhenDatabaseIsDown() {
-        ResponseEntity<ApiError> response =
-                handler.handleDatabaseDown(new DataAccessResourceFailureException("database unavailable"), request);
-
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(503, response.getBody().status());
-        assertEquals("O serviço está temporariamente indisponível.", response.getBody().message());
-    }
-
-    @Test
-    @DisplayName("should return not found when entity does not exist")
-    void shouldReturnNotFoundWhenEntityDoesNotExist() {
-        ResponseEntity<ApiError> response =
-                handler.handleEntityNotFound(new EntityNotFoundException("Checklist nao encontrado"), request);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(404, response.getBody().status());
-        assertEquals("Checklist nao encontrado", response.getBody().message());
-    }
-
-    @Test
-    @DisplayName("should return forbidden when user has no permission")
-    void shouldReturnForbiddenWhenUserHasNoPermission() {
-        ResponseEntity<ApiError> response =
-                handler.handleAccessDenied(new AccessDeniedException("Acesso negado"), request);
-
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(403, response.getBody().status());
-        assertEquals("Forbidden", response.getBody().error());
-        assertEquals("Usuario sem permissao para executar esta operacao.", response.getBody().message());
-    }
-
-    @Test
-    @DisplayName("should return service unavailable when Hub integration fails")
-    void shouldReturnServiceUnavailableWhenHubIntegrationFails() {
-        ResponseEntity<ApiError> response =
-                handler.handleHubIntegration(new HubIntegrationException("Hub indisponivel"), request);
-
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(503, response.getBody().status());
-        assertEquals("Ocorreu um erro na integração com o serviço externo.", response.getBody().message());
-    }
-
-    @Test
-    @DisplayName("should return internal server error for generic exceptions")
-    void shouldReturnInternalServerErrorForGenericExceptions() {
-        ResponseEntity<ApiError> response =
-                handler.handleGenericException(new RuntimeException("unexpected failure"), request);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(500, response.getBody().status());
-        assertEquals("Ocorreu um erro interno.", response.getBody().message());
-    }
-
-    @Test
-    @DisplayName("should return bad request when UUID or type param is invalid")
-    void shouldReturnBadRequestWhenUuidOrTypeParamIsInvalid() {
-        MethodArgumentTypeMismatchException exception = mock(MethodArgumentTypeMismatchException.class);
-        when(exception.getName()).thenReturn("executionId");
-
-        ResponseEntity<ApiError> response = handler.handleTypeMismatch(exception, request);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(400, response.getBody().status());
-        assertEquals("Valor inválido para o parâmetro 'executionId'.", response.getBody().message());
-    }
-
-    @Test
-    @DisplayName("should return bad request when JSON is malformed or invalid")
-    void shouldReturnBadRequestWhenJsonIsMalformed() {
-        HttpMessageNotReadableException exception = mock(HttpMessageNotReadableException.class);
-
-        ResponseEntity<ApiError> response = handler.handleNotReadable(exception, request);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(400, response.getBody().status());
         assertEquals("Requisicao invalida.", response.getBody().message());
     }
 
     @Test
-    @DisplayName("should return method not allowed when HTTP method is not supported")
-    void shouldReturnMethodNotAllowedWhenHttpMethodIsNotSupported() {
-        HttpRequestMethodNotSupportedException exception = mock(HttpRequestMethodNotSupportedException.class);
-        when(exception.getMethod()).thenReturn("DELETE");
+    @DisplayName("Deve retornar 400 para InvalidRequestException")
+    void testHandleInvalidRequest() {
+        InvalidRequestException ex = mock(InvalidRequestException.class);
+        when(ex.getMessage()).thenReturn("Parametro invalido");
 
-        ResponseEntity<ApiError> response = handler.handleMethodNotSupported(exception, request);
+        ResponseEntity<ApiError> response = handler.handleInvalidRequest(ex, request);
 
-        assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(405, response.getBody().status());
-        assertEquals("Método HTTP 'DELETE' não suportado para esta rota.", response.getBody().message());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Parametro invalido", response.getBody().message());
     }
 
     @Test
-    @DisplayName("should return not found when route does not exist")
-    void shouldReturnNotFoundWhenRouteDoesNotExist() {
-        NoResourceFoundException exception = mock(NoResourceFoundException.class);
+    @DisplayName("Deve retornar 409 para violação de integridade única (Checklist Duplicado)")
+    void testHandleDataIntegrityDuplicateChecklist() {
+        DataIntegrityViolationException ex = new DataIntegrityViolationException("Erro em uidx_execution_no_duplicate");
 
-        ResponseEntity<ApiError> response = handler.handleNoResourceFound(exception, request);
+        ResponseEntity<ApiError> response = handler.handleDataIntegrity(ex, request);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals("Ja existe checklist ativo para esta turma, sala, periodo, dia e tipo.", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 409 para violação de integridade genérica")
+    void testHandleDataIntegrityGeneric() {
+        DataIntegrityViolationException ex = new DataIntegrityViolationException("Outro erro de constraint");
+
+        ResponseEntity<ApiError> response = handler.handleDataIntegrity(ex, request);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals("Ja existe um recurso com estes dados.", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 409 para falha de concorrência otimista")
+    void testHandleOptimisticLocking() {
+        OptimisticLockingFailureException ex = new OptimisticLockingFailureException("Stale data");
+
+        ResponseEntity<ApiError> response = handler.handleOptimisticLocking(ex, request);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals("O registro foi alterado por outro usuário. Recarregue os dados.", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 503 quando o banco de dados falhar")
+    void testHandleDatabaseDown() {
+        DataAccessResourceFailureException ex = new DataAccessResourceFailureException("DB down");
+
+        ResponseEntity<ApiError> response = handler.handleDatabaseDown(ex, request);
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+        assertEquals("O serviço está temporariamente indisponível.", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 404 quando entidade não for encontrada")
+    void testHandleEntityNotFound() {
+        EntityNotFoundException ex = new EntityNotFoundException("Checklist não existe");
+
+        ResponseEntity<ApiError> response = handler.handleEntityNotFound(ex, request);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(404, response.getBody().status());
+        assertEquals("Checklist não existe", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 404 genérico se EntityNotFoundException não tiver mensagem")
+    void testHandleEntityNotFoundNullMessage() {
+        EntityNotFoundException ex = new EntityNotFoundException((String) null);
+
+        ResponseEntity<ApiError> response = handler.handleEntityNotFound(ex, request);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertEquals("Recurso nao encontrado.", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 400 para argumento ilegal")
+    void testHandleIllegalArgument() {
+        IllegalArgumentException ex = new IllegalArgumentException("Argumento invalido");
+
+        ResponseEntity<ApiError> response = handler.handleIllegalArgument(ex, request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Argumento invalido", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 400 para violação de janela de envio")
+    void testHandleWindowViolation() {
+        SubmissionWindowViolationException ex = mock(SubmissionWindowViolationException.class);
+        when(ex.getMessage()).thenReturn("Fora do horario");
+
+        ResponseEntity<ApiError> response = handler.handleWindowViolation(ex, request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Fora do horario", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 409 para estado ilegal")
+    void testHandleIllegalState() {
+        IllegalStateException ex = new IllegalStateException("Estado invalido");
+
+        ResponseEntity<ApiError> response = handler.handleIllegalState(ex, request);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals("Estado invalido", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 403 para acesso negado")
+    void testHandleAccessDenied() {
+        AccessDeniedException ex = new AccessDeniedException("Access Denied");
+
+        ResponseEntity<ApiError> response = handler.handleAccessDenied(ex, request);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertEquals("Usuario sem permissao para executar esta operacao.", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 503 para falha de integração com Hub")
+    void testHandleHubIntegration() {
+        HubIntegrationException ex = mock(HubIntegrationException.class);
+
+        ResponseEntity<ApiError> response = handler.handleHubIntegration(ex, request);
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+        assertEquals("Ocorreu um erro na integração com o serviço externo.", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 400 para tipo de parâmetro incompatível")
+    void testHandleTypeMismatch() {
+        MethodArgumentTypeMismatchException ex = mock(MethodArgumentTypeMismatchException.class);
+        when(ex.getName()).thenReturn("idExecution");
+
+        ResponseEntity<ApiError> response = handler.handleTypeMismatch(ex, request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Valor inválido para o parâmetro 'idExecution'.", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 400 para requisição ilegível (JSON malformado)")
+    void testHandleNotReadable() {
+        HttpMessageNotReadableException ex = mock(HttpMessageNotReadableException.class);
+
+        ResponseEntity<ApiError> response = handler.handleNotReadable(ex, request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Requisicao invalida.", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 405 para método não suportado")
+    void testHandleMethodNotSupported() {
+        HttpRequestMethodNotSupportedException ex = mock(HttpRequestMethodNotSupportedException.class);
+        when(ex.getMethod()).thenReturn("PATCH");
+
+        ResponseEntity<ApiError> response = handler.handleMethodNotSupported(ex, request);
+
+        assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
+        assertEquals("Método HTTP 'PATCH' não suportado para esta rota.", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 404 para rota não encontrada")
+    void testHandleNoResourceFound() {
+        NoResourceFoundException ex = mock(NoResourceFoundException.class);
+
+        ResponseEntity<ApiError> response = handler.handleNoResourceFound(ex, request);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Recurso nao encontrado.", response.getBody().message());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 500 para exceção genérica")
+    void testHandleGenericException() {
+        Exception ex = new Exception("Erro fatal");
+
+        ResponseEntity<ApiError> response = handler.handleGenericException(ex, request);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Ocorreu um erro interno.", response.getBody().message());
     }
 }

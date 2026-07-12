@@ -50,6 +50,19 @@ public class GlobalHandlerException {
     }
 
     /**
+     * Trata parâmetros de requisição inválidos fornecidos pelo cliente.
+     * <p><b>Status HTTP:</b> 400 - Bad Request</p>
+     *
+     * @param ex A exceção {@link InvalidRequestException} com a mensagem detalhando o parâmetro inválido.
+     * @param request O objeto {@link HttpServletRequest} contendo os detalhes da rota acessada.
+     * @return Resposta contendo o motivo da rejeição e os valores aceitos.
+     */
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<ApiError> handleInvalidRequest(InvalidRequestException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    /**
      * Trata violações de integridade no banco de dados, como tentativas de inserir registros duplicados.
      * <p><b>Status HTTP:</b> 409 - Conflict</p>
      *

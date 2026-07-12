@@ -37,3 +37,79 @@ WHERE class_id IS NOT NULL;
 
 ALTER TABLE IF EXISTS checklist_execution
 ADD COLUMN IF NOT EXISTS shift VARCHAR(20);
+
+-- ─── Índices para queries de stats / agregação ──────────────────────────────
+-- checklist_execution
+-- Suporte a GROUP BY status (já existente implicitamente na constraint, mas sem índice dedicado)
+CREATE INDEX IF NOT EXISTS idx_execution_status
+    ON checklist_execution (status);
+
+-- Suporte a GROUP BY checklist_type
+CREATE INDEX IF NOT EXISTS idx_execution_checklist_type
+    ON checklist_execution (checklist_type);
+
+-- Suporte a GROUP BY shift
+CREATE INDEX IF NOT EXISTS idx_execution_shift
+    ON checklist_execution (shift);
+
+-- Suporte a GROUP BY period
+CREATE INDEX IF NOT EXISTS idx_execution_period
+    ON checklist_execution (period);
+
+-- Suporte a filtros temporais por submitted_at (completion-rate, avg-fill-time)
+CREATE INDEX IF NOT EXISTS idx_execution_submitted_at
+    ON checklist_execution (submitted_at)
+    WHERE submitted_at IS NOT NULL;
+
+-- Índice funcional por data de início para agregação diária
+-- (o uidx_execution_no_duplicate já cobre (started_at::date) mas é parcial/unique;
+--  este índice é não-único e cobre toda a tabela para seq scan em range queries)
+CREATE INDEX IF NOT EXISTS idx_execution_started_at_date
+    ON checklist_execution ((started_at::date));
+
+-- checklist_issue
+-- Suporte a GROUP BY status
+CREATE INDEX IF NOT EXISTS idx_issue_status
+    ON checklist_issue (status);
+
+-- Suporte a GROUP BY priority
+CREATE INDEX IF NOT EXISTS idx_issue_priority
+    ON checklist_issue (priority);
+
+-- Suporte a filtros e GROUP BY due_at (overdue, série temporal)
+CREATE INDEX IF NOT EXISTS idx_issue_due_at
+    ON checklist_issue (due_at);
+
+-- Índice funcional por data de prazo para agregação diária
+CREATE INDEX IF NOT EXISTS idx_issue_due_at_date
+    ON checklist_issue ((due_at::date));
+
+-- Suporte a filtro WHERE resolved_at IS NOT NULL (resolution-rate, avg-resolution-time)
+CREATE INDEX IF NOT EXISTS idx_issue_resolved_at
+    ON checklist_issue (resolved_at)
+    WHERE resolved_at IS NOT NULL;
+
+-- Suporte a GROUP BY item_key (top failing items)
+CREATE INDEX IF NOT EXISTS idx_issue_item_key
+    ON checklist_issue (item_key);
+
+-- Suporte ao JOIN com checklist_execution para GROUP BY checklist_type
+CREATE INDEX IF NOT EXISTS idx_issue_execution_id
+    ON checklist_issue (checklist_execution_id);
+
+-- checklist_template
+-- Suporte a GROUP BY status
+CREATE INDEX IF NOT EXISTS idx_template_status
+    ON checklist_template (status);
+
+-- Suporte a GROUP BY active
+CREATE INDEX IF NOT EXISTS idx_template_active
+    ON checklist_template (active);
+
+-- Suporte a GROUP BY created_at::date
+CREATE INDEX IF NOT EXISTS idx_template_created_at_date
+    ON checklist_template ((created_at::date));
+
+-- Suporte a GROUP BY template_group_id (versões por grupo)
+CREATE INDEX IF NOT EXISTS idx_template_group_id
+    ON checklist_template (template_group_id);

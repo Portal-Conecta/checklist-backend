@@ -38,6 +38,23 @@ WHERE class_id IS NOT NULL;
 ALTER TABLE IF EXISTS checklist_execution
 ADD COLUMN IF NOT EXISTS shift VARCHAR(20);
 
+-- ─── Função auxiliar para índices funcionais sobre colunas TIMESTAMPTZ ──────
+-- Colunas TIMESTAMP (sem tz), como started_at, aceitam (col::date) direto pois
+-- o cast é IMMUTABLE. Colunas TIMESTAMPTZ, como due_at e created_at, têm cast
+-- para date classificado como STABLE (depende do TimeZone da sessão), o que o
+-- Postgres rejeita em índice ("functions in index expression must be marked
+-- IMMUTABLE"). Esta função fixa o timezone de negócio do domínio Checklist
+-- (America/Sao_Paulo, igual a checklist.timezone em application.yml) e pode
+-- ser legitimamente marcada IMMUTABLE, pois o timezone não é mais um parâmetro
+-- variável de sessão.
+CREATE OR REPLACE FUNCTION checklist_immutable_date(ts TIMESTAMPTZ)
+RETURNS date
+LANGUAGE sql
+IMMUTABLE
+AS $$
+    SELECT (ts AT TIME ZONE 'America/Sao_Paulo')::date
+$$;
+
 -- ─── Índices para queries de stats / agregação ──────────────────────────────
 -- checklist_execution
 -- Suporte a GROUP BY status (já existente implicitamente na constraint, mas sem índice dedicado)
@@ -81,8 +98,9 @@ CREATE INDEX IF NOT EXISTS idx_issue_due_at
     ON checklist_issue (due_at);
 
 -- Índice funcional por data de prazo para agregação diária
+-- due_at é TIMESTAMPTZ: usa checklist_immutable_date() em vez de (due_at::date)
 CREATE INDEX IF NOT EXISTS idx_issue_due_at_date
-    ON checklist_issue ((due_at::date));
+    ON checklist_issue (checklist_immutable_date(due_at));
 
 -- Suporte a filtro WHERE resolved_at IS NOT NULL (resolution-rate, avg-resolution-time)
 CREATE INDEX IF NOT EXISTS idx_issue_resolved_at
@@ -107,8 +125,9 @@ CREATE INDEX IF NOT EXISTS idx_template_active
     ON checklist_template (active);
 
 -- Suporte a GROUP BY created_at::date
+-- created_at é TIMESTAMPTZ: usa checklist_immutable_date() em vez de (created_at::date)
 CREATE INDEX IF NOT EXISTS idx_template_created_at_date
-    ON checklist_template ((created_at::date));
+    ON checklist_template (checklist_immutable_date(created_at));
 
 -- Suporte a GROUP BY template_group_id (versões por grupo)
 CREATE INDEX IF NOT EXISTS idx_template_group_id

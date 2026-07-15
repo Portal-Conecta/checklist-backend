@@ -28,6 +28,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+/**
+ * Caso de uso responsável pela criação de um rascunho de execução de checklist.
+ *
+ * <p><b>Decisão de design — regra de limite de execuções SUBMITTED simultâneas:</b><br>
+ * Este caso de uso <b>não</b> aplica limite de quantas execuções SUBMITTED simultâneas
+ * um representante pode ter. Essa restrição foi avaliada e deliberadamente omitida
+ * até que o negócio valide e formalize a regra. Caso seja decidido aplicá-la na criação
+ * no futuro, o ponto de inserção sugerido é após a validação de permissão do usuário
+ * (chamada a {@code currentUser.canOperateChecklistExecutionForClass(...)}).
+ * </p>
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

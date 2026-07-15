@@ -4,10 +4,8 @@ import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExec
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.ListCrudRepository;
-import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -29,14 +27,6 @@ public interface ChecklistExecutionRepositoryPort extends ListCrudRepository<Che
             ChecklistExecutionStatus status,
             Pageable pageable
     );
-
-    @Query(value = """
-                SELECT COUNT(1)
-                    FROM checklist_execution
-                    WHERE user_id = :userId
-                    AND status = :status
-                """,nativeQuery = true)
-    long countByUserIdAndStatus(@Param("userId") UUID userId, @Param("status") String status);
 
     Page<ChecklistExecution> findAll(Pageable pageable);
 

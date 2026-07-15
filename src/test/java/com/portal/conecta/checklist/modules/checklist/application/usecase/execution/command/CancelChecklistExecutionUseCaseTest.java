@@ -60,6 +60,32 @@ class CancelChecklistExecutionUseCaseTest {
     }
 
     @Test
+    @DisplayName("deve cancelar execucao mesmo quando representante ja possui 2 execucoes SUBMITTED — cenario do bug de travamento")
+    void deveCancelarMesmoComDoisChecklistSubmetidos() {
+        // Cenário do bug: quando um representante atingia o limite de 2 execuções SUBMITTED,
+        // a validação de limite no cancelamento barrava a operação antes de verificar o status,
+        // impedindo-o de cancelar qualquer uma das duas para abrir espaço — travamento permanente.
+        // A regra de limite foi removida do fluxo de cancelamento: apenas o status SUBMITTED é validado.
+        UUID executionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        ChecklistExecution execution = new ChecklistExecution();
+        execution.setUserId(userId);
+        execution.setClassId(classId);
+        execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(representative(userId, classId));
+        when(executionRepository.save(execution)).thenReturn(execution);
+
+        ChecklistExecution resultado = cancelChecklistExecutionUseCase.execute(executionId);
+
+        assertEquals(ChecklistExecutionStatus.CANCELED, resultado.getStatus());
+        verify(executionRepository, times(1)).findById(executionId);
+        verify(executionRepository, times(1)).save(execution);
+    }
+
+    @Test
     @DisplayName("deve permitir que gestor cancele execucao enviada")
     void devePermitirQueGestorCanceleExecucaoEnviada() {
         UUID executionId = UUID.randomUUID();

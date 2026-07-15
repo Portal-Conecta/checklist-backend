@@ -42,6 +42,19 @@ public class CancelChecklistExecutionUseCase {
      * </p>
      * Se todas as regras forem atendidas, o status da execução é alterado para {@code CANCELED}.
      *
+     * <p><b>Decisão de design — regra de limite de execuções SUBMITTED simultâneas:</b><br>
+     * Uma versão anterior deste método incluía uma checagem de {@code countByUserIdAndStatus >= 2}
+     * que impedia o cancelamento quando o representante já tinha 2 execuções SUBMITTED ativas.
+     * Esse comportamento era bugado: o contador incluía a própria execução que estava sendo cancelada,
+     * de modo que um representante com exatamente 2 SUBMITTED ficava permanentemente travado,
+     * sem poder cancelar nenhuma das duas para abrir espaço.<br>
+     * A checagem de limite foi removida deste fluxo. O cancelamento depende apenas do status da
+     * execução: somente {@code SUBMITTED} pode ser cancelada.<br>
+     * A regra de "máximo de execuções SUBMITTED simultâneas por representante" foi avaliada
+     * e deliberadamente não aplicada no fluxo de criação ({@code CreateChecklistExecutionUseCase})
+     * enquanto o negócio não valida e formaliza essa restrição.
+     * </p>
+     *
      * @param executionId o identificador único da execução do checklist que será cancelada.
      * @return a entidade {@link ChecklistExecution} atualizada e persistida com o novo status.
      * @throws EntityNotFoundException  se a execução do checklist não for encontrada.
@@ -61,18 +74,10 @@ public class CancelChecklistExecutionUseCase {
             throw new AccessDeniedException("Usuario nao tem permissao para cancelar esta execucao de checklist.");
         }
 
-        long activeCount = executionRepository.countByUserIdAndStatus(
-                execution.getUserId(),
-                ChecklistExecutionStatus.SUBMITTED.name()
-        );
-
-        if (activeCount >= 2){
-            throw new IllegalArgumentException("Limite atingido: o representante ja possui 2 checklist submetidos e ativos");
-        }
-
-        if(execution.getStatus() != ChecklistExecutionStatus.SUBMITTED){
+        if (execution.getStatus() != ChecklistExecutionStatus.SUBMITTED) {
             throw new IllegalArgumentException("Somente checklist enviados podem ser cancelados");
         }
+
         execution.setStatus(ChecklistExecutionStatus.CANCELED);
 
         return executionRepository.save(execution);

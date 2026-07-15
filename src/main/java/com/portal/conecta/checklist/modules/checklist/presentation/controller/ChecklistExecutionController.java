@@ -154,7 +154,7 @@ public class ChecklistExecutionController {
 
     @Operation(
             summary = "Cancelar execução",
-            description = "Cancela uma execução em andamento, alterando seu status para CANCELLED. Execuções já submetidas não podem ser canceladas."
+            description = "Cancela uma execução submetida, alterando seu status para CANCELED. Somente execuções com status SUBMITTED podem ser canceladas."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -184,7 +184,7 @@ public class ChecklistExecutionController {
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "Conflito de estado — a execução já foi submetida ou cancelada e não pode ser cancelada novamente",
+                    description = "Conflito de estado — somente execuções com status SUBMITTED podem ser canceladas",
                     content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(

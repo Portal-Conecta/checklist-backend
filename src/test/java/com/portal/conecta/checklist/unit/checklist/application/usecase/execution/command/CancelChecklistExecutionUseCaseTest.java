@@ -48,8 +48,6 @@ class CancelChecklistExecutionUseCaseTest {
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
         when(contextProvider.getRequestContext()).thenReturn(representative(cancelerId, classId));
-        when(executionRepository.countByUserIdAndStatus(creatorId, ChecklistExecutionStatus.SUBMITTED.name()))
-                .thenReturn(1L);
         when(executionRepository.save(execution)).thenReturn(execution);
 
         ChecklistExecution resultado = cancelChecklistExecutionUseCase.execute(executionId);
@@ -58,6 +56,7 @@ class CancelChecklistExecutionUseCaseTest {
         assertEquals(cancelerId, resultado.getCanceledBy());
         assertNull(resultado.getSubmittedBy());
         verify(executionRepository).save(execution);
+        verify(executionRepository, never()).countByUserIdAndStatus(any(), any());
     }
 
     @Test
@@ -71,8 +70,6 @@ class CancelChecklistExecutionUseCaseTest {
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
         when(contextProvider.getRequestContext()).thenReturn(representative(representativeB, classId));
-        when(executionRepository.countByUserIdAndStatus(representativeA, ChecklistExecutionStatus.SUBMITTED.name()))
-                .thenReturn(1L);
         when(executionRepository.save(execution)).thenReturn(execution);
 
         ChecklistExecution resultado = cancelChecklistExecutionUseCase.execute(executionId);
@@ -92,8 +89,6 @@ class CancelChecklistExecutionUseCaseTest {
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
         when(contextProvider.getRequestContext()).thenReturn(representative(userId, classId));
-        when(executionRepository.countByUserIdAndStatus(userId, ChecklistExecutionStatus.SUBMITTED.name()))
-                .thenReturn(2L);
         when(executionRepository.save(execution)).thenReturn(execution);
 
         ChecklistExecution resultado = cancelChecklistExecutionUseCase.execute(executionId);
@@ -104,8 +99,8 @@ class CancelChecklistExecutionUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve bloquear cancelamento quando restam 2 ou mais SUBMITTED alem da execucao atual")
-    void deveBloquearQuandoHaMaisDeDuasSubmittedAlemDaAtual() {
+    @DisplayName("cancelamento permanece permitido mesmo com 3 ou mais SUBMITTED ativas")
+    void deveCancelarQuandoRepresentanteTemTresOuMaisSubmittedAtivas() {
         UUID executionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
@@ -113,18 +108,14 @@ class CancelChecklistExecutionUseCaseTest {
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
         when(contextProvider.getRequestContext()).thenReturn(representative(userId, classId));
-        when(executionRepository.countByUserIdAndStatus(userId, ChecklistExecutionStatus.SUBMITTED.name()))
-                .thenReturn(3L);
+        when(executionRepository.save(execution)).thenReturn(execution);
 
-        IllegalArgumentException excecao = assertThrows(IllegalArgumentException.class,
-                () -> cancelChecklistExecutionUseCase.execute(executionId));
+        ChecklistExecution resultado = cancelChecklistExecutionUseCase.execute(executionId);
 
-        assertEquals(
-                "Limite atingido: o representante ja possui 2 checklist submetidos e ativos",
-                excecao.getMessage()
-        );
-        verify(executionRepository, never()).save(any());
-        assertNull(execution.getCanceledBy());
+        assertEquals(ChecklistExecutionStatus.CANCELED, resultado.getStatus());
+        assertEquals(userId, resultado.getCanceledBy());
+        verify(executionRepository).save(execution);
+        verify(executionRepository, never()).countByUserIdAndStatus(any(), any());
     }
 
     @Test
@@ -137,8 +128,6 @@ class CancelChecklistExecutionUseCaseTest {
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
         when(contextProvider.getRequestContext()).thenReturn(new RequestContext(gestorId, TypeUser.SENAI));
-        when(executionRepository.countByUserIdAndStatus(creatorId, ChecklistExecutionStatus.SUBMITTED.name()))
-                .thenReturn(1L);
         when(executionRepository.save(execution)).thenReturn(execution);
 
         ChecklistExecution resultado = cancelChecklistExecutionUseCase.execute(executionId);
@@ -160,7 +149,6 @@ class CancelChecklistExecutionUseCaseTest {
 
         assertThrows(AccessDeniedException.class, () -> cancelChecklistExecutionUseCase.execute(executionId));
 
-        verify(executionRepository, never()).countByUserIdAndStatus(any(), any());
         verify(executionRepository, never()).save(any());
         assertNull(execution.getCanceledBy());
     }
@@ -179,7 +167,7 @@ class CancelChecklistExecutionUseCaseTest {
     }
 
     @Test
-    @DisplayName("status DRAFT falha antes de permissao e limite; canceledBy permanece null")
+    @DisplayName("status DRAFT falha antes da permissao; canceledBy permanece null")
     void deveLancarExcecaoQuandoStatusEDraft() {
         UUID executionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -196,7 +184,6 @@ class CancelChecklistExecutionUseCaseTest {
 
         assertEquals("Somente checklist enviados podem ser cancelados", excecao.getMessage());
         verify(contextProvider, never()).getRequestContext();
-        verify(executionRepository, never()).countByUserIdAndStatus(any(), any());
         verify(executionRepository, never()).save(any());
         assertNull(execution.getCanceledBy());
     }
@@ -219,7 +206,6 @@ class CancelChecklistExecutionUseCaseTest {
 
         assertEquals("Somente checklist enviados podem ser cancelados", excecao.getMessage());
         verify(contextProvider, never()).getRequestContext();
-        verify(executionRepository, never()).countByUserIdAndStatus(any(), any());
         verify(executionRepository, never()).save(any());
     }
 

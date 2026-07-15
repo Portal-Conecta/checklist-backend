@@ -164,7 +164,7 @@ public class ChecklistExecutionController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Formato inválido para o executionId, execução fora de SUBMITTED ou limite de execuções ativas",
+                    description = "Formato inválido para o executionId ou execução fora do status SUBMITTED",
                     content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(

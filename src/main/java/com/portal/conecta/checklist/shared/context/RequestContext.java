@@ -8,11 +8,16 @@ import java.util.UUID;
  *
  * <p>Concentra o usuario, perfil global e vinculos com turmas recebidos do
  * token do Hub, oferecendo metodos de permissao para o modulo Checklist.</p>
+ *
+ * <p>{@link TypeUser#ADMIN} tem o mesmo poder gerencial de {@link TypeUser#SENAI}
+ * e {@link TypeUser#WEG} (templates, dashboard, issues, cancelamento e consulta
+ * de qualquer turma). Nao opera fluxo de rascunho/submissao como representante
+ * ou professor — isso permanece restrito a perfis operacionais com vinculo de turma.</p>
  */
 public record RequestContext(
-    UUID userId,
-    TypeUser userType,
-    List<ContextClass> classes
+        UUID userId,
+        TypeUser userType,
+        List<ContextClass> classes
 ) {
 
     public RequestContext {
@@ -25,11 +30,13 @@ public record RequestContext(
 
     public boolean canAccessChecklistModule() {
         return canManageChecklistTemplates()
-            || hasOperationalProfile() && classes.stream().anyMatch(c -> canActAsRepresentative(c) || canActAsTeacher(c));
+                || hasOperationalProfile() && classes.stream().anyMatch(c -> canActAsRepresentative(c) || canActAsTeacher(c));
     }
 
     public boolean canManageChecklistTemplates() {
-        return userType == TypeUser.SENAI || userType == TypeUser.WEG || userType == TypeUser.ADMIN;
+        return userType == TypeUser.SENAI
+                || userType == TypeUser.WEG
+                || userType == TypeUser.ADMIN;
     }
 
     public boolean canViewDashboard() {
@@ -40,6 +47,10 @@ public record RequestContext(
         return canManageChecklistTemplates();
     }
 
+    /**
+     * Transicoes criticas de issue (validar/reabrir) — SENAI e ADMIN.
+     * Paridade WEG fica para issue separada (Fix 7).
+     */
     public boolean canOnlySenaiManageIssues() {
         return userType == TypeUser.SENAI || userType == TypeUser.ADMIN;
     }
@@ -48,43 +59,44 @@ public record RequestContext(
         return canViewDashboard();
     }
 
-    /**
-     * Cancelamento segue a mesma regra de criar/submeter: qualquer representante
-     * ou professor vinculado à turma (ou gestor SENAI/WEG/ADMIN), sem exigir ownership
-     * de quem criou o rascunho.
-     */
+    public boolean canCreateChecklistExecutionForClass(UUID classId) {
+        return canOperateChecklistExecutionForClass(classId);
+    }
+
+    public boolean canSubmitChecklistExecutionForClass(UUID classId) {
+        return canOperateChecklistExecutionForClass(classId);
+    }
+
     public boolean canCancelChecklistExecution(UUID classId) {
         if (canManageChecklistTemplates()) {
             return true;
         }
-
         return canOperateChecklistExecutionForClass(classId);
     }
 
+    /**
+     * Operacao de execucao (criar rascunho / submeter) exige perfil operacional
+     * com vinculo na turma. Gestores (SENAI/WEG/ADMIN) nao passam por este caminho.
+     */
     public boolean canOperateChecklistExecutionForClass(UUID classId) {
-        // ADMIN tem bypass direto, não precisa de vínculo na lista 'classes'
-        if (userType == TypeUser.ADMIN) {
-            return true;
-        }
-
         if (classId == null) {
             return false;
         }
 
         return classes.stream().anyMatch(c ->
-            c.matchesClass(classId) && (canActAsRepresentative(c) || canActAsTeacher(c))
+                c.matchesClass(classId) && (canActAsRepresentative(c) || canActAsTeacher(c))
         );
     }
 
     private boolean hasOperationalProfile() {
         return userType == TypeUser.STUDENT
-            || userType == TypeUser.REPRESENTATIVE
-            || userType == TypeUser.TEACHER;
+                || userType == TypeUser.REPRESENTATIVE
+                || userType == TypeUser.TEACHER;
     }
 
     private boolean canActAsRepresentative(ContextClass contextClass) {
         return (userType == TypeUser.STUDENT || userType == TypeUser.REPRESENTATIVE)
-            && isClassRepresentative(contextClass);
+                && isClassRepresentative(contextClass);
     }
 
     private boolean canActAsTeacher(ContextClass contextClass) {

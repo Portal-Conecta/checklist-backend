@@ -57,7 +57,7 @@ public class CancelChecklistExecutionUseCase {
 
         var currentUser = contextProvider.getRequestContext();
 
-        if (!currentUser.canCancelChecklistExecution(execution.getUserId(), execution.getClassId())) {
+        if (!currentUser.canCancelChecklistExecution(execution.getClassId())) {
             throw new AccessDeniedException("Usuario nao tem permissao para cancelar esta execucao de checklist.");
         }
 

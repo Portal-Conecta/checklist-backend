@@ -1,70 +1,164 @@
 package com.portal.conecta.checklist.unit.shared.context;
 
+import com.portal.conecta.checklist.shared.context.ClassRole;
+import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.TypeUser;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class RequestContextTest {
 
     @Test
-    @DisplayName("ADMIN com classes vazio no JWT deve conseguir acessar módulo, gerenciar templates, ver dashboard e gerenciar issues")
-    void adminShouldHaveFullAccessToModuleAndTemplates() {
-        RequestContext context = new RequestContext(UUID.randomUUID(), TypeUser.ADMIN, List.of());
+    void representativeCanCreateChecklistForOwnClassOnly() {
+        UUID userId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        RequestContext user = new RequestContext(
+                userId,
+                TypeUser.REPRESENTATIVE,
+                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
+        );
 
-        assertTrue(context.canAccessChecklistModule(), "ADMIN deve conseguir acessar o módulo");
-        assertTrue(context.canManageChecklistTemplates(), "ADMIN deve conseguir gerenciar templates e janelas");
-        assertTrue(context.canViewDashboard(), "ADMIN deve conseguir visualizar o dashboard");
-        assertTrue(context.canManageIssues(), "ADMIN deve conseguir gerenciar issues em nível geral");
-        assertTrue(context.canEditCompletedChecklist(), "ADMIN deve conseguir editar checklist concluído");
+        assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canOperateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canSubmitChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canCancelChecklistExecution(classId)).isTrue();
+        assertThat(user.canCreateChecklistExecutionForClass(UUID.randomUUID())).isFalse();
+        assertThat(user.canCancelChecklistExecution(UUID.randomUUID())).isFalse();
     }
 
     @Test
-    @DisplayName("ADMIN deve conseguir operar checklist (criar/editar/submeter) para QUALQUER turma, ignorando o classId")
-    void adminShouldOperateChecklistExecutionBypassingClassRequirement() {
-        RequestContext context = new RequestContext(UUID.randomUUID(), TypeUser.ADMIN, List.of());
-        UUID randomClassId = UUID.randomUUID();
+    void studentWithRepresentativeClassRoleCanOperateChecklistForOwnClassOnly() {
+        UUID userId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        RequestContext user = new RequestContext(
+                userId,
+                TypeUser.STUDENT,
+                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
+        );
 
-        assertTrue(context.canOperateChecklistExecutionForClass(randomClassId),
-            "ADMIN não deve sofrer bloqueio de vínculo de turma (bypass de classId)");
-
-        assertTrue(context.canOperateChecklistExecutionForClass(null),
-            "ADMIN não deve sofrer bloqueio de vínculo de turma mesmo com classId null");
+        assertThat(user.canAccessChecklistModule()).isTrue();
+        assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canOperateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canSubmitChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canCancelChecklistExecution(classId)).isTrue();
+        assertThat(user.canCreateChecklistExecutionForClass(UUID.randomUUID())).isFalse();
     }
 
     @Test
-    @DisplayName("ADMIN deve conseguir cancelar execução de qualquer turma")
-    void adminShouldCancelChecklistExecution() {
-        RequestContext context = new RequestContext(UUID.randomUUID(), TypeUser.ADMIN, List.of());
-        UUID randomClassId = UUID.randomUUID();
+    void regularStudentCannotCreateChecklistExecution() {
+        UUID classId = UUID.randomUUID();
+        RequestContext user = new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.STUDENT,
+                List.of(new ContextClass(classId, ClassRole.STUDENT))
+        );
 
-        assertTrue(context.canCancelChecklistExecution(randomClassId),
-            "ADMIN deve conseguir cancelar execução de qualquer turma");
+        assertThat(user.canCreateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(user.canAccessChecklistModule()).isFalse();
     }
 
     @Test
-    @DisplayName("ADMIN deve ter privilégios equivalentes ao SENAI para transições críticas de issues (validar/reabrir)")
-    void adminShouldBeAbleToManageSenaiOnlyIssues() {
-        RequestContext context = new RequestContext(UUID.randomUUID(), TypeUser.ADMIN, List.of());
+    void studentWithTeacherClassRoleCannotOperateChecklist() {
+        UUID classId = UUID.randomUUID();
+        RequestContext user = new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.STUDENT,
+                List.of(new ContextClass(classId, ClassRole.TEACHER))
+        );
 
-        assertTrue(context.canOnlySenaiManageIssues(),
-            "ADMIN deve passar na validação que antes era exclusiva para SENAI (ex: validar/reabrir issues)");
+        assertThat(user.canCreateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(user.canOperateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(user.canAccessChecklistModule()).isFalse();
     }
 
     @Test
-    @DisplayName("Garante que estudante NÃO tem bypass e é barrado em permissões administrativas")
-    void ensureOperationalProfilesAreNotAdmins() {
-        RequestContext context = new RequestContext(UUID.randomUUID(), TypeUser.STUDENT, List.of());
+    void teacherCanCreateChecklistForLinkedClassOnly() {
+        UUID classId = UUID.randomUUID();
+        RequestContext user = new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.TEACHER,
+                List.of(new ContextClass(classId, ClassRole.TEACHER))
+        );
 
-        assertFalse(context.canManageChecklistTemplates());
-        assertFalse(context.canOnlySenaiManageIssues());
-        assertFalse(context.canOperateChecklistExecutionForClass(UUID.randomUUID()),
-            "Estudante SEM a turma na lista 'classes' deve ser barrado.");
+        assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canOperateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canSubmitChecklistExecutionForClass(classId)).isTrue();
+        assertThat(user.canCancelChecklistExecution(classId)).isTrue();
+        assertThat(user.canCreateChecklistExecutionForClass(UUID.randomUUID())).isFalse();
+    }
+
+    @Test
+    void senaiWegAndAdminProfilesCanManageTemplatesAndDashboards() {
+        RequestContext senai = new RequestContext(UUID.randomUUID(), TypeUser.SENAI);
+        RequestContext weg = new RequestContext(UUID.randomUUID(), TypeUser.WEG);
+        RequestContext admin = new RequestContext(UUID.randomUUID(), TypeUser.ADMIN);
+
+        assertThat(senai.canManageChecklistTemplates()).isTrue();
+        assertThat(senai.canViewDashboard()).isTrue();
+        assertThat(senai.canCancelChecklistExecution(UUID.randomUUID())).isTrue();
+        assertThat(senai.canAccessChecklistModule()).isTrue();
+
+        assertThat(weg.canManageChecklistTemplates()).isTrue();
+        assertThat(weg.canViewDashboard()).isTrue();
+        assertThat(weg.canCancelChecklistExecution(UUID.randomUUID())).isTrue();
+        assertThat(weg.canAccessChecklistModule()).isTrue();
+
+        assertThat(admin.canManageChecklistTemplates()).isTrue();
+        assertThat(admin.canViewDashboard()).isTrue();
+        assertThat(admin.canManageIssues()).isTrue();
+        assertThat(admin.canEditCompletedChecklist()).isTrue();
+        assertThat(admin.canCancelChecklistExecution(UUID.randomUUID())).isTrue();
+        assertThat(admin.canAccessChecklistModule()).isTrue();
+        assertThat(admin.canOnlySenaiManageIssues()).isTrue();
+    }
+
+    @Test
+    void managementProfilesCannotOperateExecutionEvenWithClassRole() {
+        UUID classId = UUID.randomUUID();
+        RequestContext senai = new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.SENAI,
+                List.of(new ContextClass(classId, ClassRole.TEACHER))
+        );
+        RequestContext weg = new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.WEG,
+                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
+        );
+        RequestContext admin = new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.ADMIN,
+                List.of(new ContextClass(classId, ClassRole.TEACHER))
+        );
+
+        assertThat(senai.canCreateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(senai.canOperateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(senai.canSubmitChecklistExecutionForClass(classId)).isFalse();
+
+        assertThat(weg.canCreateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(weg.canOperateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(weg.canSubmitChecklistExecutionForClass(classId)).isFalse();
+
+        assertThat(admin.canCreateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(admin.canOperateChecklistExecutionForClass(classId)).isFalse();
+        assertThat(admin.canSubmitChecklistExecutionForClass(classId)).isFalse();
+
+        assertThat(admin.canCancelChecklistExecution(classId)).isTrue();
+        assertThat(admin.canAccessChecklistModule()).isTrue();
+    }
+
+    @Test
+    void adminWithoutClassesStillHasManagementAccess() {
+        RequestContext admin = new RequestContext(UUID.randomUUID(), TypeUser.ADMIN, List.of());
+
+        assertThat(admin.canAccessChecklistModule()).isTrue();
+        assertThat(admin.canManageChecklistTemplates()).isTrue();
+        assertThat(admin.canOperateChecklistExecutionForClass(UUID.randomUUID())).isFalse();
+        assertThat(admin.canOperateChecklistExecutionForClass(null)).isFalse();
     }
 }

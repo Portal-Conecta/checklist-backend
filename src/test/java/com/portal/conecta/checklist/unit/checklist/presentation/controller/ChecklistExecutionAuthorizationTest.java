@@ -492,7 +492,7 @@ class ChecklistExecutionAuthorizationTest {
     }
 
     @Test
-    void adminNaoCancelaExecucao() throws Exception {
+    void adminCancelaExecucaoDeQualquerTurma() throws Exception {
         UUID templateId = UUID.randomUUID();
         UUID roomId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
@@ -501,9 +501,11 @@ class ChecklistExecutionAuthorizationTest {
         ChecklistExecution execution = submittedExecution(executionId, template, classId, UUID.randomUUID());
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(executionRepository.countByUserIdAndStatus(any(), eq(ChecklistExecutionStatus.SUBMITTED.name()))).thenReturn(0L);
+        when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/cancel"), admin()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     // ================= historico da turma =================
@@ -545,10 +547,13 @@ class ChecklistExecutionAuthorizationTest {
     }
 
     @Test
-    void adminNaoVeHistorico() throws Exception {
+    void adminVeHistoricoDeQualquerTurma() throws Exception {
         UUID classId = UUID.randomUUID();
+        when(executionRepository.findByClassIdAndStatusOrderBySubmittedAtDesc(eq(classId), any(), any()))
+                .thenReturn(Page.empty());
+
         mockMvc().perform(authed(get("/api/checklist-executions/history/class/" + classId), admin()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     // ================= buscar execucao por id =================
@@ -600,7 +605,7 @@ class ChecklistExecutionAuthorizationTest {
     }
 
     @Test
-    void adminNaoVeExecucaoPorId() throws Exception {
+    void adminVeExecucaoPorIdDeQualquerTurma() throws Exception {
         UUID templateId = UUID.randomUUID();
         UUID roomId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
@@ -611,7 +616,7 @@ class ChecklistExecutionAuthorizationTest {
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
 
         mockMvc().perform(authed(get("/api/checklist-executions/" + executionId), admin()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     // ================= atualizar respostas (checklist ja submetido) =================
@@ -684,7 +689,7 @@ class ChecklistExecutionAuthorizationTest {
     }
 
     @Test
-    void adminNaoAtualizaRespostas() throws Exception {
+    void adminAtualizaRespostasDeQualquerTurma() throws Exception {
         UUID templateId = UUID.randomUUID();
         UUID roomId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
@@ -693,10 +698,11 @@ class ChecklistExecutionAuthorizationTest {
         ChecklistExecution execution = submittedExecution(executionId, template, classId, UUID.randomUUID());
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/answers"), admin())
                         .contentType(APPLICATION_JSON).content(submitBody()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     // ================= listar execucoes (sem checagem de perfil) =================

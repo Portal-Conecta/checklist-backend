@@ -18,9 +18,6 @@ public record ChecklistExecutionDraftCreateDTO(
         @NotNull(message = "templateId e obrigatorio.")
         UUID templateId,
 
-        @NotNull(message = "roomId e obrigatorio.")
-        UUID roomId,
-
         @NotNull(message = "classId e obrigatorio.")
         UUID classId,
 
@@ -28,6 +25,6 @@ public record ChecklistExecutionDraftCreateDTO(
         ChecklistType checklistType
 ) {
     public CreateChecklistExecutionCommand toCommand() {
-        return new CreateChecklistExecutionCommand(templateId, roomId, classId, checklistType);
+        return new CreateChecklistExecutionCommand(templateId, classId, checklistType);
     }
 }

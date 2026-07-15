@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query;
 
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionRepositoryPort;
@@ -16,7 +17,8 @@ import java.util.UUID;
  * Caso de uso responsável por consultar o histórico de checklists submetidos por turma.
  *
  * <p>Valida se o usuário atual possui permissão para acessar a turma informada e retorna
- * apenas execuções com status {@link ChecklistExecutionStatus#SUBMITTED}.</p>
+ * apenas execuções com status {@link ChecklistExecutionStatus#SUBMITTED}.
+ * Aceita filtro opcional por {@link ChecklistCategory}.</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -25,14 +27,11 @@ public class ListChecklistHistoryByClassUseCase {
     private final ChecklistExecutionRepositoryPort repository;
     private final RequestContextProvider contextProvider;
 
-    /**
-     * Busca o histórico de execuções submetidas para uma turma.
-     *
-     * @param classId identificador único da turma.
-     * @return página de execuções submetidas da turma.
-     * @throws AccessDeniedException quando o usuário atual não possui permissão para consultar a turma.
-     */
     public Page<ChecklistExecution> execute(UUID classId, Pageable pageable) {
+        return execute(classId, pageable, null);
+    }
+
+    public Page<ChecklistExecution> execute(UUID classId, Pageable pageable, ChecklistCategory category) {
         var currentUser = contextProvider.getRequestContext();
 
         if (!currentUser.canManageChecklistTemplates()
@@ -42,12 +41,19 @@ public class ListChecklistHistoryByClassUseCase {
             );
         }
 
-        return repository.findByClassIdAndStatusOrderBySubmittedAtDesc(
+        if (category == null) {
+            return repository.findByClassIdAndStatusOrderBySubmittedAtDesc(
+                    classId,
+                    ChecklistExecutionStatus.SUBMITTED,
+                    pageable
+            );
+        }
+
+        return repository.findByClassIdAndStatusAndCategoryOrderBySubmittedAtDesc(
                 classId,
                 ChecklistExecutionStatus.SUBMITTED,
+                category,
                 pageable
         );
-
-
     }
 }

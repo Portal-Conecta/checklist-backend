@@ -44,6 +44,7 @@ public class ChecklistExecutionDataMapper {
                 .shift(shift)
                 .period(period)
                 .checklistType(command.checklistType())
+                .category(template.getCategory())
                 .status(ChecklistExecutionStatus.DRAFT)
                 .answersJson(emptyAnswersJson())
                 .startedAt(startedAt)

@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.domain.model;
 
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.Period;
@@ -107,11 +108,18 @@ public class ChecklistExecution {
     private List<ChecklistIssue> issues = new ArrayList<>();
 
     /**
-     * Tipo do checklist executado.
+     * Tipo do checklist executado (momento: ARRIVAL / POST_BREAK).
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "checklist_type", nullable = false, length = 30)
     private ChecklistType checklistType;
+
+    /**
+     * Classificação por grupo de itens da sala, herdada do template no rascunho.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false, length = 40)
+    private ChecklistCategory category;
 
     /**
      * Data e hora de início da execução.

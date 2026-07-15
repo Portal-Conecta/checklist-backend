@@ -61,6 +61,10 @@ public class UpdateChecklistTemplateUseCase {
             template.setDescription(command.description());
         }
 
+        if (command.category() != null) {
+            template.setCategory(command.category());
+        }
+
         if (command.schema() != null) {
             ChecklistSchemaValidator.validateStableKeys(command.schema());
             template.setSchemaJson(objectMapper.convertValue(command.schema(), MAP_TYPE));

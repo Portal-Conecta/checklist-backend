@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request;
 
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.edit.UpdateChecklistTemplateCommand;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -11,10 +12,6 @@ import jakarta.validation.constraints.Size;
  *
  * <p>Todos os campos são opcionais. Quando um campo é informado como
  * {@code null}, o valor atualmente armazenado no template é mantido.</p>
- *
- * @param title título do template
- * @param description descrição do template
- * @param schemaJson estrutura do checklist contendo seções, campos e regras de validação
  */
 public record ChecklistTemplateEditRequest(
 
@@ -28,10 +25,12 @@ public record ChecklistTemplateEditRequest(
         @Size(max = 250, message = "description deve ter no maximo 250 caracteres.")
         String description,
 
+        ChecklistCategory category,
+
         @Valid
         ChecklistSchema schemaJson
 ) {
     public UpdateChecklistTemplateCommand toCommand() {
-        return new UpdateChecklistTemplateCommand(title, description, schemaJson);
+        return new UpdateChecklistTemplateCommand(title, description, category, schemaJson);
     }
 }

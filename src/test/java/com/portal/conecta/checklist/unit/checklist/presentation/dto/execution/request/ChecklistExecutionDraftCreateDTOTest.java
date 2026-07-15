@@ -18,4 +18,13 @@ class ChecklistExecutionDraftCreateDTOTest {
 
         assertFalse(hasPeriod);
     }
+
+    @Test
+    @DisplayName("payload de criacao de execucao nao deve receber roomId")
+    void payloadDeCriacaoDeExecucaoNaoDeveReceberRoomId() {
+        boolean hasRoomId = Arrays.stream(ChecklistExecutionDraftCreateDTO.class.getRecordComponents())
+                .anyMatch(component -> component.getName().equals("roomId"));
+
+        assertFalse(hasRoomId);
+    }
 }

@@ -76,6 +76,12 @@ public class ChecklistExecution {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
+    @Column(name = "submitted_by")
+    private UUID submittedBy;
+
+    @Column(name = "canceled_by")
+    private UUID canceledBy;
+
     /**
      * Status atual da execução do checklist.
      * Por padrão inicia como {@link ChecklistExecutionStatus#DRAFT}.

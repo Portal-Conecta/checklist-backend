@@ -20,44 +20,43 @@ import java.util.UUID;
  * necessários para realizar a operação.
  * </p>
  */
-
-
 @Service
 @RequiredArgsConstructor
 public class CancelChecklistExecutionUseCase {
 
-
     private final ChecklistExecutionRepositoryPort executionRepository;
     private final RequestContextProvider contextProvider;
-
 
     /**
      * Executa o cancelamento de um checklist.
      * <p>
-     * O processo realiza as seguintes validações:
-     * 1. Verifica se a execução do checklist existe na base de dados.
-     * 2. Verifica se o usuário atual tem permissão para cancelar o checklist (validando
-     * o criador original e a turma vinculada).
-     * 3. Garante que apenas checklists com status {@code SUBMITTED} (enviados) possam ser cancelados.
+     * Ordem das validações:
+     * 1. Existência da execução
+     * 2. Status {@code SUBMITTED}
+     * 3. Permissão do usuário (operador da turma ou gestor)
+     * 4. Limite de execuções SUBMITTED ativas do criador do rascunho, excluindo a
+     *    execução sendo cancelada da contagem
      * </p>
-     * Se todas as regras forem atendidas, o status da execução é alterado para {@code CANCELED}.
      *
      * @param executionId o identificador único da execução do checklist que será cancelada.
      * @return a entidade {@link ChecklistExecution} atualizada e persistida com o novo status.
      * @throws EntityNotFoundException  se a execução do checklist não for encontrada.
+     * @throws IllegalArgumentException se o checklist não estiver no status {@code SUBMITTED}
+     *                                  ou se o limite de ativos for violado.
      * @throws AccessDeniedException    se o usuário atual não tiver permissão para cancelar esta execução.
-     * @throws IllegalArgumentException se o checklist não estiver no status {@code SUBMITTED}.
      */
-
-
     @Transactional
-    public ChecklistExecution execute(UUID executionId){
+    public ChecklistExecution execute(UUID executionId) {
         ChecklistExecution execution = executionRepository.findById(executionId)
                 .orElseThrow(() -> new EntityNotFoundException("Execucao de checklist nao encontrada"));
 
+        if (execution.getStatus() != ChecklistExecutionStatus.SUBMITTED) {
+            throw new IllegalArgumentException("Somente checklist enviados podem ser cancelados");
+        }
+
         var currentUser = contextProvider.getRequestContext();
 
-        if (!currentUser.canCancelChecklistExecution(execution.getUserId(), execution.getClassId())) {
+        if (!currentUser.canCancelChecklistExecution(execution.getClassId())) {
             throw new AccessDeniedException("Usuario nao tem permissao para cancelar esta execucao de checklist.");
         }
 
@@ -65,20 +64,17 @@ public class CancelChecklistExecutionUseCase {
                 execution.getUserId(),
                 ChecklistExecutionStatus.SUBMITTED.name()
         );
+        long otherActiveSubmitted = Math.max(0L, activeCount - 1L);
 
-        if (activeCount >= 2){
-            throw new IllegalArgumentException("Limite atingido: o representante ja possui 2 checklist submetidos e ativos");
+        if (otherActiveSubmitted >= 2) {
+            throw new IllegalArgumentException(
+                    "Limite atingido: o representante ja possui 2 checklist submetidos e ativos"
+            );
         }
 
-        if(execution.getStatus() != ChecklistExecutionStatus.SUBMITTED){
-            throw new IllegalArgumentException("Somente checklist enviados podem ser cancelados");
-        }
         execution.setStatus(ChecklistExecutionStatus.CANCELED);
+        execution.setCanceledBy(currentUser.userId());
 
         return executionRepository.save(execution);
-
-
     }
-
-
 }

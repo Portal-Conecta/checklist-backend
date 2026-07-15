@@ -18,7 +18,9 @@ import java.util.UUID;
  * @param templateVersion versao do template usado na execucao.
  * @param roomId identificador da sala associada a execucao.
  * @param classId identificador da turma associada a execucao.
- * @param filledBy identificador do usuario que preencheu o checklist.
+ * @param filledBy identificador do usuario que criou o rascunho.
+ * @param submittedBy identificador de quem submeteu (nullable).
+ * @param canceledBy identificador de quem cancelou (nullable).
  * @param period periodo em que o checklist foi executado.
  * @param checklistType tipo do checklist executado.
  * @param status status atual da execucao.
@@ -35,6 +37,8 @@ public record ChecklistExecutionHistoryDTO(UUID id,
                                            UUID roomId,
                                            UUID classId,
                                            UUID filledBy,
+                                           UUID submittedBy,
+                                           UUID canceledBy,
                                            Period period,
                                            ChecklistType checklistType,
                                            ChecklistExecutionStatus status,

@@ -61,6 +61,43 @@ class ChecklistExecutionMapperTest {
         assertThat(response.roomId()).isEqualTo(roomId);
         assertThat(response.classId()).isEqualTo(classId);
         assertThat(response.filledBy()).isEqualTo(userId);
+        assertThat(response.submittedBy()).isNull();
+        assertThat(response.canceledBy()).isNull();
         assertThat(response.summary().totalItems()).isZero();
+    }
+
+    @Test
+    void shouldMapSubmittedByAndCanceledByWhenPresent() {
+        UUID submitterId = UUID.randomUUID();
+        UUID cancelerId = UUID.randomUUID();
+
+        ChecklistExecution execution = ChecklistExecution.builder()
+                .checklistTemplate(ChecklistTemplate.builder().id(UUID.randomUUID()).version(1).build())
+                .roomId(UUID.randomUUID())
+                .classId(UUID.randomUUID())
+                .userId(UUID.randomUUID())
+                .submittedBy(submitterId)
+                .canceledBy(cancelerId)
+                .period(Period.MORNING)
+                .checklistType(ChecklistType.ARRIVAL)
+                .status(ChecklistExecutionStatus.CANCELED)
+                .answersJson(Map.of(
+                        "answers", List.of(),
+                        "summary", Map.of(
+                                "totalItems", 0,
+                                "answeredItems", 0,
+                                "compliantItems", 0,
+                                "nonCompliantItems", 0
+                        )
+                ))
+                .build();
+
+        var response = mapper.toResponse(execution);
+        var history = mapper.toHistoryResponse(execution);
+
+        assertThat(response.submittedBy()).isEqualTo(submitterId);
+        assertThat(response.canceledBy()).isEqualTo(cancelerId);
+        assertThat(history.submittedBy()).isEqualTo(submitterId);
+        assertThat(history.canceledBy()).isEqualTo(cancelerId);
     }
 }

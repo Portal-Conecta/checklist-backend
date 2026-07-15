@@ -26,9 +26,9 @@ class RequestContextTest {
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
         assertThat(user.canOperateChecklistExecutionForClass(classId)).isTrue();
         assertThat(user.canSubmitChecklistExecutionForClass(classId)).isTrue();
-        assertThat(user.canCancelChecklistExecution(userId, classId)).isTrue();
-        assertThat(user.canCancelChecklistExecution(UUID.randomUUID(), classId)).isFalse();
+        assertThat(user.canCancelChecklistExecution(classId)).isTrue();
         assertThat(user.canCreateChecklistExecutionForClass(UUID.randomUUID())).isFalse();
+        assertThat(user.canCancelChecklistExecution(UUID.randomUUID())).isFalse();
     }
 
     @Test
@@ -45,7 +45,7 @@ class RequestContextTest {
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
         assertThat(user.canOperateChecklistExecutionForClass(classId)).isTrue();
         assertThat(user.canSubmitChecklistExecutionForClass(classId)).isTrue();
-        assertThat(user.canCancelChecklistExecution(userId, classId)).isTrue();
+        assertThat(user.canCancelChecklistExecution(classId)).isTrue();
         assertThat(user.canCreateChecklistExecutionForClass(UUID.randomUUID())).isFalse();
     }
 
@@ -88,7 +88,7 @@ class RequestContextTest {
         assertThat(user.canCreateChecklistExecutionForClass(classId)).isTrue();
         assertThat(user.canOperateChecklistExecutionForClass(classId)).isTrue();
         assertThat(user.canSubmitChecklistExecutionForClass(classId)).isTrue();
-        assertThat(user.canCancelChecklistExecution(user.userId(), classId)).isTrue();
+        assertThat(user.canCancelChecklistExecution(classId)).isTrue();
         assertThat(user.canCreateChecklistExecutionForClass(UUID.randomUUID())).isFalse();
     }
 
@@ -99,10 +99,10 @@ class RequestContextTest {
 
         assertThat(senai.canManageChecklistTemplates()).isTrue();
         assertThat(senai.canViewDashboard()).isTrue();
-        assertThat(senai.canCancelChecklistExecution(UUID.randomUUID(), UUID.randomUUID())).isTrue();
+        assertThat(senai.canCancelChecklistExecution(UUID.randomUUID())).isTrue();
         assertThat(weg.canManageChecklistTemplates()).isTrue();
         assertThat(weg.canViewDashboard()).isTrue();
-        assertThat(weg.canCancelChecklistExecution(UUID.randomUUID(), UUID.randomUUID())).isTrue();
+        assertThat(weg.canCancelChecklistExecution(UUID.randomUUID())).isTrue();
     }
 
     @Test
@@ -133,7 +133,7 @@ class RequestContextTest {
         assertThat(admin.canCreateChecklistExecutionForClass(classId)).isFalse();
         assertThat(admin.canOperateChecklistExecutionForClass(classId)).isFalse();
         assertThat(admin.canSubmitChecklistExecutionForClass(classId)).isFalse();
-        assertThat(admin.canCancelChecklistExecution(admin.userId(), classId)).isFalse();
+        assertThat(admin.canCancelChecklistExecution(classId)).isFalse();
         assertThat(admin.canAccessChecklistModule()).isFalse();
     }
 }

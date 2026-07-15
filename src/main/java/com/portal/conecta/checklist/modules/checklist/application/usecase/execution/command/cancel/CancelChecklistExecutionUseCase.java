@@ -34,15 +34,17 @@ public class CancelChecklistExecutionUseCase {
      * 1. Existência da execução
      * 2. Status {@code SUBMITTED}
      * 3. Permissão do usuário (operador da turma ou gestor)
-     * 4. Limite de execuções SUBMITTED ativas do criador do rascunho, excluindo a
-     *    execução sendo cancelada da contagem
+     * </p>
+     * <p>
+     * Não há limite de quantidade de SUBMITTED neste fluxo: cancelar deve sempre
+     * ser permitido quando status e permissão forem válidos. Um teto de execuções
+     * ativas, se o negócio formalizar, deve ser aplicado em create/submit — não no cancel.
      * </p>
      *
      * @param executionId o identificador único da execução do checklist que será cancelada.
      * @return a entidade {@link ChecklistExecution} atualizada e persistida com o novo status.
      * @throws EntityNotFoundException  se a execução do checklist não for encontrada.
-     * @throws IllegalArgumentException se o checklist não estiver no status {@code SUBMITTED}
-     *                                  ou se o limite de ativos for violado.
+     * @throws IllegalArgumentException se o checklist não estiver no status {@code SUBMITTED}.
      * @throws AccessDeniedException    se o usuário atual não tiver permissão para cancelar esta execução.
      */
     @Transactional
@@ -58,18 +60,6 @@ public class CancelChecklistExecutionUseCase {
 
         if (!currentUser.canCancelChecklistExecution(execution.getClassId())) {
             throw new AccessDeniedException("Usuario nao tem permissao para cancelar esta execucao de checklist.");
-        }
-
-        long activeCount = executionRepository.countByUserIdAndStatus(
-                execution.getUserId(),
-                ChecklistExecutionStatus.SUBMITTED.name()
-        );
-        long otherActiveSubmitted = Math.max(0L, activeCount - 1L);
-
-        if (otherActiveSubmitted >= 2) {
-            throw new IllegalArgumentException(
-                    "Limite atingido: o representante ja possui 2 checklist submetidos e ativos"
-            );
         }
 
         execution.setStatus(ChecklistExecutionStatus.CANCELED);

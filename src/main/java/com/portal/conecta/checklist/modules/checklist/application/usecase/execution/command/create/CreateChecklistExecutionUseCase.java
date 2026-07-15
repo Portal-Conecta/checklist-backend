@@ -47,8 +47,8 @@ public class CreateChecklistExecutionUseCase {
 
     @Transactional
     public ChecklistExecution execute(CreateChecklistExecutionCommand command) {
-        log.info("Criando rascunho de checklist templateId={} classId={} roomId={}",
-                command.templateId(), command.classId(), command.roomId());
+        log.info("Criando rascunho de checklist templateId={} classId={}",
+                command.templateId(), command.classId());
 
         ChecklistTemplate template = templateRepository.findById(command.templateId())
                 .orElseThrow(() -> new EntityNotFoundException("Template nao encontrado."));
@@ -57,11 +57,7 @@ public class CreateChecklistExecutionUseCase {
             throw new IllegalStateException("Template nao esta ativo.");
         }
 
-        if (!template.getRoomId().equals(command.roomId())) {
-            throw new IllegalArgumentException("Template nao pertence a sala informada.");
-        }
-
-        if (!hubRoomProvider.existsById(command.roomId())) {
+        if (!hubRoomProvider.existsById(template.getRoomId())) {
             throw new EntityNotFoundException("Sala nao encontrada no Hub.");
         }
 
@@ -88,7 +84,7 @@ public class CreateChecklistExecutionUseCase {
 
         boolean duplicated = repository.existsDuplicateChecklist(
                 command.classId(),
-                command.roomId(),
+                template.getRoomId(),
                 period.name(),
                 command.checklistType().name(),
                 startOfDay,

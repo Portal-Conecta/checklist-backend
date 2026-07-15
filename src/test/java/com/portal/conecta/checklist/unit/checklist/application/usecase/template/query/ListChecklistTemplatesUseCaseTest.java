@@ -27,8 +27,8 @@ class ListChecklistTemplatesUseCaseTest {
     private final ChecklistTemplateRepository templateRepository = mock(ChecklistTemplateRepository.class);
     private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
     private final ListChecklistTemplatesUseCase useCase = new ListChecklistTemplatesUseCase(
-            templateRepository,
-            contextProvider
+        templateRepository,
+        contextProvider
     );
 
     @Test
@@ -44,7 +44,7 @@ class ListChecklistTemplatesUseCaseTest {
     @Test
     void shouldAllowManagementAccessToAllTemplates() {
         List<ChecklistTemplate> templates = List.of(
-                ChecklistTemplate.builder().id(UUID.randomUUID()).active(false).status(ChecklistTemplateStatus.DRAFT).build()
+            ChecklistTemplate.builder().id(UUID.randomUUID()).active(false).status(ChecklistTemplateStatus.DRAFT).build()
         );
 
         when(contextProvider.getRequestContext()).thenReturn(senai());
@@ -60,7 +60,7 @@ class ListChecklistTemplatesUseCaseTest {
     @Test
     void shouldAllowOperationalAccessToActiveTemplatesOnly() {
         List<ChecklistTemplate> templates = List.of(
-                ChecklistTemplate.builder().id(UUID.randomUUID()).active(true).status(ChecklistTemplateStatus.ACTIVE).build()
+            ChecklistTemplate.builder().id(UUID.randomUUID()).active(true).status(ChecklistTemplateStatus.ACTIVE).build()
         );
 
         when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID()));
@@ -73,6 +73,79 @@ class ListChecklistTemplatesUseCaseTest {
         verify(templateRepository).findAllByActiveTrueAndStatus(ChecklistTemplateStatus.ACTIVE);
     }
 
+    @Test
+    void shouldReturnAllTemplatesWhenNoFilterIsProvided() {
+        List<ChecklistTemplate> templates = List.of(
+            ChecklistTemplate.builder().id(UUID.randomUUID()).roomId(UUID.randomUUID()).status(ChecklistTemplateStatus.DRAFT).build(),
+            ChecklistTemplate.builder().id(UUID.randomUUID()).roomId(UUID.randomUUID()).status(ChecklistTemplateStatus.ACTIVE).build()
+        );
+
+        when(contextProvider.getRequestContext()).thenReturn(senai());
+        when(templateRepository.findAll()).thenReturn(templates);
+
+        List<ChecklistTemplate> result = useCase.execute(null, null);
+
+        assertEquals(templates, result);
+        verify(templateRepository).findAll();
+    }
+
+    @Test
+    void shouldFilterOnlyByRoomIdWhenStatusIsAbsent() {
+        UUID targetRoom = UUID.randomUUID();
+        ChecklistTemplate matching = ChecklistTemplate.builder().id(UUID.randomUUID()).roomId(targetRoom).status(ChecklistTemplateStatus.DRAFT).build();
+        ChecklistTemplate other = ChecklistTemplate.builder().id(UUID.randomUUID()).roomId(UUID.randomUUID()).status(ChecklistTemplateStatus.ACTIVE).build();
+
+        when(contextProvider.getRequestContext()).thenReturn(senai());
+        when(templateRepository.findAll()).thenReturn(List.of(matching, other));
+
+        List<ChecklistTemplate> result = useCase.execute(targetRoom, null);
+
+        assertEquals(List.of(matching), result);
+    }
+
+    @Test
+    void shouldFilterOnlyByStatusWhenRoomIdIsAbsent() {
+        ChecklistTemplate matching = ChecklistTemplate.builder().id(UUID.randomUUID()).roomId(UUID.randomUUID()).status(ChecklistTemplateStatus.ACTIVE).build();
+        ChecklistTemplate other = ChecklistTemplate.builder().id(UUID.randomUUID()).roomId(UUID.randomUUID()).status(ChecklistTemplateStatus.DRAFT).build();
+
+        when(contextProvider.getRequestContext()).thenReturn(senai());
+        when(templateRepository.findAll()).thenReturn(List.of(matching, other));
+
+        List<ChecklistTemplate> result = useCase.execute(null, ChecklistTemplateStatus.ACTIVE);
+
+        assertEquals(List.of(matching), result);
+    }
+
+    @Test
+    void shouldFilterByRoomIdAndStatusTogether() {
+        UUID targetRoom = UUID.randomUUID();
+        ChecklistTemplate matching = ChecklistTemplate.builder().id(UUID.randomUUID()).roomId(targetRoom).status(ChecklistTemplateStatus.ACTIVE).build();
+        ChecklistTemplate sameRoomWrongStatus = ChecklistTemplate.builder().id(UUID.randomUUID()).roomId(targetRoom).status(ChecklistTemplateStatus.DRAFT).build();
+        ChecklistTemplate sameStatusWrongRoom = ChecklistTemplate.builder().id(UUID.randomUUID()).roomId(UUID.randomUUID()).status(ChecklistTemplateStatus.ACTIVE).build();
+
+        when(contextProvider.getRequestContext()).thenReturn(senai());
+        when(templateRepository.findAll()).thenReturn(List.of(matching, sameRoomWrongStatus, sameStatusWrongRoom));
+
+        List<ChecklistTemplate> result = useCase.execute(targetRoom, ChecklistTemplateStatus.ACTIVE);
+
+        assertEquals(List.of(matching), result);
+    }
+
+    @Test
+    void shouldApplyFiltersOnTopOfOperationalAccessRestriction() {
+        UUID targetRoom = UUID.randomUUID();
+        ChecklistTemplate matching = ChecklistTemplate.builder().id(UUID.randomUUID()).roomId(targetRoom).active(true).status(ChecklistTemplateStatus.ACTIVE).build();
+        ChecklistTemplate otherRoom = ChecklistTemplate.builder().id(UUID.randomUUID()).roomId(UUID.randomUUID()).active(true).status(ChecklistTemplateStatus.ACTIVE).build();
+
+        when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID()));
+        when(templateRepository.findAllByActiveTrueAndStatus(ChecklistTemplateStatus.ACTIVE)).thenReturn(List.of(matching, otherRoom));
+
+        List<ChecklistTemplate> result = useCase.execute(targetRoom, ChecklistTemplateStatus.ACTIVE);
+
+        assertEquals(List.of(matching), result);
+        verify(templateRepository, never()).findAll();
+    }
+
     private RequestContext apprentice() {
         return new RequestContext(UUID.randomUUID(), TypeUser.STUDENT);
     }
@@ -83,9 +156,9 @@ class ListChecklistTemplatesUseCaseTest {
 
     private RequestContext representative(UUID classId) {
         return new RequestContext(
-                UUID.randomUUID(),
-                TypeUser.REPRESENTATIVE,
-                List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
+            UUID.randomUUID(),
+            TypeUser.REPRESENTATIVE,
+            List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
         );
     }
 }

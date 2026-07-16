@@ -54,7 +54,6 @@ public class ChecklistIssueService {
                         execution.addIssue(ChecklistIssue.builder()
                                 .assignedUserReference(new UserReference(execution.getUserId()))
                                 .itemKey(answer.itemKey())
-                                .itemTitleSnapshot(truncate(item.title(), 150))
                                 .title(truncate("Pendencia: " + item.title(), 100))
                                 .description(truncate(answer.observation(), 500))
                                 .status(IssueStatus.OPEN)

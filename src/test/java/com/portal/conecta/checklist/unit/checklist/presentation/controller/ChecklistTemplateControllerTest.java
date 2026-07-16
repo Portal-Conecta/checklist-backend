@@ -8,6 +8,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.templa
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.list.ListChecklistTemplatesUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchChecklistItemUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchItemsByCategoryUseCase;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.ChecklistItemByCategoryResult;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemByCategorySearchResponseDTO;
@@ -44,7 +45,7 @@ class ChecklistTemplateControllerTest {
     private final UpdateChecklistTemplateUseCase editUseCase         = mock(UpdateChecklistTemplateUseCase.class);
     private final ChecklistTemplateMapper mapper                   = mock(ChecklistTemplateMapper.class);
     private final ChecklistTemplateController controller           = new ChecklistTemplateController(
-            searchChecklistItemUseCase, searchItemsByCategoryUseCase, createUseCase, activateUseCase, findByIdUseCase, listUseCase, editUseCase, createVersionUseCase, mapper);
+        searchChecklistItemUseCase, searchItemsByCategoryUseCase, createUseCase, activateUseCase, findByIdUseCase, listUseCase, editUseCase, createVersionUseCase, mapper);
 
     @Test
     @DisplayName("deve retornar ok ao ativar template")
@@ -69,7 +70,7 @@ class ChecklistTemplateControllerTest {
     void deveBuscarItensPorCategoriaComSucesso() {
         String category = "Limpeza";
         ChecklistItemByCategoryResult resultItem = new ChecklistItemByCategoryResult(
-                UUID.randomUUID(), "Template", "sec-1", "Secao", "item-1", "Item", "Descricao", true, 1, category);
+            UUID.randomUUID(), "Template", "sec-1", "Secao", "item-1", "Item", "Descricao", true, 1, category);
 
         when(searchItemsByCategoryUseCase.execute(category)).thenReturn(List.of(resultItem));
 
@@ -91,8 +92,88 @@ class ChecklistTemplateControllerTest {
         when(searchItemsByCategoryUseCase.execute(category)).thenReturn(List.of());
 
         mockMvc.perform(get("/api/checklist-templates/items/search").param("category", category))
-                .andExpect(status().isOk());
+            .andExpect(status().isOk());
 
         verify(searchItemsByCategoryUseCase).execute(category);
+    }
+
+    @Test
+    @DisplayName("deve listar templates sem filtros mantendo compatibilidade")
+    void deveListarTemplatesSemFiltros() {
+        List<ChecklistTemplate> templates = List.of(mock(ChecklistTemplate.class));
+        List<ChecklistTemplateResponseDTO> response = List.of(mock(ChecklistTemplateResponseDTO.class));
+
+        when(listUseCase.execute(null, null, null)).thenReturn(templates);
+        when(mapper.toResponseListWithEnrichment(templates)).thenReturn(response);
+
+        ResponseEntity<List<ChecklistTemplateResponseDTO>> result = controller.listTemplates(null, null, null);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(response, result.getBody());
+        verify(listUseCase).execute(null, null, null);
+    }
+
+    @Test
+    @DisplayName("deve listar templates filtrando por roomId e status")
+    void deveListarTemplatesFiltrandoPorRoomIdEStatus() {
+        UUID roomId = UUID.randomUUID();
+        ChecklistTemplateStatus status = ChecklistTemplateStatus.ACTIVE;
+        List<ChecklistTemplate> templates = List.of(mock(ChecklistTemplate.class));
+        List<ChecklistTemplateResponseDTO> response = List.of(mock(ChecklistTemplateResponseDTO.class));
+
+        when(listUseCase.execute(roomId, status, null)).thenReturn(templates);
+        when(mapper.toResponseListWithEnrichment(templates)).thenReturn(response);
+
+        ResponseEntity<List<ChecklistTemplateResponseDTO>> result = controller.listTemplates(roomId, status, null);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(response, result.getBody());
+        verify(listUseCase).execute(roomId, status, null);
+    }
+
+    @Test
+    @DisplayName("deve aceitar apenas roomId via query param")
+    void deveListarTemplatesFiltrandoApenasPorRoomId() throws Exception {
+        UUID roomId = UUID.randomUUID();
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+
+        when(listUseCase.execute(roomId, null, null)).thenReturn(List.of());
+        when(mapper.toResponseListWithEnrichment(List.of())).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/checklist-templates").param("roomId", roomId.toString()))
+            .andExpect(status().isOk());
+
+        verify(listUseCase).execute(roomId, null, null);
+    }
+
+    @Test
+    @DisplayName("deve aceitar apenas status via query param")
+    void deveListarTemplatesFiltrandoApenasPorStatus() throws Exception {
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+
+        when(listUseCase.execute(null, ChecklistTemplateStatus.ACTIVE, null)).thenReturn(List.of());
+        when(mapper.toResponseListWithEnrichment(List.of())).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/checklist-templates").param("status", "ACTIVE"))
+            .andExpect(status().isOk());
+
+        verify(listUseCase).execute(null, ChecklistTemplateStatus.ACTIVE, null);
+    }
+
+    @Test
+    @DisplayName("deve aceitar roomId e status juntos via query param")
+    void deveListarTemplatesFiltrandoPorRoomIdEStatusViaQueryParam() throws Exception {
+        UUID roomId = UUID.randomUUID();
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+
+        when(listUseCase.execute(roomId, ChecklistTemplateStatus.ACTIVE, null)).thenReturn(List.of());
+        when(mapper.toResponseListWithEnrichment(List.of())).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/checklist-templates")
+                .param("roomId", roomId.toString())
+                .param("status", "ACTIVE"))
+            .andExpect(status().isOk());
+
+        verify(listUseCase).execute(roomId, ChecklistTemplateStatus.ACTIVE, null);
     }
 }

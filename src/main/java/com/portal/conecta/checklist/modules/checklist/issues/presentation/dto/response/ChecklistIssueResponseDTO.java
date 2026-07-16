@@ -10,7 +10,6 @@ public record ChecklistIssueResponseDTO(
         UUID id,
         UUID executionId,
         String itemKey,
-        String itemTitleSnapshot,
         UUID assignedTo,
         String title,
         String description,

@@ -91,6 +91,8 @@ class SubmitChecklistExecutionUseCaseTest {
 
         assertThat(result.getStatus()).isEqualTo(ChecklistExecutionStatus.SUBMITTED);
         assertThat(result.getSubmittedAt()).isNotNull();
+        assertThat(result.getSubmittedBy()).isEqualTo(userId);
+        assertThat(result.getCanceledBy()).isNull();
         assertThat(result.getComplianceScore()).isEqualByComparingTo(new BigDecimal("50.00"));
         assertThat(result.getIssues()).hasSize(1);
 
@@ -186,7 +188,32 @@ class SubmitChecklistExecutionUseCaseTest {
     }
 
     @Test
-    void shouldRejectSubmittingExecutionFromAnotherUser() {
+    void shouldAllowSubmittingExecutionCreatedByColleagueRepresentative() {
+        UUID executionId = UUID.randomUUID();
+        UUID creatorId = UUID.randomUUID();
+        UUID submitterId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        ChecklistExecution execution = draftExecution(executionId, creatorId, classId);
+        SubmitChecklistExecutionCommand request = new SubmitChecklistExecutionCommand(List.of(
+                answer("quadro", ConformityAnswerValue.COMPLIANT, null),
+                answer("iluminacao", ConformityAnswerValue.COMPLIANT, null)
+        ));
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(currentUser(submitterId, classId));
+        when(executionRepository.save(execution)).thenReturn(execution);
+
+        ChecklistExecution result = useCase.execute(executionId, request);
+
+        assertThat(result.getStatus()).isEqualTo(ChecklistExecutionStatus.SUBMITTED);
+        assertThat(result.getUserId()).isEqualTo(creatorId);
+        assertThat(result.getSubmittedBy()).isEqualTo(submitterId);
+        assertThat(result.getCanceledBy()).isNull();
+        verify(executionRepository).save(execution);
+    }
+
+    @Test
+    void shouldRejectSubmittingExecutionFromUserWithoutClassLink() {
         UUID executionId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
         ChecklistExecution execution = draftExecution(executionId, UUID.randomUUID(), classId);
@@ -196,12 +223,13 @@ class SubmitChecklistExecutionUseCaseTest {
         ));
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
-        when(contextProvider.getRequestContext()).thenReturn(currentUser(UUID.randomUUID(), classId));
+        when(contextProvider.getRequestContext()).thenReturn(currentUser(UUID.randomUUID(), UUID.randomUUID()));
 
         assertThrows(AccessDeniedException.class, () -> useCase.execute(executionId, request));
 
         verify(executionRepository, never()).save(execution);
         verify(applicationEventPublisher, never()).publishEvent(any());
+        assertThat(execution.getSubmittedBy()).isNull();
     }
 
     @Test

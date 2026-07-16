@@ -155,7 +155,7 @@ public class ChecklistExecutionController {
 
     @Operation(
             summary = "Cancelar execução",
-            description = "Cancela uma execução em andamento, alterando seu status para CANCELLED. Execuções já submetidas não podem ser canceladas."
+            description = "Cancela uma execução enviada (SUBMITTED), alterando seu status para CANCELED. Execuções em rascunho (DRAFT) não podem ser canceladas por este endpoint."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -165,7 +165,7 @@ public class ChecklistExecutionController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Formato inválido para o executionId (deve ser um UUID válido)",
+                    description = "Formato inválido para o executionId ou execução fora do status SUBMITTED",
                     content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
@@ -181,11 +181,6 @@ public class ChecklistExecutionController {
             @ApiResponse(
                     responseCode = "404",
                     description = "Execução não encontrada para o ID informado",
-                    content = @Content(schema = @Schema(implementation = ApiError.class))
-            ),
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "Conflito de estado — a execução já foi submetida ou cancelada e não pode ser cancelada novamente",
                     content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(

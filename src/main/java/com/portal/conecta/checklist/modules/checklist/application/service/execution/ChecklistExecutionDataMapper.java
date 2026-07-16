@@ -38,7 +38,7 @@ public class ChecklistExecutionDataMapper {
     ) {
         return ChecklistExecution.builder()
                 .checklistTemplate(template)
-                .roomId(command.roomId())
+                .roomId(template.getRoomId())
                 .classId(command.classId())
                 .userId(filledBy)
                 .shift(shift)

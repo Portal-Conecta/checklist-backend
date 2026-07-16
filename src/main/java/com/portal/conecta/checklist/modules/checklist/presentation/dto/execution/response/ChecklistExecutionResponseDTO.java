@@ -24,6 +24,8 @@ public record ChecklistExecutionResponseDTO(
         UUID roomId,
         UUID classId,
         UUID filledBy,
+        UUID submittedBy,
+        UUID canceledBy,
         Period period,
         ChecklistType checklistType,
         ChecklistCategory category,

@@ -159,8 +159,9 @@ class SubmissionWindowAuthorizationTest {
     }
 
     @Test
-    void adminNaoListaJanelasGlobalmente() throws Exception {
-        mockMvc().perform(authed(get("/api/submission-windows"), admin())).andExpect(status().isForbidden());
+    void adminListaJanelasGlobalmente() throws Exception {
+        when(repository.findAllByOrderByClassIdAscChecklistTypeAsc()).thenReturn(List.of());
+        mockMvc().perform(authed(get("/api/submission-windows"), admin())).andExpect(status().isOk());
     }
 
     // ---- listar por turma — SEM checagem de autorizacao na implementacao atual ---
@@ -238,10 +239,15 @@ class SubmissionWindowAuthorizationTest {
     }
 
     @Test
-    void adminNaoConfiguraJanela() throws Exception {
+    void adminConfiguraJanelaComSucesso() throws Exception {
         UUID classId = UUID.randomUUID();
+        when(hubClassProvider.findById(classId))
+                .thenReturn(Optional.of(new ClassReference(classId, "Turma", 1, Shift.FULL_AM_PM, null, null)));
+        when(repository.findByClassIdAndChecklistType(classId, ChecklistType.ARRIVAL)).thenReturn(Optional.empty());
+        when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0, ChecklistSubmissionWindow.class));
+
         mockMvc().perform(authed(put("/api/submission-windows/classes/" + classId + "/ARRIVAL"), admin())
                         .contentType(APPLICATION_JSON).content(upsertBody()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 }

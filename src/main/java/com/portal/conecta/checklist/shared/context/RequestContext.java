@@ -8,6 +8,11 @@ import java.util.UUID;
  *
  * <p>Concentra o usuario, perfil global e vinculos com turmas recebidos do
  * token do Hub, oferecendo metodos de permissao para o modulo Checklist.</p>
+ *
+ * <p>{@link TypeUser#ADMIN} tem o mesmo poder gerencial de {@link TypeUser#SENAI}
+ * e {@link TypeUser#WEG} (templates, dashboard, issues, cancelamento e consulta
+ * de qualquer turma). Nao opera fluxo de rascunho/submissao como representante
+ * ou professor — isso permanece restrito a perfis operacionais com vinculo de turma.</p>
  */
 public record RequestContext(
         UUID userId,
@@ -29,7 +34,9 @@ public record RequestContext(
     }
 
     public boolean canManageChecklistTemplates() {
-        return userType == TypeUser.SENAI || userType == TypeUser.WEG;
+        return userType == TypeUser.SENAI
+                || userType == TypeUser.WEG
+                || userType == TypeUser.ADMIN;
     }
 
     public boolean canViewDashboard() {
@@ -40,7 +47,13 @@ public record RequestContext(
         return canManageChecklistTemplates();
     }
 
-    public boolean canOnlySenaiManageIssues() { return userType == TypeUser.SENAI; }
+    /**
+     * Transicoes criticas de issue (validar/reabrir) — SENAI e ADMIN.
+     * Paridade WEG fica para issue separada (Fix 7).
+     */
+    public boolean canOnlySenaiManageIssues() {
+        return userType == TypeUser.SENAI || userType == TypeUser.ADMIN;
+    }
 
     public boolean canEditCompletedChecklist() {
         return canViewDashboard();
@@ -62,6 +75,10 @@ public record RequestContext(
         return canOperateChecklistExecutionForClass(classId);
     }
 
+    /**
+     * Operacao de execucao (criar rascunho / submeter) exige perfil operacional
+     * com vinculo na turma. Gestores (SENAI/WEG/ADMIN) nao passam por este caminho.
+     */
     public boolean canOperateChecklistExecutionForClass(UUID classId) {
         if (classId == null) {
             return false;
@@ -95,4 +112,3 @@ public record RequestContext(
         return contextClass.hasRole(ClassRole.TEACHER);
     }
 }
-

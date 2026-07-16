@@ -226,10 +226,13 @@ class ChecklistTemplateAuthorizationTest {
     }
 
     @Test
-    void adminNaoCriaTemplate() throws Exception {
+    void adminCriaTemplateComSucesso() throws Exception {
+        when(hubRoomProvider.existsById(any())).thenReturn(true);
+        when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
         mockMvc().perform(authed(post("/api/checklist-templates"), admin())
                         .contentType(APPLICATION_JSON).content(validCreateBody()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isCreated());
     }
 
     // ---- ativar template ------------------------------------------------
@@ -261,9 +264,17 @@ class ChecklistTemplateAuthorizationTest {
     }
 
     @Test
-    void adminNaoAtivaTemplate() throws Exception {
-        mockMvc().perform(authed(patch("/api/checklist-templates/" + UUID.randomUUID() + "/activate"), admin()))
-                .andExpect(status().isForbidden());
+    void adminAtivaTemplateComSucesso() throws Exception {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        ChecklistTemplate template = draftTemplate(templateId, roomId);
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
+        when(templateRepository.findByTemplateGroupIdAndStatus(any(), any())).thenReturn(List.of());
+        when(hubRoomProvider.findById(roomId)).thenReturn(Optional.of(new com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference(roomId)));
+        when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        mockMvc().perform(authed(patch("/api/checklist-templates/" + templateId + "/activate"), admin()))
+                .andExpect(status().isOk());
     }
 
     // ---- listar templates -------------------------------------------------
@@ -295,8 +306,9 @@ class ChecklistTemplateAuthorizationTest {
     }
 
     @Test
-    void adminNaoListaTemplates() throws Exception {
-        mockMvc().perform(authed(get("/api/checklist-templates"), admin())).andExpect(status().isForbidden());
+    void adminListaTodosOsTemplates() throws Exception {
+        when(templateRepository.findAll()).thenReturn(List.of());
+        mockMvc().perform(authed(get("/api/checklist-templates"), admin())).andExpect(status().isOk());
     }
 
     // ---- buscar template por id (draft vs active) --------------------------
@@ -365,9 +377,16 @@ class ChecklistTemplateAuthorizationTest {
     }
 
     @Test
-    void adminNaoCriaNovaVersao() throws Exception {
-        mockMvc().perform(authed(post("/api/checklist-templates/" + UUID.randomUUID() + "/new-version"), admin()))
-                .andExpect(status().isForbidden());
+    void adminCriaNovaVersaoComSucesso() throws Exception {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        ChecklistTemplate template = activeTemplate(templateId, roomId);
+        when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
+        when(hubRoomProvider.findById(roomId)).thenReturn(Optional.of(new com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference(roomId)));
+        when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        mockMvc().perform(authed(post("/api/checklist-templates/" + templateId + "/new-version"), admin()))
+                .andExpect(status().isCreated());
     }
 
     // NOTA: GET /api/checklist-templates/items/search (SearchChecklistItemUseCase)

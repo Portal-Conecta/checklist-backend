@@ -40,7 +40,9 @@ public record RequestContext(
         return canManageChecklistTemplates();
     }
 
-    public boolean canOnlySenaiManageIssues() { return userType == TypeUser.SENAI; }
+    public boolean canValidateOrReopenIssues() {
+        return canManageChecklistTemplates();
+    }
 
     public boolean canEditCompletedChecklist() {
         return canViewDashboard();

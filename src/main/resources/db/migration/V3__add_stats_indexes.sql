@@ -5,6 +5,20 @@
 -- (full scan). Espelham exatamente o schema-postgresql.sql; IF NOT EXISTS torna
 -- a migration idempotente.
 
+-- Função auxiliar para índices funcionais sobre colunas TIMESTAMPTZ.
+-- due_at e created_at são TIMESTAMPTZ: o cast (::date) sobre elas e STABLE
+-- (depende do TimeZone da sessao), o que o Postgres rejeita em indice
+-- ("functions in index expression must be marked IMMUTABLE"). Esta funcao
+-- fixa o timezone de negocio do dominio Checklist (America/Sao_Paulo, igual
+-- a checklist.timezone em application.yml) e pode ser marcada IMMUTABLE.
+CREATE OR REPLACE FUNCTION checklist_immutable_date(ts TIMESTAMPTZ)
+RETURNS date
+LANGUAGE sql
+IMMUTABLE
+AS $$
+    SELECT (ts AT TIME ZONE 'America/Sao_Paulo')::date
+$$;
+
 -- checklist_execution
 CREATE INDEX IF NOT EXISTS idx_execution_status
     ON checklist_execution (status);
@@ -36,7 +50,7 @@ CREATE INDEX IF NOT EXISTS idx_issue_due_at
     ON checklist_issue (due_at);
 
 CREATE INDEX IF NOT EXISTS idx_issue_due_at_date
-    ON checklist_issue ((due_at::date));
+    ON checklist_issue (checklist_immutable_date(due_at));
 
 CREATE INDEX IF NOT EXISTS idx_issue_resolved_at
     ON checklist_issue (resolved_at)
@@ -56,7 +70,7 @@ CREATE INDEX IF NOT EXISTS idx_template_active
     ON checklist_template (active);
 
 CREATE INDEX IF NOT EXISTS idx_template_created_at_date
-    ON checklist_template ((created_at::date));
+    ON checklist_template (checklist_immutable_date(created_at));
 
 CREATE INDEX IF NOT EXISTS idx_template_group_id
     ON checklist_template (template_group_id);

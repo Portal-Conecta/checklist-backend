@@ -370,9 +370,8 @@ class ChecklistExecutionAuthorizationTest {
     }
 
     @Test
-    void teacherNaoSubmeteExecucaoDeOutroUsuario() throws Exception {
-        // Submit exige execution.userId == currentUser.userId, alem da permissao de turma —
-        // um TEACHER da turma certa mas que nao criou o draft tambem e negado.
+    void teacherSubmeteExecucaoDeOutroUsuarioDaMesmaTurma() throws Exception {
+        // Qualquer operador da turma (representante/professor) pode submeter — ownership do draft nao e exigido.
         UUID templateId = UUID.randomUUID();
         UUID roomId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
@@ -381,10 +380,12 @@ class ChecklistExecutionAuthorizationTest {
         ChecklistExecution execution = draftExecution(executionId, template, classId, UUID.randomUUID());
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(submissionWindowRepository.findByClassIdAndChecklistType(any(), any())).thenReturn(Optional.empty());
+        when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc().perform(authed(post("/api/checklist-executions/" + executionId + "/submit"), teacherOf(classId))
                         .contentType(APPLICATION_JSON).content(submitBody()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -436,7 +437,6 @@ class ChecklistExecutionAuthorizationTest {
         ChecklistExecution execution = submittedExecution(executionId, template, classId, UUID.randomUUID());
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
-        when(executionRepository.countByUserIdAndStatus(any(), eq(ChecklistExecutionStatus.SUBMITTED.name()))).thenReturn(0L);
         when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/cancel"), senai()))
@@ -454,7 +454,6 @@ class ChecklistExecutionAuthorizationTest {
         ChecklistExecution execution = submittedExecution(executionId, template, classId, userId);
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
-        when(executionRepository.countByUserIdAndStatus(any(), eq(ChecklistExecutionStatus.SUBMITTED.name()))).thenReturn(0L);
         when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/cancel"), representativeOf(userId, classId)))
@@ -463,7 +462,6 @@ class ChecklistExecutionAuthorizationTest {
 
     @Test
     void teacherCancelaExecucaoDeOutroUsuarioDaMesmaTurma() throws Exception {
-        // Qualquer operador da turma (representante/professor) pode cancelar — posse do rascunho nao e exigida.
         UUID templateId = UUID.randomUUID();
         UUID roomId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
@@ -472,10 +470,27 @@ class ChecklistExecutionAuthorizationTest {
         ChecklistExecution execution = submittedExecution(executionId, template, classId, UUID.randomUUID());
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
-        when(executionRepository.countByUserIdAndStatus(any(), eq(ChecklistExecutionStatus.SUBMITTED.name()))).thenReturn(0L);
         when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/cancel"), teacherOf(classId)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void representativeCancelaExecucaoCriadaPeloColegaDaMesmaTurma() throws Exception {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        UUID creatorId = UUID.randomUUID();
+        UUID colleagueId = UUID.randomUUID();
+        UUID executionId = UUID.randomUUID();
+        ChecklistTemplate template = activeTemplateWithSchema(templateId, roomId);
+        ChecklistExecution execution = submittedExecution(executionId, template, classId, creatorId);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/cancel"), representativeOf(colleagueId, classId)))
                 .andExpect(status().isOk());
     }
 

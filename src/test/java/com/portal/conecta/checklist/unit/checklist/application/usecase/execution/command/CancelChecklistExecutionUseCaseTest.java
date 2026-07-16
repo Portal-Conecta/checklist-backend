@@ -38,15 +38,54 @@ class CancelChecklistExecutionUseCaseTest {
     private CancelChecklistExecutionUseCase cancelChecklistExecutionUseCase;
 
     @Test
-    @DisplayName("deve cancelar execucao com status SUBMITTED com sucesso")
+    @DisplayName("deve cancelar execucao com status SUBMITTED com sucesso e preencher canceledBy")
     void deveCancelarExecucaoComSucesso() {
+        UUID executionId = UUID.randomUUID();
+        UUID creatorId = UUID.randomUUID();
+        UUID cancelerId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        ChecklistExecution execution = submitted(creatorId, classId);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(representative(cancelerId, classId));
+        when(executionRepository.save(execution)).thenReturn(execution);
+
+        ChecklistExecution resultado = cancelChecklistExecutionUseCase.execute(executionId);
+
+        assertEquals(ChecklistExecutionStatus.CANCELED, resultado.getStatus());
+        assertEquals(cancelerId, resultado.getCanceledBy());
+        assertNull(resultado.getSubmittedBy());
+        verify(executionRepository).save(execution);
+        verify(executionRepository, never()).countByUserIdAndStatus(any(), any());
+    }
+
+    @Test
+    @DisplayName("representante B deve cancelar execucao criada pelo representante A da mesma turma")
+    void devePermitirQueColegaRepresentanteCanceleExecucao() {
+        UUID executionId = UUID.randomUUID();
+        UUID representativeA = UUID.randomUUID();
+        UUID representativeB = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        ChecklistExecution execution = submitted(representativeA, classId);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(representative(representativeB, classId));
+        when(executionRepository.save(execution)).thenReturn(execution);
+
+        ChecklistExecution resultado = cancelChecklistExecutionUseCase.execute(executionId);
+
+        assertEquals(ChecklistExecutionStatus.CANCELED, resultado.getStatus());
+        assertEquals(representativeB, resultado.getCanceledBy());
+        assertEquals(representativeA, resultado.getUserId());
+    }
+
+    @Test
+    @DisplayName("representante com 2 SUBMITTED ativas consegue cancelar uma delas")
+    void deveCancelarQuandoRepresentanteTemDuasExecucoesSubmittedAtivas() {
         UUID executionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
-        ChecklistExecution execution = new ChecklistExecution();
-        execution.setUserId(userId);
-        execution.setClassId(classId);
-        execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
+        ChecklistExecution execution = submitted(userId, classId);
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
         when(contextProvider.getRequestContext()).thenReturn(representative(userId, classId));
@@ -55,46 +94,46 @@ class CancelChecklistExecutionUseCaseTest {
         ChecklistExecution resultado = cancelChecklistExecutionUseCase.execute(executionId);
 
         assertEquals(ChecklistExecutionStatus.CANCELED, resultado.getStatus());
-        verify(executionRepository, times(1)).findById(executionId);
-        verify(executionRepository, times(1)).save(execution);
-    }
-
-    @Test
-    @DisplayName("deve permitir que gestor cancele execucao enviada")
-    void devePermitirQueGestorCanceleExecucaoEnviada() {
-        UUID executionId = UUID.randomUUID();
-        ChecklistExecution execution = new ChecklistExecution();
-        execution.setUserId(UUID.randomUUID());
-        execution.setClassId(UUID.randomUUID());
-        execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
-
-        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
-        when(contextProvider.getRequestContext()).thenReturn(new RequestContext(UUID.randomUUID(), TypeUser.SENAI));
-        when(executionRepository.save(execution)).thenReturn(execution);
-
-        ChecklistExecution resultado = cancelChecklistExecutionUseCase.execute(executionId);
-
-        assertEquals(ChecklistExecutionStatus.CANCELED, resultado.getStatus());
+        assertEquals(userId, resultado.getCanceledBy());
         verify(executionRepository).save(execution);
     }
 
     @Test
-    @DisplayName("representante da mesma turma cancela execucao criada por colega — posse do rascunho nao e exigida")
-    void devePermitirCancelamentoPorColegaRepresentanteDaMesmaTurma() {
+    @DisplayName("cancelamento permanece permitido mesmo com 3 ou mais SUBMITTED ativas")
+    void deveCancelarQuandoRepresentanteTemTresOuMaisSubmittedAtivas() {
         UUID executionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
-        ChecklistExecution execution = new ChecklistExecution();
-        execution.setUserId(UUID.randomUUID());
-        execution.setClassId(classId);
-        execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
+        ChecklistExecution execution = submitted(userId, classId);
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
-        when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID(), classId));
+        when(contextProvider.getRequestContext()).thenReturn(representative(userId, classId));
         when(executionRepository.save(execution)).thenReturn(execution);
 
         ChecklistExecution resultado = cancelChecklistExecutionUseCase.execute(executionId);
 
         assertEquals(ChecklistExecutionStatus.CANCELED, resultado.getStatus());
+        assertEquals(userId, resultado.getCanceledBy());
+        verify(executionRepository).save(execution);
+        verify(executionRepository, never()).countByUserIdAndStatus(any(), any());
+    }
+
+    @Test
+    @DisplayName("deve permitir que gestor cancele execucao enviada e preencher canceledBy")
+    void devePermitirQueGestorCanceleExecucaoEnviada() {
+        UUID executionId = UUID.randomUUID();
+        UUID gestorId = UUID.randomUUID();
+        UUID creatorId = UUID.randomUUID();
+        ChecklistExecution execution = submitted(creatorId, UUID.randomUUID());
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(new RequestContext(gestorId, TypeUser.SENAI));
+        when(executionRepository.save(execution)).thenReturn(execution);
+
+        ChecklistExecution resultado = cancelChecklistExecutionUseCase.execute(executionId);
+
+        assertEquals(ChecklistExecutionStatus.CANCELED, resultado.getStatus());
+        assertEquals(gestorId, resultado.getCanceledBy());
         verify(executionRepository).save(execution);
     }
 
@@ -103,10 +142,7 @@ class CancelChecklistExecutionUseCaseTest {
     void deveNegarCancelamentoQuandoUsuarioNaoTemVinculoOperacionalComATurma() {
         UUID executionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        ChecklistExecution execution = new ChecklistExecution();
-        execution.setUserId(userId);
-        execution.setClassId(UUID.randomUUID());
-        execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
+        ChecklistExecution execution = submitted(userId, UUID.randomUUID());
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
         when(contextProvider.getRequestContext()).thenReturn(representative(userId, UUID.randomUUID()));
@@ -114,6 +150,7 @@ class CancelChecklistExecutionUseCaseTest {
         assertThrows(AccessDeniedException.class, () -> cancelChecklistExecutionUseCase.execute(executionId));
 
         verify(executionRepository, never()).save(any());
+        assertNull(execution.getCanceledBy());
     }
 
     @Test
@@ -130,7 +167,7 @@ class CancelChecklistExecutionUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve lancar IllegalArgumentException quando status e DRAFT")
+    @DisplayName("status DRAFT e rejeitado apos permissao valida; canceledBy permanece null")
     void deveLancarExcecaoQuandoStatusEDraft() {
         UUID executionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -148,6 +185,25 @@ class CancelChecklistExecutionUseCaseTest {
 
         assertEquals("Somente checklist enviados podem ser cancelados", excecao.getMessage());
         verify(executionRepository, never()).save(any());
+        assertNull(execution.getCanceledBy());
+    }
+
+    @Test
+    @DisplayName("usuario sem permissao recebe 403 antes da checagem de status — nao vaza estado da execucao")
+    void deveNegarSemVazarEstadoQuandoUsuarioNaoTemPermissaoEStatusEDraft() {
+        UUID executionId = UUID.randomUUID();
+        ChecklistExecution execution = new ChecklistExecution();
+        execution.setUserId(UUID.randomUUID());
+        execution.setClassId(UUID.randomUUID());
+        execution.setStatus(ChecklistExecutionStatus.DRAFT);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID(), UUID.randomUUID()));
+
+        assertThrows(AccessDeniedException.class, () -> cancelChecklistExecutionUseCase.execute(executionId));
+
+        verify(executionRepository, never()).save(any());
+        assertNull(execution.getCanceledBy());
     }
 
     @Test
@@ -169,6 +225,14 @@ class CancelChecklistExecutionUseCaseTest {
 
         assertEquals("Somente checklist enviados podem ser cancelados", excecao.getMessage());
         verify(executionRepository, never()).save(any());
+    }
+
+    private ChecklistExecution submitted(UUID userId, UUID classId) {
+        ChecklistExecution execution = new ChecklistExecution();
+        execution.setUserId(userId);
+        execution.setClassId(classId);
+        execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
+        return execution;
     }
 
     private RequestContext representative(UUID userId, UUID classId) {

@@ -77,7 +77,7 @@ class CreateChecklistExecutionUseCaseTest {
         UUID roomId     = UUID.randomUUID();
         UUID classId    = UUID.randomUUID();
         UUID userId     = UUID.randomUUID();
-        CreateChecklistExecutionCommand request = request(templateId, roomId, classId);
+        CreateChecklistExecutionCommand request = request(templateId, classId);
         ChecklistTemplate template = activeTemplate(templateId, roomId);
         RequestContext currentUser = representative(userId, classId);
         ChecklistExecution draft = ChecklistExecution.builder().id(UUID.randomUUID()).build();
@@ -113,7 +113,7 @@ class CreateChecklistExecutionUseCaseTest {
         UUID templateId = UUID.randomUUID();
         UUID roomId     = UUID.randomUUID();
         UUID classId    = UUID.randomUUID();
-        CreateChecklistExecutionCommand request = request(templateId, roomId, classId);
+        CreateChecklistExecutionCommand request = request(templateId, classId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
         when(hubRoomProvider.existsById(roomId)).thenReturn(true);
@@ -137,7 +137,8 @@ class CreateChecklistExecutionUseCaseTest {
     void deveRejeitarQuandoSalaNaoExisteNoHub() {
         UUID templateId = UUID.randomUUID();
         UUID roomId     = UUID.randomUUID();
-        CreateChecklistExecutionCommand request = request(templateId, roomId, UUID.randomUUID());
+        UUID classId    = UUID.randomUUID();
+        CreateChecklistExecutionCommand request = request(templateId, classId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
         when(hubRoomProvider.existsById(roomId)).thenReturn(false);
@@ -155,7 +156,7 @@ class CreateChecklistExecutionUseCaseTest {
         UUID templateId = UUID.randomUUID();
         UUID roomId     = UUID.randomUUID();
         UUID classId    = UUID.randomUUID();
-        CreateChecklistExecutionCommand request = request(templateId, roomId, classId);
+        CreateChecklistExecutionCommand request = request(templateId, classId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
         when(hubRoomProvider.existsById(roomId)).thenReturn(true);
@@ -173,7 +174,7 @@ class CreateChecklistExecutionUseCaseTest {
         UUID templateId = UUID.randomUUID();
         UUID roomId     = UUID.randomUUID();
         UUID classId    = UUID.randomUUID();
-        CreateChecklistExecutionCommand request = request(templateId, roomId, classId);
+        CreateChecklistExecutionCommand request = request(templateId, classId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
         when(hubRoomProvider.existsById(roomId)).thenReturn(true);
@@ -188,7 +189,7 @@ class CreateChecklistExecutionUseCaseTest {
     @Test
     @DisplayName("deve rejeitar quando template nao existe")
     void deveRejeitarQuandoTemplateNaoExiste() {
-        CreateChecklistExecutionCommand request = request(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+        CreateChecklistExecutionCommand request = request(UUID.randomUUID(), UUID.randomUUID());
 
         when(templateRepository.findById(request.templateId())).thenReturn(Optional.empty());
 
@@ -202,11 +203,11 @@ class CreateChecklistExecutionUseCaseTest {
     @DisplayName("deve rejeitar quando template nao esta ativo")
     void deveRejeitarQuandoTemplateNaoEstaAtivo() {
         UUID templateId = UUID.randomUUID();
-        UUID roomId     = UUID.randomUUID();
-        CreateChecklistExecutionCommand request = request(templateId, roomId, UUID.randomUUID());
+        UUID classId    = UUID.randomUUID();
+        CreateChecklistExecutionCommand request = request(templateId, classId);
         ChecklistTemplate template = ChecklistTemplate.builder()
                 .id(templateId)
-                .roomId(roomId)
+                .roomId(UUID.randomUUID())
                 .status(ChecklistTemplateStatus.DRAFT)
                 .active(false)
                 .build();
@@ -220,27 +221,13 @@ class CreateChecklistExecutionUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve rejeitar quando template pertence a outra sala")
-    void deveRejeitarQuandoTemplatePertenceAOutraSala() {
-        UUID templateId = UUID.randomUUID();
-        CreateChecklistExecutionCommand request = request(templateId, UUID.randomUUID(), UUID.randomUUID());
-
-        when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, UUID.randomUUID())));
-
-        assertThrows(IllegalArgumentException.class, () -> useCase.execute(request));
-
-        verify(executionRepository, never()).existsDuplicateChecklist(any(), any(), any(), any(), any(), any());
-        verify(executionRepository, never()).save(any());
-    }
-
-    @Test
     @DisplayName("deve rejeitar quando usuario nao representa a turma informada")
     void deveRejeitarQuandoUsuarioNaoRepresentaATurmaInformada() {
         UUID templateId      = UUID.randomUUID();
         UUID roomId          = UUID.randomUUID();
         UUID requestedClassId = UUID.randomUUID();
         UUID anotherClassId  = UUID.randomUUID();
-        CreateChecklistExecutionCommand request = request(templateId, roomId, requestedClassId);
+        CreateChecklistExecutionCommand request = request(templateId, requestedClassId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
         when(hubRoomProvider.existsById(roomId)).thenReturn(true);
@@ -260,7 +247,7 @@ class CreateChecklistExecutionUseCaseTest {
         UUID templateId = UUID.randomUUID();
         UUID roomId     = UUID.randomUUID();
         UUID classId    = UUID.randomUUID();
-        CreateChecklistExecutionCommand request = request(templateId, roomId, classId);
+        CreateChecklistExecutionCommand request = request(templateId, classId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
         when(hubRoomProvider.existsById(roomId)).thenReturn(true);
@@ -278,8 +265,8 @@ class CreateChecklistExecutionUseCaseTest {
         verify(executionRepository, never()).save(any());
     }
 
-    private CreateChecklistExecutionCommand request(UUID templateId, UUID roomId, UUID classId) {
-        return new CreateChecklistExecutionCommand(templateId, roomId, classId, ChecklistType.ARRIVAL);
+    private CreateChecklistExecutionCommand request(UUID templateId, UUID classId) {
+        return new CreateChecklistExecutionCommand(templateId, classId, ChecklistType.ARRIVAL);
     }
 
     private ChecklistTemplate activeTemplate(UUID templateId, UUID roomId) {

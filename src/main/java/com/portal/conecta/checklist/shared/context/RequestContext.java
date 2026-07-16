@@ -71,6 +71,7 @@ public record RequestContext(
         if (canManageChecklistTemplates()) {
             return true;
         }
+
         return canOperateChecklistExecutionForClass(classId);
     }
 

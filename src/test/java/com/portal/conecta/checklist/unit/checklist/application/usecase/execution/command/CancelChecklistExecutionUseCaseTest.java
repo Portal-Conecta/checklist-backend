@@ -167,7 +167,7 @@ class CancelChecklistExecutionUseCaseTest {
     }
 
     @Test
-    @DisplayName("status DRAFT falha antes da permissao; canceledBy permanece null")
+    @DisplayName("status DRAFT e rejeitado apos permissao valida; canceledBy permanece null")
     void deveLancarExcecaoQuandoStatusEDraft() {
         UUID executionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -178,12 +178,30 @@ class CancelChecklistExecutionUseCaseTest {
         execution.setStatus(ChecklistExecutionStatus.DRAFT);
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(representative(userId, classId));
 
         IllegalArgumentException excecao = assertThrows(IllegalArgumentException.class,
                 () -> cancelChecklistExecutionUseCase.execute(executionId));
 
         assertEquals("Somente checklist enviados podem ser cancelados", excecao.getMessage());
-        verify(contextProvider, never()).getRequestContext();
+        verify(executionRepository, never()).save(any());
+        assertNull(execution.getCanceledBy());
+    }
+
+    @Test
+    @DisplayName("usuario sem permissao recebe 403 antes da checagem de status — nao vaza estado da execucao")
+    void deveNegarSemVazarEstadoQuandoUsuarioNaoTemPermissaoEStatusEDraft() {
+        UUID executionId = UUID.randomUUID();
+        ChecklistExecution execution = new ChecklistExecution();
+        execution.setUserId(UUID.randomUUID());
+        execution.setClassId(UUID.randomUUID());
+        execution.setStatus(ChecklistExecutionStatus.DRAFT);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID(), UUID.randomUUID()));
+
+        assertThrows(AccessDeniedException.class, () -> cancelChecklistExecutionUseCase.execute(executionId));
+
         verify(executionRepository, never()).save(any());
         assertNull(execution.getCanceledBy());
     }
@@ -200,12 +218,12 @@ class CancelChecklistExecutionUseCaseTest {
         execution.setStatus(ChecklistExecutionStatus.CANCELED);
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(representative(userId, classId));
 
         IllegalArgumentException excecao = assertThrows(IllegalArgumentException.class,
                 () -> cancelChecklistExecutionUseCase.execute(executionId));
 
         assertEquals("Somente checklist enviados podem ser cancelados", excecao.getMessage());
-        verify(contextProvider, never()).getRequestContext();
         verify(executionRepository, never()).save(any());
     }
 

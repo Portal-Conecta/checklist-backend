@@ -52,9 +52,6 @@ public class ChecklistIssue {
     @Column(name = "item_key", nullable = false, length = 150)
     private String itemKey;
 
-    @Column(name = "item_title_snapshot", nullable = false, length = 150)
-    private String itemTitleSnapshot;
-
     @Column(name = "title", nullable = false, length = 100)
     private String title;
 

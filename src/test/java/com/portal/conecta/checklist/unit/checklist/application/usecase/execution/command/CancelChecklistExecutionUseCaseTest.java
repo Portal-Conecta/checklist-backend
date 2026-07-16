@@ -79,8 +79,8 @@ class CancelChecklistExecutionUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve negar cancelamento quando usuario nao e dono nem gestor")
-    void deveNegarCancelamentoQuandoUsuarioNaoEDonoNemGestor() {
+    @DisplayName("representante da mesma turma cancela execucao criada por colega — posse do rascunho nao e exigida")
+    void devePermitirCancelamentoPorColegaRepresentanteDaMesmaTurma() {
         UUID executionId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
         ChecklistExecution execution = new ChecklistExecution();
@@ -90,10 +90,12 @@ class CancelChecklistExecutionUseCaseTest {
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
         when(contextProvider.getRequestContext()).thenReturn(representative(UUID.randomUUID(), classId));
+        when(executionRepository.save(execution)).thenReturn(execution);
 
-        assertThrows(AccessDeniedException.class, () -> cancelChecklistExecutionUseCase.execute(executionId));
+        ChecklistExecution resultado = cancelChecklistExecutionUseCase.execute(executionId);
 
-        verify(executionRepository, never()).save(any());
+        assertEquals(ChecklistExecutionStatus.CANCELED, resultado.getStatus());
+        verify(executionRepository).save(execution);
     }
 
     @Test

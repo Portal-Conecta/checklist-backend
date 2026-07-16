@@ -462,7 +462,8 @@ class ChecklistExecutionAuthorizationTest {
     }
 
     @Test
-    void teacherNaoCancelaExecucaoDeOutroUsuario() throws Exception {
+    void teacherCancelaExecucaoDeOutroUsuarioDaMesmaTurma() throws Exception {
+        // Qualquer operador da turma (representante/professor) pode cancelar — posse do rascunho nao e exigida.
         UUID templateId = UUID.randomUUID();
         UUID roomId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
@@ -471,9 +472,11 @@ class ChecklistExecutionAuthorizationTest {
         ChecklistExecution execution = submittedExecution(executionId, template, classId, UUID.randomUUID());
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(executionRepository.countByUserIdAndStatus(any(), eq(ChecklistExecutionStatus.SUBMITTED.name()))).thenReturn(0L);
+        when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/cancel"), teacherOf(classId)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     @Test

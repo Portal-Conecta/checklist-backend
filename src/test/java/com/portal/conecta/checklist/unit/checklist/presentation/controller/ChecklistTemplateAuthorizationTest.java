@@ -122,7 +122,7 @@ class ChecklistTemplateAuthorizationTest {
                 List.of(new ChecklistItem("quadro", "Quadro em bom estado?", "Verificar quadro", AnswerType.CONFORMITY, true, 1))
         )));
         String body = """
-                {"roomId":"%s","title":"Checklist padrao","description":"desc","schemaJson":%s}
+                {"roomId":"%s","title":"Checklist padrao","description":"desc","category":"GERAL","schemaJson":%s}
                 """.formatted(UUID.randomUUID(), objectMapper.writeValueAsString(schema));
         return body;
     }

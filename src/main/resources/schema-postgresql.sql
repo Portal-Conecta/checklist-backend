@@ -75,6 +75,12 @@ ALTER TABLE IF EXISTS checklist_execution
 UPDATE checklist_template SET category = 'GERAL' WHERE category IS NULL;
 UPDATE checklist_execution SET category = 'GERAL' WHERE category IS NULL;
 
+ALTER TABLE checklist_template
+    ALTER COLUMN category SET NOT NULL;
+
+ALTER TABLE checklist_execution
+    ALTER COLUMN category SET NOT NULL;
+
 CREATE INDEX IF NOT EXISTS idx_template_category
     ON checklist_template (category);
 

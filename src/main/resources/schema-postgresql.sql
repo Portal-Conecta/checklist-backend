@@ -65,6 +65,31 @@ CREATE INDEX IF NOT EXISTS idx_execution_status
 CREATE INDEX IF NOT EXISTS idx_execution_checklist_type
     ON checklist_execution (checklist_type);
 
+-- Classificação por grupo de itens da sala (eletrônicos, móveis, etc.)
+ALTER TABLE IF EXISTS checklist_template
+    ADD COLUMN IF NOT EXISTS category VARCHAR(40);
+
+ALTER TABLE IF EXISTS checklist_execution
+    ADD COLUMN IF NOT EXISTS category VARCHAR(40);
+
+UPDATE checklist_template SET category = 'GERAL' WHERE category IS NULL;
+UPDATE checklist_execution SET category = 'GERAL' WHERE category IS NULL;
+
+ALTER TABLE checklist_template
+    ALTER COLUMN category SET NOT NULL;
+
+ALTER TABLE checklist_execution
+    ALTER COLUMN category SET NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_template_category
+    ON checklist_template (category);
+
+CREATE INDEX IF NOT EXISTS idx_execution_category
+    ON checklist_execution (category);
+
+CREATE INDEX IF NOT EXISTS idx_execution_category_status
+    ON checklist_execution (category, status);
+
 -- Suporte a GROUP BY shift
 CREATE INDEX IF NOT EXISTS idx_execution_shift
     ON checklist_execution (shift);

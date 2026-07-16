@@ -74,6 +74,7 @@ public class CreateChecklistTemplateVersionUseCase {
                 .roomId(origin.getRoomId())
                 .title(origin.getTitle())
                 .description(origin.getDescription())
+                .category(origin.getCategory())
                 .schemaJson(origin.getSchemaJson())
                 .version(origin.getVersion() + 1)
                 .status(ChecklistTemplateStatus.DRAFT)

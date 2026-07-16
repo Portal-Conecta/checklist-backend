@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.list;
 
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
@@ -16,7 +17,8 @@ import java.util.List;
  * Caso de uso responsavel por listar templates de checklist.
  *
  * <p>A listagem respeita as regras de acesso do modulo e retorna os templates
- * existentes para usuarios autorizados.</p>
+ * existentes para usuarios autorizados. Aceita filtro opcional por
+ * {@link ChecklistCategory} (grupo de itens da sala).</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -27,6 +29,11 @@ public class ListChecklistTemplatesUseCase {
 
     @Transactional(readOnly = true)
     public List<ChecklistTemplate> execute() {
+        return execute(null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ChecklistTemplate> execute(ChecklistCategory category) {
         RequestContext currentUser = contextProvider.getRequestContext();
 
         if (!currentUser.canAccessChecklistModule()) {
@@ -34,9 +41,18 @@ public class ListChecklistTemplatesUseCase {
         }
 
         if (currentUser.canManageChecklistTemplates()) {
-            return templateRepository.findAll();
+            if (category == null) {
+                return templateRepository.findAll();
+            }
+            return templateRepository.findAllByCategory(category);
         }
 
-        return templateRepository.findAllByActiveTrueAndStatus(ChecklistTemplateStatus.ACTIVE);
+        if (category == null) {
+            return templateRepository.findAllByActiveTrueAndStatus(ChecklistTemplateStatus.ACTIVE);
+        }
+        return templateRepository.findAllByActiveTrueAndStatusAndCategory(
+                ChecklistTemplateStatus.ACTIVE,
+                category
+        );
     }
 }

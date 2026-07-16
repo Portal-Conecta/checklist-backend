@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.unit.checklist.application.usecase.template.query;
 
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.list.ListChecklistTemplatesUseCase;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistTemplateRepository;
@@ -71,6 +72,26 @@ class ListChecklistTemplatesUseCaseTest {
         assertEquals(templates, result);
         verify(templateRepository, never()).findAll();
         verify(templateRepository).findAllByActiveTrueAndStatus(ChecklistTemplateStatus.ACTIVE);
+    }
+
+    @Test
+    void shouldFilterTemplatesByCategoryForManagement() {
+        List<ChecklistTemplate> templates = List.of(
+                ChecklistTemplate.builder()
+                        .id(UUID.randomUUID())
+                        .category(ChecklistCategory.MOVEIS)
+                        .status(ChecklistTemplateStatus.ACTIVE)
+                        .build()
+        );
+
+        when(contextProvider.getRequestContext()).thenReturn(senai());
+        when(templateRepository.findAllByCategory(ChecklistCategory.MOVEIS)).thenReturn(templates);
+
+        List<ChecklistTemplate> result = useCase.execute(ChecklistCategory.MOVEIS);
+
+        assertEquals(templates, result);
+        verify(templateRepository).findAllByCategory(ChecklistCategory.MOVEIS);
+        verify(templateRepository, never()).findAll();
     }
 
     private RequestContext apprentice() {

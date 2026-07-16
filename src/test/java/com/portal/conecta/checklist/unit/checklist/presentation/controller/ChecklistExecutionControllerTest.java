@@ -148,14 +148,14 @@ class ChecklistExecutionControllerTest {
         Page<ChecklistExecution> executions = new PageImpl<>(List.of(execution), pageable, 1);
         Page<ChecklistExecutionHistoryDTO> response = new PageImpl<>(List.of(history), pageable, 1);
 
-        when(listHistoryByClassUseCase.execute(classId, pageable)).thenReturn(executions);
+        when(listHistoryByClassUseCase.execute(classId, pageable, null)).thenReturn(executions);
         when(mapper.toPageHistoryWithEnrichment(executions, classId)).thenReturn(response);
 
-        ResponseEntity<Page<ChecklistExecutionHistoryDTO>> result = controller.listHistoryByClass(classId, pageable);
+        ResponseEntity<Page<ChecklistExecutionHistoryDTO>> result = controller.listHistoryByClass(classId, pageable, null);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
-        verify(listHistoryByClassUseCase).execute(classId, pageable);
+        verify(listHistoryByClassUseCase).execute(classId, pageable, null);
         verify(mapper).toPageHistoryWithEnrichment(executions, classId);
     }
 

@@ -8,6 +8,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.templa
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.list.ListChecklistTemplatesUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchChecklistItemUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchItemsByCategoryUseCase;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemByCategorySearchResponseDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemSearchResponseDTO;
@@ -201,8 +202,10 @@ public class ChecklistTemplateController {
             )
     })
     @GetMapping
-    public ResponseEntity<List<ChecklistTemplateResponseDTO>> listTemplates() {
-        return ResponseEntity.ok(mapper.toResponseListWithEnrichment(listUseCase.execute()));
+    public ResponseEntity<List<ChecklistTemplateResponseDTO>> listTemplates(
+            @RequestParam(value = "category", required = false) ChecklistCategory category
+    ) {
+        return ResponseEntity.ok(mapper.toResponseListWithEnrichment(listUseCase.execute(category)));
     }
 
     @Operation(summary = "Editar Template", description = "Atualiza parcialmente um template com status DRAFT. Campos não informados são mantidos.")

@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.response;
 
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.Period;
@@ -23,6 +24,7 @@ import java.util.UUID;
  * @param canceledBy identificador de quem cancelou (nullable).
  * @param period periodo em que o checklist foi executado.
  * @param checklistType tipo do checklist executado.
+ * @param category classificacao por grupo de itens da sala.
  * @param status status atual da execucao.
  * @param complianceScore percentual ou pontuacao de conformidade calculada para a execucao.
  * @param startedAt instante em que a execucao foi iniciada.
@@ -41,6 +43,7 @@ public record ChecklistExecutionHistoryDTO(UUID id,
                                            UUID canceledBy,
                                            Period period,
                                            ChecklistType checklistType,
+                                           ChecklistCategory category,
                                            ChecklistExecutionStatus status,
                                            BigDecimal complianceScore,
                                            Instant startedAt,

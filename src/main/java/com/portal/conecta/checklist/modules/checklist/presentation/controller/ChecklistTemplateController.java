@@ -8,6 +8,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.templa
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.list.ListChecklistTemplatesUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchChecklistItemUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.query.search.SearchItemsByCategoryUseCase;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request.ChecklistTemplateCreateRequest;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response.ChecklistItemByCategorySearchResponseDTO;
@@ -209,9 +210,11 @@ public class ChecklistTemplateController {
         @Parameter(description = "Filtra os templates pertencentes à sala informada")
         @RequestParam(required = false) UUID roomId,
         @Parameter(description = "Filtra os templates pelo status informado (DRAFT, ACTIVE ou INACTIVE)")
-        @RequestParam(required = false) ChecklistTemplateStatus status
+        @RequestParam(required = false) ChecklistTemplateStatus status,
+        @Parameter(description = "Filtra os templates pela categoria (grupo de itens da sala)")
+        @RequestParam(required = false) ChecklistCategory category
     ) {
-        return ResponseEntity.ok(mapper.toResponseListWithEnrichment(listUseCase.execute(roomId, status)));
+        return ResponseEntity.ok(mapper.toResponseListWithEnrichment(listUseCase.execute(roomId, status, category)));
     }
 
     @Operation(summary = "Editar Template", description = "Atualiza parcialmente um template com status DRAFT. Campos não informados são mantidos.")

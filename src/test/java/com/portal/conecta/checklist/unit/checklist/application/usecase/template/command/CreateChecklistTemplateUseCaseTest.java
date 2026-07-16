@@ -7,6 +7,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.templa
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateUseCase;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.AnswerType;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSection;
@@ -54,6 +55,7 @@ class CreateChecklistTemplateUseCaseTest {
 
         assertThat(result.getRoomId()).isEqualTo(roomId);
         assertThat(result.getTitle()).isEqualTo("Checklist padrao");
+        assertThat(result.getCategory()).isEqualTo(ChecklistCategory.ELETRONICOS);
         verify(templateRepository).save(any(ChecklistTemplate.class));
     }
 
@@ -102,6 +104,7 @@ class CreateChecklistTemplateUseCaseTest {
                 roomId,
                 "Checklist padrao",
                 "Descricao",
+                ChecklistCategory.ELETRONICOS,
                 schema("estrutura", "quadro")
         );
     }

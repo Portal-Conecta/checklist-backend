@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.infrastructure.persistence;
 
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
@@ -89,4 +90,11 @@ public interface ChecklistTemplateRepository
     List<ChecklistTemplate> findByTemplateGroupIdAndStatus(UUID templateGroupId, ChecklistTemplateStatus status);
            
     List<ChecklistTemplate> findAllByActiveTrueAndStatus(ChecklistTemplateStatus status);
+
+    List<ChecklistTemplate> findAllByCategory(ChecklistCategory category);
+
+    List<ChecklistTemplate> findAllByActiveTrueAndStatusAndCategory(
+            ChecklistTemplateStatus status,
+            ChecklistCategory category
+    );
 }

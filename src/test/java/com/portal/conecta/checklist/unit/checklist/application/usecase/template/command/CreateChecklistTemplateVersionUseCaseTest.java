@@ -52,6 +52,7 @@ class CreateChecklistTemplateVersionUseCaseTest {
         assertFalse(result.isActive());
         assertEquals(groupId, result.getTemplateGroupId());
         assertEquals(2, result.getVersion());
+        assertEquals(origin.getCategory(), result.getCategory());
         assertNull(result.getId());
         verify(templateRepository).save(any());
     }
@@ -116,6 +117,7 @@ class CreateChecklistTemplateVersionUseCaseTest {
                 .roomId(UUID.randomUUID())
                 .title("Template teste")
                 .description("Descricao teste")
+                .category(com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory.GERAL)
                 .version(version)
                 .status(status)
                 .active(status == ChecklistTemplateStatus.ACTIVE)

@@ -88,6 +88,7 @@ public class ChecklistTemplateMapper {
                 template.getRoomId(),
                 template.getTitle(),
                 template.getDescription(),
+                template.getCategory(),
                 template.getVersion(),
                 template.getStatus(),
                 template.isActive(),
@@ -126,6 +127,7 @@ public class ChecklistTemplateMapper {
         template.setRoomId(request.roomId());
         template.setTitle(request.title());
         template.setDescription(request.description());
+        template.setCategory(request.category());
 
         if (request.schemaJson() != null) {
             Map<String, Object> mappedSchema = objectMapper.convertValue(

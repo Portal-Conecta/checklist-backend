@@ -103,14 +103,14 @@ class ChecklistTemplateControllerTest {
         List<ChecklistTemplate> templates = List.of(mock(ChecklistTemplate.class));
         List<ChecklistTemplateResponseDTO> response = List.of(mock(ChecklistTemplateResponseDTO.class));
 
-        when(listUseCase.execute(null, null)).thenReturn(templates);
+        when(listUseCase.execute(null, null, null)).thenReturn(templates);
         when(mapper.toResponseListWithEnrichment(templates)).thenReturn(response);
 
-        ResponseEntity<List<ChecklistTemplateResponseDTO>> result = controller.listTemplates(null, null);
+        ResponseEntity<List<ChecklistTemplateResponseDTO>> result = controller.listTemplates(null, null, null);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
-        verify(listUseCase).execute(null, null);
+        verify(listUseCase).execute(null, null, null);
     }
 
     @Test
@@ -121,14 +121,14 @@ class ChecklistTemplateControllerTest {
         List<ChecklistTemplate> templates = List.of(mock(ChecklistTemplate.class));
         List<ChecklistTemplateResponseDTO> response = List.of(mock(ChecklistTemplateResponseDTO.class));
 
-        when(listUseCase.execute(roomId, status)).thenReturn(templates);
+        when(listUseCase.execute(roomId, status, null)).thenReturn(templates);
         when(mapper.toResponseListWithEnrichment(templates)).thenReturn(response);
 
-        ResponseEntity<List<ChecklistTemplateResponseDTO>> result = controller.listTemplates(roomId, status);
+        ResponseEntity<List<ChecklistTemplateResponseDTO>> result = controller.listTemplates(roomId, status, null);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
-        verify(listUseCase).execute(roomId, status);
+        verify(listUseCase).execute(roomId, status, null);
     }
 
     @Test
@@ -137,13 +137,13 @@ class ChecklistTemplateControllerTest {
         UUID roomId = UUID.randomUUID();
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
-        when(listUseCase.execute(roomId, null)).thenReturn(List.of());
+        when(listUseCase.execute(roomId, null, null)).thenReturn(List.of());
         when(mapper.toResponseListWithEnrichment(List.of())).thenReturn(List.of());
 
         mockMvc.perform(get("/api/checklist-templates").param("roomId", roomId.toString()))
             .andExpect(status().isOk());
 
-        verify(listUseCase).execute(roomId, null);
+        verify(listUseCase).execute(roomId, null, null);
     }
 
     @Test
@@ -151,13 +151,13 @@ class ChecklistTemplateControllerTest {
     void deveListarTemplatesFiltrandoApenasPorStatus() throws Exception {
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
-        when(listUseCase.execute(null, ChecklistTemplateStatus.ACTIVE)).thenReturn(List.of());
+        when(listUseCase.execute(null, ChecklistTemplateStatus.ACTIVE, null)).thenReturn(List.of());
         when(mapper.toResponseListWithEnrichment(List.of())).thenReturn(List.of());
 
         mockMvc.perform(get("/api/checklist-templates").param("status", "ACTIVE"))
             .andExpect(status().isOk());
 
-        verify(listUseCase).execute(null, ChecklistTemplateStatus.ACTIVE);
+        verify(listUseCase).execute(null, ChecklistTemplateStatus.ACTIVE, null);
     }
 
     @Test
@@ -166,7 +166,7 @@ class ChecklistTemplateControllerTest {
         UUID roomId = UUID.randomUUID();
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
-        when(listUseCase.execute(roomId, ChecklistTemplateStatus.ACTIVE)).thenReturn(List.of());
+        when(listUseCase.execute(roomId, ChecklistTemplateStatus.ACTIVE, null)).thenReturn(List.of());
         when(mapper.toResponseListWithEnrichment(List.of())).thenReturn(List.of());
 
         mockMvc.perform(get("/api/checklist-templates")
@@ -174,6 +174,6 @@ class ChecklistTemplateControllerTest {
                 .param("status", "ACTIVE"))
             .andExpect(status().isOk());
 
-        verify(listUseCase).execute(roomId, ChecklistTemplateStatus.ACTIVE);
+        verify(listUseCase).execute(roomId, ChecklistTemplateStatus.ACTIVE, null);
     }
 }

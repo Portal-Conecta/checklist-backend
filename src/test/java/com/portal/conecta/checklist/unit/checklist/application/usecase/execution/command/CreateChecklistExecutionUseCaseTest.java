@@ -74,6 +74,7 @@ class CreateChecklistExecutionUseCaseTest {
     @DisplayName("deve criar draft quando template esta ativo e nao existe duplicidade")
     void deveCriarDraftQuandoTemplateEstaAtivoENaoExisteDuplicidade() {
         UUID templateId = UUID.randomUUID();
+        UUID roomId     = UUID.randomUUID();
         UUID classId    = UUID.randomUUID();
         UUID userId     = UUID.randomUUID();
         CreateChecklistExecutionCommand request = request(templateId, classId);
@@ -219,7 +220,6 @@ class CreateChecklistExecutionUseCaseTest {
         verify(executionRepository, never()).save(any());
     }
 
-    
     @Test
     @DisplayName("deve rejeitar quando usuario nao representa a turma informada")
     void deveRejeitarQuandoUsuarioNaoRepresentaATurmaInformada() {
@@ -227,7 +227,7 @@ class CreateChecklistExecutionUseCaseTest {
         UUID roomId          = UUID.randomUUID();
         UUID requestedClassId = UUID.randomUUID();
         UUID anotherClassId  = UUID.randomUUID();
-        CreateChecklistExecutionCommand request = request(templateId, roomId, requestedClassId);
+        CreateChecklistExecutionCommand request = request(templateId, requestedClassId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
         when(hubRoomProvider.existsById(roomId)).thenReturn(true);
@@ -247,7 +247,7 @@ class CreateChecklistExecutionUseCaseTest {
         UUID templateId = UUID.randomUUID();
         UUID roomId     = UUID.randomUUID();
         UUID classId    = UUID.randomUUID();
-        CreateChecklistExecutionCommand request = request(templateId, roomId, classId);
+        CreateChecklistExecutionCommand request = request(templateId, classId);
 
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(activeTemplate(templateId, roomId)));
         when(hubRoomProvider.existsById(roomId)).thenReturn(true);

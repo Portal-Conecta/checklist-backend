@@ -61,7 +61,6 @@ class ChecklistExecutionControllerTest {
         ChecklistExecutionDraftCreateDTO request = new ChecklistExecutionDraftCreateDTO(
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                UUID.randomUUID(),
                 ChecklistType.ARRIVAL
         );
         ChecklistExecution execution = mock(ChecklistExecution.class);

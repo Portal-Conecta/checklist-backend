@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.dto.template.response;
 
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.shared.RoomResponseDTO;
@@ -18,6 +19,7 @@ public record ChecklistTemplateResponseDTO(
         UUID roomId,
         String title,
         String description,
+        ChecklistCategory category,
         Integer version,
         ChecklistTemplateStatus status,
         Boolean active,

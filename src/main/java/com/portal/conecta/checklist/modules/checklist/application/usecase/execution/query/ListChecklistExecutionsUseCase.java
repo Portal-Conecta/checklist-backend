@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query;
 
 import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionRepositoryPort;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
@@ -23,20 +24,31 @@ public class ListChecklistExecutionsUseCase {
 
     @Transactional(readOnly = true)
     public Page<ChecklistExecution> execute(Pageable pageable) {
+        return execute(pageable, null);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ChecklistExecution> execute(Pageable pageable, ChecklistCategory category) {
         var context = contextProvider.getRequestContext();
 
         if (context.canManageChecklistTemplates()) {
-            return repositoryPort.findAll(pageable);
-        } else {
-            List<UUID> classIds = context.classes().stream()
-                    .map((ContextClass contextClass) -> contextClass.classId())
-                    .collect(Collectors.toList());
-            
-            if (classIds.isEmpty()) {
-                return Page.empty(pageable);
+            if (category == null) {
+                return repositoryPort.findAll(pageable);
             }
-            
+            return repositoryPort.findByCategory(category, pageable);
+        }
+
+        List<UUID> classIds = context.classes().stream()
+                .map(ContextClass::classId)
+                .collect(Collectors.toList());
+
+        if (classIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        if (category == null) {
             return repositoryPort.findByClassIdIn(classIds, pageable);
         }
+        return repositoryPort.findByClassIdInAndCategory(classIds, category, pageable);
     }
 }

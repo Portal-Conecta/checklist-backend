@@ -43,7 +43,9 @@ public enum TypeUser {
      */
     WEG,
     /**
-     * Administrador do sistema. Acesso irrestrito a todas as funcionalidades.
+     * Administrador do sistema. No modulo Checklist tem o mesmo poder gerencial
+     * de SENAI/WEG (templates, dashboard, issues, consulta/cancelamento global).
+     * Nao substitui o perfil operacional de representante/professor.
      */
     ADMIN
 }

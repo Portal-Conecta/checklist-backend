@@ -150,16 +150,18 @@ class EditChecklistTemplateUseCaseTest {
         return new UpdateChecklistTemplateCommand(
                 "Novo titulo",
                 "Nova descricao",
+                null,
                 schema("secao-1", "item-1")
         );
     }
 
     private UpdateChecklistTemplateCommand commandOnlySchema() {
-        return new UpdateChecklistTemplateCommand(null, null, schema("secao-1", "item-1"));
+        return new UpdateChecklistTemplateCommand(null, null, null, schema("secao-1", "item-1"));
     }
 
     private UpdateChecklistTemplateCommand commandDuplicateKeys() {
         return new UpdateChecklistTemplateCommand(
+                null,
                 null,
                 null,
                 new ChecklistSchema(List.of(

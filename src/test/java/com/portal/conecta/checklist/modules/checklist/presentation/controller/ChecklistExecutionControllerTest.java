@@ -32,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 class ChecklistExecutionControllerTest {
 
@@ -135,6 +137,32 @@ class ChecklistExecutionControllerTest {
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
         verify(updateAnswersUseCase).execute(executionId, command);
+        verify(mapper).toResponse(execution);
+    }
+
+    @Test
+    @DisplayName("deve retornar paginacao de execucoes ao listar todas com filtros")
+    void deveRetornarPaginacaoAoListarTodas() {
+        UUID classId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        String from = "2023-10-01";
+        String to = "2023-10-10";
+        PageRequest pageable = PageRequest.of(0, 20);
+        
+        ChecklistExecution execution = mock(ChecklistExecution.class);
+        ChecklistExecutionResponseDTO responseDto = mock(ChecklistExecutionResponseDTO.class);
+        Page<ChecklistExecution> executions = new PageImpl<>(List.of(execution), pageable, 1);
+        
+        when(listExecutionsUseCase.execute(any(com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ChecklistExecutionFilter.class), eq(pageable))).thenReturn(executions);
+        when(mapper.toResponse(execution)).thenReturn(responseDto);
+
+        ResponseEntity<Page<ChecklistExecutionResponseDTO>> result = controller.listAll(classId, roomId, from, to, pageable);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(1, result.getBody().getContent().size());
+        assertSame(responseDto, result.getBody().getContent().get(0));
+        
+        verify(listExecutionsUseCase).execute(any(com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ChecklistExecutionFilter.class), eq(pageable));
         verify(mapper).toResponse(execution);
     }
 

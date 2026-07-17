@@ -30,6 +30,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ChecklistExecutionFilter;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @RestController
 @RequestMapping("/api/checklist-executions")
@@ -240,13 +244,18 @@ public class ChecklistExecutionController {
 
     @Operation(
             summary = "Listar execuções de checklist",
-            description = "Retorna uma lista paginada de execuções de checklist, aplicando os filtros de permissão de acesso conforme o perfil do usuário."
+            description = "Retorna uma lista paginada de execuções de checklist, aplicando os filtros opcionais e as regras de permissão de acesso conforme o perfil do usuário."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "Execuções listadas com sucesso",
                     content = @Content(schema = @Schema(implementation = Page.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Formato inválido de parâmetros de filtro",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
                     responseCode = "401",
@@ -260,11 +269,28 @@ public class ChecklistExecutionController {
             )
     })
     @GetMapping
-    public ResponseEntity<Page<ChecklistExecutionResponseDTO>> listAll(@PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(listExecutionsUseCase.execute(pageable).map(mapper::toResponse));
+    public ResponseEntity<Page<ChecklistExecutionResponseDTO>> listAll(
+            @Parameter(description = "UUID da turma para filtrar")
+            @RequestParam(required = false) UUID classId,
+            @Parameter(description = "UUID da sala para filtrar")
+            @RequestParam(required = false) UUID roomId,
+            @Parameter(description = "Data/Hora de início no formato ISO (LocalDate ou LocalDateTime)")
+            @RequestParam(required = false) String from,
+            @Parameter(description = "Data/Hora de término no formato ISO (LocalDate ou LocalDateTime)")
+            @RequestParam(required = false) String to,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        LocalDateTime parsedFrom = parseDateTime(from, false);
+        LocalDateTime parsedTo = parseDateTime(to, true);
+        ChecklistExecutionFilter filter = new ChecklistExecutionFilter(classId, roomId, parsedFrom, parsedTo);
+        return ResponseEntity.ok(listExecutionsUseCase.execute(filter, pageable).map(mapper::toResponse));
     }
 
+    /**
+     * @deprecated Utilizar o endpoint principal {@link #listAll(UUID, UUID, String, String, Pageable)} filtrando por classId.
+     */
     @GetMapping("/history/class/{classId}")
+    @Deprecated
     public ResponseEntity<Page<ChecklistExecutionHistoryDTO>> listHistoryByClass(
             @PathVariable UUID classId,
             @PageableDefault(size = 20) Pageable pageable
@@ -320,5 +346,21 @@ public class ChecklistExecutionController {
             @RequestBody @Valid ChecklistExecutionSubmitDTO request
     ) {
         return ResponseEntity.ok(mapper.toResponse(updateAnswersUseCase.execute(executionId, request.toCommand())));
+    }
+
+    private LocalDateTime parseDateTime(String value, boolean endOfDay) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDateTime.parse(value);
+        } catch (Exception e1) {
+            try {
+                LocalDate date = LocalDate.parse(value);
+                return endOfDay ? date.atTime(LocalTime.MAX) : date.atStartOfDay();
+            } catch (Exception e2) {
+                throw new IllegalArgumentException("Formato de data/hora invalido: " + value);
+            }
+        }
     }
 }

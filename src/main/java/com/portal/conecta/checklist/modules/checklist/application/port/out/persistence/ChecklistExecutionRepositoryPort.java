@@ -4,6 +4,7 @@ import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExec
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.ListCrudRepository;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @NoRepositoryBean
-public interface ChecklistExecutionRepositoryPort extends ListCrudRepository<ChecklistExecution, UUID> {
+public interface ChecklistExecutionRepositoryPort extends ListCrudRepository<ChecklistExecution, UUID>, JpaSpecificationExecutor<ChecklistExecution> {
 
     boolean existsDuplicateChecklist(
             UUID classId,

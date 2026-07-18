@@ -104,6 +104,6 @@ resolve os destinatários reais**. `metadata` carrega dados de deep-link (ex.: r
 
 - `shared/messaging/config/RabbitMQConfig`, `RabbitMQProperties`
 - `shared/messaging/event/NotificationEvent`, `shared/messaging/notification/NotificationEventType`
-- `modules/checklist/application/port/out/messaging/NotificationEventPublisher`
-- `modules/checklist/infrastructure/messaging/RabbitMQNotificationPublisher`
-- `modules/checklist/infrastructure/messaging/ChecklistNonComplianceEventListener`
+- `module/checklist/application/port/out/messaging/NotificationEventPublisher`
+- `module/checklist/infrastructure/messaging/RabbitMQNotificationPublisher`
+- `module/checklist/infrastructure/messaging/ChecklistNonComplianceEventListener`

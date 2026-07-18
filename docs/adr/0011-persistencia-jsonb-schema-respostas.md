@@ -70,8 +70,8 @@ consultáveis e com regra de negócio.
 
 ## Referências
 
-- `modules/checklist/domain/model/ChecklistTemplate` (`schemaJson`)
-- `modules/checklist/domain/model/ChecklistExecution` (`answersJson`)
-- `modules/checklist/domain/schema/ChecklistSchema`
-- `modules/checklist/application/service/execution/ChecklistExecutionAnswerValidationService`
+- `module/checklist/domain/model/ChecklistTemplate` (`schemaJson`)
+- `module/checklist/domain/model/ChecklistExecution` (`answersJson`)
+- `module/checklist/domain/schema/ChecklistSchema`
+- `module/checklist/application/service/execution/ChecklistExecutionAnswerValidationService`
 - Migration `db/migration/V1__criar_estrutura_inicial_checklist.sql`

@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.integration.shared.messaging;
 
-import com.portal.conecta.checklist.modules.checklist.application.port.out.messaging.NotificationEventPublisher;
-import com.portal.conecta.checklist.modules.checklist.infrastructure.messaging.RabbitMQNotificationPublisher;
+import com.portal.conecta.checklist.module.checklist.application.port.out.messaging.NotificationEventPublisher;
+import com.portal.conecta.checklist.module.checklist.infrastructure.messaging.RabbitMQNotificationPublisher;
 import com.portal.conecta.checklist.shared.messaging.config.RabbitMQProperties;
 import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
 import org.junit.jupiter.api.Test;

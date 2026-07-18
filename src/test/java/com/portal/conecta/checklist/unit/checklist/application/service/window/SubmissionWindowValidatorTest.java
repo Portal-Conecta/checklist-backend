@@ -1,10 +1,10 @@
 package com.portal.conecta.checklist.unit.checklist.application.service.window;
 
-import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistSubmissionWindowRepositoryPort;
-import com.portal.conecta.checklist.modules.checklist.application.service.window.SubmissionWindowValidator;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
-import com.portal.conecta.checklist.modules.checklist.domain.exception.SubmissionWindowViolationException;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistSubmissionWindow;
+import com.portal.conecta.checklist.module.checklist.application.port.out.persistence.ChecklistSubmissionWindowRepositoryPort;
+import com.portal.conecta.checklist.module.checklist.application.service.window.SubmissionWindowValidator;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
+import com.portal.conecta.checklist.module.checklist.domain.exception.SubmissionWindowViolationException;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistSubmissionWindow;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

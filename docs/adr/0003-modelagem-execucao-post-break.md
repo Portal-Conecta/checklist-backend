@@ -68,5 +68,5 @@ atual. Se o produto pedir perguntas diferentes para `ARRIVAL` e `POST_BREAK`, is
 
 ## Referências
 
-- `modules/checklist/domain/model/ChecklistExecution`
+- `module/checklist/domain/model/ChecklistExecution`
 - [Fluxo operacional](../dominio/fluxo-operacional.md)

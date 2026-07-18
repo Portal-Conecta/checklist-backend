@@ -1,16 +1,16 @@
 package com.portal.conecta.checklist.unit.checklist.application.usecase.template.command;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
-import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateCommand;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateUseCase;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.AnswerType;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSection;
+import com.portal.conecta.checklist.module.checklist.application.port.out.integration.HubRoomProvider;
+import com.portal.conecta.checklist.module.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.command.create.CreateChecklistTemplateCommand;
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.command.create.CreateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.domain.enums.AnswerType;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistCategory;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistItem;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistSchema;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistSection;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;

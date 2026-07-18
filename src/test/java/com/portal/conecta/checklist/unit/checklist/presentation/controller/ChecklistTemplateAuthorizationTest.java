@@ -1,18 +1,18 @@
-package com.portal.conecta.checklist.modules.checklist.presentation.controller;
+package com.portal.conecta.checklist.module.checklist.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.AnswerType;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSection;
+import com.portal.conecta.checklist.module.checklist.application.port.out.integration.HubRoomProvider;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.domain.enums.AnswerType;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistItem;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistSchema;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistSection;
 import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.TypeUser;
-import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistTemplateRepository;
+import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -244,7 +244,7 @@ class ChecklistTemplateAuthorizationTest {
         ChecklistTemplate template = draftTemplate(templateId, roomId);
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
         when(templateRepository.findByTemplateGroupIdAndStatus(any(), any())).thenReturn(List.of());
-        when(hubRoomProvider.findById(roomId)).thenReturn(Optional.of(new com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference(roomId)));
+        when(hubRoomProvider.findById(roomId)).thenReturn(Optional.of(new com.portal.conecta.checklist.module.checklist.domain.valueobject.RoomReference(roomId)));
         when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc().perform(authed(patch("/api/checklist-templates/" + templateId + "/activate"), senai()))
@@ -270,7 +270,7 @@ class ChecklistTemplateAuthorizationTest {
         ChecklistTemplate template = draftTemplate(templateId, roomId);
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
         when(templateRepository.findByTemplateGroupIdAndStatus(any(), any())).thenReturn(List.of());
-        when(hubRoomProvider.findById(roomId)).thenReturn(Optional.of(new com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference(roomId)));
+        when(hubRoomProvider.findById(roomId)).thenReturn(Optional.of(new com.portal.conecta.checklist.module.checklist.domain.valueobject.RoomReference(roomId)));
         when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc().perform(authed(patch("/api/checklist-templates/" + templateId + "/activate"), admin()))
@@ -382,7 +382,7 @@ class ChecklistTemplateAuthorizationTest {
         UUID roomId = UUID.randomUUID();
         ChecklistTemplate template = activeTemplate(templateId, roomId);
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
-        when(hubRoomProvider.findById(roomId)).thenReturn(Optional.of(new com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference(roomId)));
+        when(hubRoomProvider.findById(roomId)).thenReturn(Optional.of(new com.portal.conecta.checklist.module.checklist.domain.valueobject.RoomReference(roomId)));
         when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc().perform(authed(post("/api/checklist-templates/" + templateId + "/new-version"), admin()))

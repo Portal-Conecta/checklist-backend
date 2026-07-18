@@ -1,16 +1,16 @@
-package com.portal.conecta.checklist.modules.checklist.presentation.controller;
+package com.portal.conecta.checklist.module.checklist.presentation.controller;
 
-import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubClassProvider;
-import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistSubmissionWindowRepositoryPort;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.Shift;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistSubmissionWindow;
-import com.portal.conecta.checklist.modules.checklist.domain.valueobject.ClassReference;
+import com.portal.conecta.checklist.module.checklist.application.port.out.integration.HubClassProvider;
+import com.portal.conecta.checklist.module.checklist.application.port.out.persistence.ChecklistSubmissionWindowRepositoryPort;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Shift;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistSubmissionWindow;
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.ClassReference;
 import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.TypeUser;
-import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistTemplateRepository;
+import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

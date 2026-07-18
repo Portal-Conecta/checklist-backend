@@ -81,7 +81,7 @@ importa para o histórico.
 
 ## Referências
 
-- `modules/checklist/domain/model/ChecklistTemplate` (`templateGroupId`, `version`, `status`, `active`)
-- `modules/checklist/application/usecase/template/command/create/CreateChecklistTemplateVersionUseCase`
-- `modules/checklist/domain/model/ChecklistExecution` (`checklistTemplate`)
-- `modules/checklist/issues/domain/model/ChecklistIssue` (`title`)
+- `module/checklist/domain/model/ChecklistTemplate` (`templateGroupId`, `version`, `status`, `active`)
+- `module/checklist/application/usecase/template/command/create/CreateChecklistTemplateVersionUseCase`
+- `module/checklist/domain/model/ChecklistExecution` (`checklistTemplate`)
+- `module/issues/domain/model/ChecklistIssue` (`title`)

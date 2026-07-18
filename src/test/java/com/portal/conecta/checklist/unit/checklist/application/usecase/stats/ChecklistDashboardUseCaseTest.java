@@ -1,10 +1,10 @@
 package com.portal.conecta.checklist.unit.checklist.application.usecase.stats;
 
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.DashboardStatsResponseDTO;
-import com.portal.conecta.checklist.modules.checklist.application.dto.stats.StatsEntryDTO;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ChecklistExecutionStatsUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.stats.ChecklistDashboardUseCase;
-import com.portal.conecta.checklist.modules.checklist.issues.application.usecase.query.ChecklistIssueStatsUseCase;
+import com.portal.conecta.checklist.module.checklist.application.dto.stats.DashboardStatsResponseDTO;
+import com.portal.conecta.checklist.shared.stats.StatsEntryDTO;
+import com.portal.conecta.checklist.module.checklist.application.port.out.issue.IssueStatsPort;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ChecklistExecutionStatsUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.stats.ChecklistDashboardUseCase;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 class ChecklistDashboardUseCaseTest {
 
     private final ChecklistExecutionStatsUseCase executionStats = mock(ChecklistExecutionStatsUseCase.class);
-    private final ChecklistIssueStatsUseCase issueStats = mock(ChecklistIssueStatsUseCase.class);
+    private final IssueStatsPort issueStats = mock(IssueStatsPort.class);
     private final RequestContextProvider contextProvider = mock(RequestContextProvider.class);
     private final RequestContext context = mock(RequestContext.class);
 

@@ -47,12 +47,8 @@ public record RequestContext(
         return canManageChecklistTemplates();
     }
 
-    /**
-     * Transicoes criticas de issue (validar/reabrir) — SENAI e ADMIN.
-     * Paridade WEG fica para issue separada (Fix 7).
-     */
-    public boolean canOnlySenaiManageIssues() {
-        return userType == TypeUser.SENAI || userType == TypeUser.ADMIN;
+    public boolean canValidateOrReopenIssues() {
+        return canManageChecklistTemplates();
     }
 
     public boolean canEditCompletedChecklist() {

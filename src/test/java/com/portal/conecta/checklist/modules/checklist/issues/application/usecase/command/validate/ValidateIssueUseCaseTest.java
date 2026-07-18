@@ -42,14 +42,21 @@ class ValidateIssueUseCaseTest {
     }
 
     @Test
-    void shouldRejectWhenUserIsWeg() {
+    void shouldAllowWegToValidateIssue() {
         UUID issueId = UUID.randomUUID();
+        ChecklistIssue issue = ChecklistIssue.builder()
+                .id(issueId)
+                .status(IssueStatus.RESOLVED)
+                .build();
 
         when(contextProvider.getRequestContext()).thenReturn(new RequestContext(UUID.randomUUID(), TypeUser.WEG));
+        when(repository.findById(issueId)).thenReturn(Optional.of(issue));
+        when(repository.save(any(ChecklistIssue.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertThrows(AccessDeniedException.class, () -> useCase.execute(issueId));
-        verify(repository, never()).findById(any());
-        verify(repository, never()).save(any());
+        ChecklistIssue result = useCase.execute(issueId);
+
+        assertEquals(IssueStatus.VALIDATED, result.getStatus());
+        verify(repository).save(issue);
     }
 
     @Test

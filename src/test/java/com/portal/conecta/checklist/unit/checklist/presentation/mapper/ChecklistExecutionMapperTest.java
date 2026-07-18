@@ -1,15 +1,15 @@
 package com.portal.conecta.checklist.unit.checklist.presentation.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubClassProvider;
-import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.Period;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
-import com.portal.conecta.checklist.modules.checklist.issues.presentation.mapper.ChecklistIssueMapper;
-import com.portal.conecta.checklist.modules.checklist.presentation.mapper.ChecklistExecutionMapper;
+import com.portal.conecta.checklist.module.checklist.application.port.out.integration.HubClassProvider;
+import com.portal.conecta.checklist.module.checklist.application.port.out.integration.HubRoomProvider;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.presentation.port.ExecutionIssuesQueryPort;
+import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -18,15 +18,23 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 class ChecklistExecutionMapperTest {
 
+    private final ExecutionIssuesQueryPort issuesQueryPort = Mockito.mock(ExecutionIssuesQueryPort.class);
+
     private final ChecklistExecutionMapper mapper = new ChecklistExecutionMapper(
             new ObjectMapper(),
-            new ChecklistIssueMapper(),
+            issuesQueryPort,
             Mockito.mock(HubRoomProvider.class),
             Mockito.mock(HubClassProvider.class)
     );
+
+    {
+        when(issuesQueryPort.findByExecutionId(any())).thenReturn(List.of());
+    }
 
     @Test
     void shouldMapExecutionToResponse() {

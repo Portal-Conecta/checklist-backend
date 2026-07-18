@@ -29,7 +29,7 @@ A janela de envio é configurada **por turma + tipo de checklist** (`classId + c
 ### Derivação de período (`PeriodResolver`)
 
 `period` **nunca é enviado pelo cliente** — é derivado no backend, em
-`modules/checklist/domain/service/PeriodResolver`:
+`module/checklist/domain/service/PeriodResolver`:
 
 | Shift | ChecklistType | Period |
 |---|---|---|
@@ -103,6 +103,6 @@ Decisão a confirmar: manter `400` ou voltar a `422` para "regra de negócio vio
 
 ## Referências
 
-- `modules/checklist/domain/service/PeriodResolver`
-- `modules/checklist/application/service/window/SubmissionWindowValidator`
-- `modules/checklist/domain/model/ChecklistSubmissionWindow`
+- `module/checklist/domain/service/PeriodResolver`
+- `module/checklist/application/service/window/SubmissionWindowValidator`
+- `module/checklist/domain/model/ChecklistSubmissionWindow`

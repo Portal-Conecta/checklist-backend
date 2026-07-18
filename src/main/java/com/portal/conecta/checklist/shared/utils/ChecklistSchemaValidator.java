@@ -1,6 +1,6 @@
 package com.portal.conecta.checklist.shared.utils;
 
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistSchema;
 
 import java.util.HashSet;
 import java.util.Set;

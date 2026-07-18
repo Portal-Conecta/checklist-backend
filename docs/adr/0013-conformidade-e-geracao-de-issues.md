@@ -84,8 +84,8 @@ Em `ChecklistIssueService.createIssuesForNonCompliantAnswers`:
 
 ## Referências
 
-- `modules/checklist/application/service/execution/ChecklistExecutionScoringService`
-- `modules/checklist/application/service/execution/ChecklistIssueService`
-- `modules/checklist/application/usecase/execution/command/submit/SubmitChecklistExecutionUseCase`
-- `modules/checklist/application/usecase/execution/command/update/UpdateChecklistExecutionAnswersUseCase`
-- `modules/checklist/issues/domain/model/ChecklistIssue`
+- `module/checklist/application/service/execution/ChecklistExecutionScoringService`
+- `module/checklist/application/service/execution/ChecklistIssueService`
+- `module/checklist/application/usecase/execution/command/submit/SubmitChecklistExecutionUseCase`
+- `module/checklist/application/usecase/execution/command/update/UpdateChecklistExecutionAnswersUseCase`
+- `module/issues/domain/model/ChecklistIssue`

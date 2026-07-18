@@ -1,10 +1,10 @@
 package com.portal.conecta.checklist.unit.checklist.application.usecase.execution.query;
 
-import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistExecutionRepositoryPort;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ChecklistExecutionFilter;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ListChecklistExecutionsUseCase;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.module.checklist.application.port.out.persistence.ChecklistExecutionRepositoryPort;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ChecklistExecutionFilter;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ListChecklistExecutionsUseCase;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistCategory;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;

@@ -1,12 +1,12 @@
 package com.portal.conecta.checklist.unit.checklist.application.service.execution;
 
-import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.AnswerType;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ConformityAnswerValue;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistAnswerCommand;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSection;
+import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
+import com.portal.conecta.checklist.module.checklist.domain.enums.AnswerType;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ConformityAnswerValue;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistAnswerCommand;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistItem;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistSchema;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistSection;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

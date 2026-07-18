@@ -69,5 +69,5 @@ POST_BREAK
 
 ## Referências
 
-- `modules/checklist/domain/enums/ChecklistType`
+- `module/checklist/domain/enums/ChecklistType`
 - [Fluxo operacional](../dominio/fluxo-operacional.md)

@@ -1,22 +1,22 @@
 package com.portal.conecta.checklist.unit.checklist.presentation.controller;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.cancel.CancelChecklistExecutionUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create.CreateChecklistExecutionCommand;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create.CreateChecklistExecutionUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.FindChecklistExecutionByIdUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ListChecklistHistoryByClassUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ListChecklistExecutionsUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
-import com.portal.conecta.checklist.modules.checklist.presentation.controller.ChecklistExecutionController;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request.ChecklistExecutionDraftCreateDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request.ChecklistExecutionSubmitDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.response.ChecklistExecutionHistoryDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.response.ChecklistExecutionResponseDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.mapper.ChecklistExecutionMapper;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.cancel.CancelChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.create.CreateChecklistExecutionCommand;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.create.CreateChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.FindChecklistExecutionByIdUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ListChecklistHistoryByClassUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ListChecklistExecutionsUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.module.checklist.presentation.controller.ChecklistExecutionController;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.request.ChecklistExecutionDraftCreateDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.request.ChecklistExecutionSubmitDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.response.ChecklistExecutionHistoryDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.response.ChecklistExecutionResponseDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
@@ -153,7 +153,7 @@ class ChecklistExecutionControllerTest {
         ChecklistExecutionResponseDTO responseDto = mock(ChecklistExecutionResponseDTO.class);
         Page<ChecklistExecution> executions = new PageImpl<>(List.of(execution), pageable, 1);
         
-        when(listExecutionsUseCase.execute(any(com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ChecklistExecutionFilter.class), eq(pageable))).thenReturn(executions);
+        when(listExecutionsUseCase.execute(any(com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ChecklistExecutionFilter.class), eq(pageable))).thenReturn(executions);
         when(mapper.toResponse(execution)).thenReturn(responseDto);
 
         ResponseEntity<Page<ChecklistExecutionResponseDTO>> result = controller.listAll(classId, roomId, null, from, to, pageable);
@@ -162,7 +162,7 @@ class ChecklistExecutionControllerTest {
         assertEquals(1, result.getBody().getContent().size());
         assertSame(responseDto, result.getBody().getContent().get(0));
         
-        verify(listExecutionsUseCase).execute(any(com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ChecklistExecutionFilter.class), eq(pageable));
+        verify(listExecutionsUseCase).execute(any(com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ChecklistExecutionFilter.class), eq(pageable));
         verify(mapper).toResponse(execution);
     }
 

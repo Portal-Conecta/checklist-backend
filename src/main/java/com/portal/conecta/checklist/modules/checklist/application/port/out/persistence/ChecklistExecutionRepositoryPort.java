@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.application.port.out.persistence;
 
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
 import org.springframework.data.domain.Page;
@@ -31,14 +32,15 @@ public interface ChecklistExecutionRepositoryPort extends ListCrudRepository<Che
             Pageable pageable
     );
 
-    @Query(value = """
-                SELECT COUNT(1)
-                    FROM checklist_execution
-                    WHERE user_id = :userId
-                    AND status = :status
-                """,nativeQuery = true)
+    Page<ChecklistExecution> findByClassIdAndStatusAndCategoryOrderBySubmittedAtDesc(
+            UUID classId,
+            ChecklistExecutionStatus status,
+            ChecklistCategory category,
+            Pageable pageable
+    );
+
+    @Query(value = "SELECT COUNT(1) FROM checklist_execution WHERE user_id = :userId AND status = :status", nativeQuery = true)
     long countByUserIdAndStatus(@Param("userId") UUID userId, @Param("status") String status);
 
-    Page<ChecklistExecution> findAll(Pageable pageable);
-
 }
+

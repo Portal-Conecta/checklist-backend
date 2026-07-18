@@ -57,6 +57,10 @@ public class ListChecklistExecutionsUseCase {
                 predicates.add(cb.equal(root.get("roomId"), filter.roomId()));
             }
 
+            if (filter.category() != null) {
+                predicates.add(cb.equal(root.get("category"), filter.category()));
+            }
+
             if (filter.from() != null) {
                 predicates.add(cb.greaterThanOrEqualTo(root.get("submittedAt"), filter.from()));
             }

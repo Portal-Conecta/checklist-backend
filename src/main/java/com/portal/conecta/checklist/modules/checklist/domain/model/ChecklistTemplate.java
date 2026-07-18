@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.domain.model;
 
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -66,6 +67,13 @@ public class ChecklistTemplate {
     private String description;
 
     /**
+     * Classificação por grupo de itens da sala (eletrônicos, móveis, etc.).
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false, length = 40)
+    private ChecklistCategory category;
+
+    /**
      * Número da versão do template.
      * <br>
      * <b>Incrementado a cada nova publicação do mesmo template.</b>
@@ -97,7 +105,7 @@ public class ChecklistTemplate {
      * <b>Define os campos, tipos e validações do checklist. A estrutura é livre e interpretada pelo frontend em tempo de execução</b>
      */
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "schema_json", columnDefinition = "jsonb", nullable = false)
+    @Column(name = "schema_json", nullable = false)
     private Map<String, Object> schemaJson;
 
     /**

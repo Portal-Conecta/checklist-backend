@@ -54,6 +54,7 @@ public class CreateChecklistTemplateUseCase {
                 .roomId(command.roomId())
                 .title(command.title())
                 .description(command.description() == null ? "" : command.description())
+                .category(command.category())
                 .version(1)
                 .status(ChecklistTemplateStatus.DRAFT)
                 .active(false)

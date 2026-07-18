@@ -7,6 +7,7 @@ import com.portal.conecta.checklist.modules.checklist.application.usecase.execut
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.FindChecklistExecutionByIdUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
 import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request.ChecklistExecutionSubmitDTO;
 import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.response.ChecklistExecutionHistoryDTO;
@@ -158,7 +159,7 @@ public class ChecklistExecutionController {
 
     @Operation(
             summary = "Cancelar execução",
-            description = "Cancela uma execução em andamento, alterando seu status para CANCELLED. Execuções já submetidas não podem ser canceladas."
+            description = "Cancela uma execução enviada (SUBMITTED), alterando seu status para CANCELED. Execuções em rascunho (DRAFT) não podem ser canceladas por este endpoint."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -168,7 +169,7 @@ public class ChecklistExecutionController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Formato inválido para o executionId (deve ser um UUID válido)",
+                    description = "Formato inválido para o executionId ou execução fora do status SUBMITTED",
                     content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
@@ -184,11 +185,6 @@ public class ChecklistExecutionController {
             @ApiResponse(
                     responseCode = "404",
                     description = "Execução não encontrada para o ID informado",
-                    content = @Content(schema = @Schema(implementation = ApiError.class))
-            ),
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "Conflito de estado — a execução já foi submetida ou cancelada e não pode ser cancelada novamente",
                     content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(
@@ -274,6 +270,8 @@ public class ChecklistExecutionController {
             @RequestParam(required = false) UUID classId,
             @Parameter(description = "UUID da sala para filtrar")
             @RequestParam(required = false) UUID roomId,
+            @Parameter(description = "Categoria do checklist para filtrar")
+            @RequestParam(required = false) ChecklistCategory category,
             @Parameter(description = "Data/Hora de início no formato ISO (LocalDate ou LocalDateTime)")
             @RequestParam(required = false) String from,
             @Parameter(description = "Data/Hora de término no formato ISO (LocalDate ou LocalDateTime)")
@@ -282,20 +280,34 @@ public class ChecklistExecutionController {
     ) {
         LocalDateTime parsedFrom = parseDateTime(from, false);
         LocalDateTime parsedTo = parseDateTime(to, true);
-        ChecklistExecutionFilter filter = new ChecklistExecutionFilter(classId, roomId, parsedFrom, parsedTo);
+        ChecklistExecutionFilter filter = new ChecklistExecutionFilter(classId, roomId, category, parsedFrom, parsedTo);
         return ResponseEntity.ok(listExecutionsUseCase.execute(filter, pageable).map(mapper::toResponse));
     }
 
     /**
-     * @deprecated Utilizar o endpoint principal {@link #listAll(UUID, UUID, String, String, Pageable)} filtrando por classId.
+     * @deprecated Utilizar o endpoint principal {@link #listAll(UUID, UUID, ChecklistCategory, String, String, Pageable)} filtrando por classId.
      */
+    @Operation(
+            summary = "Listar histórico de execuções por turma",
+            description = "Retorna o histórico de execuções de checklist para uma determinada turma. Filtro opcional por category (grupo de itens da sala: ELETRONICOS, MOVEIS, etc.)."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Histórico listado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Token ausente ou inválido", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Sem permissão para acessar o histórico da turma", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Turma não encontrada", content = @Content)
+    })
     @GetMapping("/history/class/{classId}")
     @Deprecated
     public ResponseEntity<Page<ChecklistExecutionHistoryDTO>> listHistoryByClass(
             @PathVariable UUID classId,
-            @PageableDefault(size = 20) Pageable pageable
+            @PageableDefault(size = 20) Pageable pageable,
+            @RequestParam(value = "category", required = false) ChecklistCategory category
     ) {
-        return ResponseEntity.ok(mapper.toPageHistory(listHistoryByClassUseCase.execute(classId, pageable)));
+        return ResponseEntity.ok(mapper.toPageHistoryWithEnrichment(
+                listHistoryByClassUseCase.execute(classId, pageable, category),
+                classId
+        ));
     }
 
     @Operation(

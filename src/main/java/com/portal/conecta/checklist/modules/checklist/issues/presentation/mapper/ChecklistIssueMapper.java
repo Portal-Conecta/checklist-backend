@@ -26,7 +26,6 @@ public class ChecklistIssueMapper {
                 issue.getId(),
                 issue.getChecklistExecution() == null ? null : issue.getChecklistExecution().getId(),
                 issue.getItemKey(),
-                issue.getItemTitleSnapshot(),
                 assignedTo(issue.getAssignedUserReference()),
                 issue.getTitle(),
                 issue.getDescription(),

@@ -1,5 +1,6 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.response;
 
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.modules.checklist.domain.enums.Period;
@@ -23,8 +24,11 @@ public record ChecklistExecutionResponseDTO(
         UUID roomId,
         UUID classId,
         UUID filledBy,
+        UUID submittedBy,
+        UUID canceledBy,
         Period period,
         ChecklistType checklistType,
+        ChecklistCategory category,
         ChecklistExecutionStatus status,
         BigDecimal complianceScore,
         ChecklistAnswersDTO answersJson,

@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.shared.exception;
 
 import com.portal.conecta.checklist.modules.checklist.domain.exception.SubmissionWindowViolationException;
+import com.portal.conecta.checklist.modules.checklist.issues.domain.exception.InvalidIssueTransitionException;
 import com.portal.conecta.checklist.shared.integration.hub.exception.HubIntegrationException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,6 +47,19 @@ public class GlobalHandlerException {
                 : "Requisicao invalida.";
 
         return buildResponse(HttpStatus.BAD_REQUEST, message, request);
+    }
+
+    /**
+     * Trata parâmetros de requisição inválidos fornecidos pelo cliente.
+     * <p><b>Status HTTP:</b> 400 - Bad Request</p>
+     *
+     * @param ex A exceção {@link InvalidRequestException} com a mensagem detalhando o parâmetro inválido.
+     * @param request O objeto {@link HttpServletRequest} contendo os detalhes da rota acessada.
+     * @return Resposta contendo o motivo da rejeição e os valores aceitos.
+     */
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<ApiError> handleInvalidRequest(InvalidRequestException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
     /**
@@ -132,6 +146,19 @@ public class GlobalHandlerException {
     @ExceptionHandler(SubmissionWindowViolationException.class)
     public ResponseEntity<ApiError> handleWindowViolation(SubmissionWindowViolationException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    /**
+     * Trata transicoes invalidas na maquina de estados da ChecklistIssue.
+     * <p><b>Status HTTP:</b> 422 - Unprocessable Entity</p>
+     *
+     * @param ex A excecao {@link InvalidIssueTransitionException}.
+     * @param request O objeto {@link HttpServletRequest} contendo os detalhes da rota acessada.
+     * @return Resposta indicando a transicao de status invalida.
+     */
+    @ExceptionHandler(InvalidIssueTransitionException.class)
+    public ResponseEntity<ApiError> handleInvalidIssueTransition(InvalidIssueTransitionException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), request);
     }
 
     @ExceptionHandler(IllegalStateException.class)

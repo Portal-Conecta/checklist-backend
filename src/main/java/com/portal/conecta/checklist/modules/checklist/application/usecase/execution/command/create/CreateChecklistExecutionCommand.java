@@ -6,7 +6,6 @@ import java.util.UUID;
 
 public record CreateChecklistExecutionCommand(
         UUID templateId,
-        UUID roomId,
         UUID classId,
         ChecklistType checklistType
 ) {

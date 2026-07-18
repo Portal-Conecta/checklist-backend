@@ -41,7 +41,7 @@ public class ChecklistIssueService {
         Instant dueAt = Instant.now().plusSeconds(ISSUE_DUE_DAYS * 24L * 60L * 60L);
 
         Set<String> existingIssueKeys = execution.getIssues() != null
-                ? execution.getIssues().stream().map(ChecklistIssue::getItemKey).collect(Collectors.toSet())
+                ? execution.getIssues().stream().map((ChecklistIssue issue) -> issue.getItemKey()).collect(Collectors.toSet())
                 : Set.of();
 
         answers.stream()
@@ -54,7 +54,6 @@ public class ChecklistIssueService {
                         execution.addIssue(ChecklistIssue.builder()
                                 .assignedUserReference(new UserReference(execution.getUserId()))
                                 .itemKey(answer.itemKey())
-                                .itemTitleSnapshot(truncate(item.title(), 150))
                                 .title(truncate("Pendencia: " + item.title(), 100))
                                 .description(truncate(answer.observation(), 500))
                                 .status(IssueStatus.OPEN)

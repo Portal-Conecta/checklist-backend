@@ -1,6 +1,7 @@
 package com.portal.conecta.checklist.modules.checklist.presentation.dto.template.request;
 
 import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateCommand;
+import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistCategory;
 import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -26,11 +27,14 @@ public record ChecklistTemplateCreateRequest(
         @Size(max = 250, message = "description deve ter no maximo 250 caracteres.")
         String description,
 
+        @NotNull(message = "category e obrigatoria.")
+        ChecklistCategory category,
+
         @Valid
         @NotNull(message = "schemaJson e obrigatorio.")
         ChecklistSchema schemaJson
 ) {
     public CreateChecklistTemplateCommand toCommand() {
-        return new CreateChecklistTemplateCommand(roomId, title, description, schemaJson);
+        return new CreateChecklistTemplateCommand(roomId, title, description, category, schemaJson);
     }
 }

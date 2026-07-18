@@ -8,6 +8,7 @@ import com.portal.conecta.checklist.module.checklist.application.port.out.integr
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import com.portal.conecta.checklist.module.checklist.application.port.out.persistence.ChecklistSubmissionWindowRepositoryPort;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
+import com.portal.conecta.checklist.module.issues.infrastructure.persistence.ChecklistIssueRepository;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.Shift;
@@ -22,6 +23,7 @@ import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.TypeUser;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -96,7 +98,15 @@ class ChecklistExecutionAuthorizationTest {
     @MockitoBean
     private ChecklistSubmissionWindowRepositoryPort submissionWindowRepository;
 
+    @MockitoBean
+    private ChecklistIssueRepository issueRepository;
+
     private MockMvc mockMvc;
+
+    @BeforeEach
+    void stubIssueRepository() {
+        when(issueRepository.findAllByExecutionId(any())).thenReturn(List.of());
+    }
 
     private MockMvc mockMvc() {
         if (mockMvc == null) {

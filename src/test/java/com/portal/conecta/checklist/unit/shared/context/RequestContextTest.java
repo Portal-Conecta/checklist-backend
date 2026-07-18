@@ -100,12 +100,16 @@ class RequestContextTest {
 
         assertThat(senai.canManageChecklistTemplates()).isTrue();
         assertThat(senai.canViewDashboard()).isTrue();
-        assertThat(senai.canCancelChecklistExecution(UUID.randomUUID(), UUID.randomUUID())).isTrue();
+        assertThat(senai.canCancelChecklistExecution(UUID.randomUUID())).isTrue();
         assertThat(senai.canValidateOrReopenIssues()).isTrue();
         assertThat(weg.canManageChecklistTemplates()).isTrue();
         assertThat(weg.canViewDashboard()).isTrue();
-        assertThat(weg.canCancelChecklistExecution(UUID.randomUUID(), UUID.randomUUID())).isTrue();
+        assertThat(weg.canCancelChecklistExecution(UUID.randomUUID())).isTrue();
         assertThat(weg.canValidateOrReopenIssues()).isTrue();
+        assertThat(admin.canManageChecklistTemplates()).isTrue();
+        assertThat(admin.canViewDashboard()).isTrue();
+        assertThat(admin.canCancelChecklistExecution(UUID.randomUUID())).isTrue();
+        assertThat(admin.canValidateOrReopenIssues()).isTrue();
     }
 
     @Test

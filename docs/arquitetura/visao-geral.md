@@ -1,7 +1,8 @@
 # Visão de Arquitetura — Checklist Backend
 
-> **Documento vivo.** Reflete o estado de `develop` em 2026-06-24. Atualize ao mudar a estrutura.
+> **Documento vivo.** Reflete o estado de `develop` em 2026-07-18. Atualize ao mudar a estrutura.
 > A *decisão* por trás desta organização está em [ADR-0001](../adr/0001-arquitetura-modular.md).
+> A separação entre `checklist` e `issues` como módulos pares está na [ADR-0020](../adr/0020-issues-como-modulo-de-negocio-independente.md).
 
 ---
 
@@ -32,8 +33,8 @@ infrastructure ─┘        ▲
 ## Mapa de pacotes (`com.portal.conecta.checklist`)
 
 ```text
-modules/
-  checklist/                         MÓDULO PRINCIPAL
+module/
+  checklist/                         MÓDULO CHECKLIST
     domain/
       enums/         ChecklistType(ARRIVAL,POST_BREAK) · Period(MORNING,AFTERNOON,NIGHT)
                      Shift(FULL_AM_PM,FULL_PM_NT) · ChecklistExecutionStatus(DRAFT,SUBMITTED,CANCELED)
@@ -42,12 +43,13 @@ modules/
       model/         ChecklistExecution · ChecklistTemplate · ChecklistSubmissionWindow
       schema/        modelo do schema (ChecklistItem, seções, itens)
       service/       PeriodResolver (serviço de domínio puro)
-      valueobject/   ClassReference · RoomReference · UserReference · CourseReference
+      valueobject/   ClassReference · RoomReference · CourseReference
     application/
       port/out/
         persistence/   portas de persistência (ex.: ChecklistItemSearchPort)
         integration/   portas para dados externos (Hub)
         messaging/     NotificationEventPublisher
+        issue/         portas para o módulo issues: IssueCreationPort · IssueStatsPort (ver ADR-0020)
       service/
         execution/     AnswerValidation · Scoring · Issue · DataMapper (submit decomposto)
         window/        SubmissionWindowValidator
@@ -58,21 +60,25 @@ modules/
     infrastructure/
       persistence/   repositórios JPA + adaptadores (ex.: ChecklistItemQueryRepository)
       messaging/     RabbitMQNotificationPublisher (adapter de NotificationEventPublisher)
+      adapter/issues/ ExecutionAccessAdapter (implementa a porta de issues, ver ADR-0020)
     presentation/
       controller/    ChecklistExecutionController · ChecklistTemplateController · SubmissionWindowController
       dto/{execution,template,window}/{request,response}
       mapper/
-    issues/                          SUBMÓDULO DE ISSUES
-      domain/        enums(IssuePriority[LOW,MEDIUM,HIGH,CRITICAL], IssueStatus[OPEN,IN_PROGRESS,RESOLVED,VALIDATED,REOPENED,CANCELED]) · model(ChecklistIssue)
-      application/   port/out/persistence · usecase/{command,query}
-      infrastructure/persistence
-      presentation/  controller · dto/response · mapper
+      port/          ExecutionIssuesQueryPort (porta para issues, vive aqui e não em application — ver ADR-0020)
+  issues/                             MÓDULO ISSUES (par de checklist, ver ADR-0020)
+    domain/        enums(IssuePriority[LOW,MEDIUM,HIGH,CRITICAL], IssueStatus[OPEN,IN_PROGRESS,RESOLVED,VALIDATED,REOPENED,CANCELED])
+                   model(ChecklistIssue) · valueobject(UserReference)
+    application/   port/out/persistence · port/out/execution(ExecutionAccessPort) · usecase/{command,query}
+    infrastructure/persistence · adapter/checklist/ (IssueCreationAdapter · IssueStatsAdapter)
+    presentation/  controller · dto/response · mapper · adapter/checklist/ (ExecutionIssuesQueryAdapter)
   notification/                      MÓDULO RESERVADO (pacotes criados, sem implementação ainda)
 
 shared/
   config/        configuração transversal (Jackson, env)
   context/       RequestContext + provider/ (Spring e Mock)
   exception/     ApiError · GlobalHandlerException (ver ADR-0008)
+  stats/         StatsEntryDTO (formato genérico {label,value}, usado por checklist e issues)
   integration/
     hub/
       client/{classes,course,me,room}/    @FeignClient + DTOs de resposta
@@ -92,9 +98,9 @@ shared/
 
 | Módulo | Estado | Responsabilidade |
 |---|---|---|
-| `modules/checklist` | Ativo | Templates, execuções, janela de envio, schema |
-| `modules/checklist/issues` | Ativo | Issues geradas por não conformidades |
-| `modules/notification` | **Reservado** | Pacotes criados; ainda sem implementação |
+| `module/checklist` | Ativo | Templates, execuções, janela de envio, schema |
+| `module/issues` | Ativo | Issues geradas por não conformidades — módulo par de `checklist`, comunicação por portas (ver ADR-0020) |
+| `module/notification` | **Reservado** | Pacotes criados; ainda sem implementação |
 
 ---
 

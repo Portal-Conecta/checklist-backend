@@ -28,6 +28,7 @@ Cada ADR captura **uma decisão**, seu **contexto**, as **alternativas** e as **
 | [0017](0017-dashboard-composto-cache.md) | Dashboard composto, cache e atualização por polling | Aceito | 2026-07-11 |
 | [0018](0018-observabilidade-prometheus.md) | Observabilidade: exposição de métricas Prometheus | Implementado | 2026-07-11 |
 | [0019](0019-build-portal-logging-github-packages.md) | Dependência `portal-logging` via GitHub Packages | Aceito | 2026-07-11 |
+| [0020](0020-issues-como-modulo-de-negocio-independente.md) | `issues` como módulo de negócio independente (substitui parte da ADR-0001) | Implementado | 2026-07-18 |
 
 > **Histórico de numeração:** o ADR-0001 substitui e traduz o antigo
 > `0001-modular-layered-architecture.md` (inglês) e absorve a proposta paralela de ports & adapters.
@@ -35,7 +36,9 @@ Cada ADR captura **uma decisão**, seu **contexto**, as **alternativas** e as **
 > renumerados para a sequência coerente acima. Os ADRs 0009–0013 foram adicionados em 2026-07-05
 > (mensageria, notificações, JSONB, versionamento/snapshot e conformidade/issues). Os ADRs 0014–0019
 > foram adicionados em 2026-07-11 (máquina de estados de issue, consulta bulk ao Hub, endpoints de
-> agregação, dashboard composto/cache, observabilidade Prometheus e build via GitHub Packages).
+> agregação, dashboard composto/cache, observabilidade Prometheus e build via GitHub Packages). O
+> ADR-0020 foi adicionado em 2026-07-18 para reverter a decisão de aninhar `issues` dentro de
+> `checklist` (ADR-0001), formalizando `issues` como módulo par comunicando-se por portas.
 
 ---
 

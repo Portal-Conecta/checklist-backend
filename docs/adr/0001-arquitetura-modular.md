@@ -113,4 +113,12 @@ mudanças estruturais.
 ## Referências
 
 - [Visão de arquitetura](../arquitetura/visao-geral.md) — mapa de pacotes atual
-- `modules/checklist/application/port/out/`, `modules/checklist/infrastructure/`
+- `module/checklist/application/port/out/`, `module/checklist/infrastructure/`
+
+---
+
+## Atualização 2026-07-18
+
+A subseção "Submódulo `issues`" foi substituída pela [ADR-0020](0020-issues-como-modulo-de-negocio-independente.md):
+`issues` deixou de ser um submódulo aninhado e passou a ser um módulo de negócio par
+(`module/issues`), comunicando-se com `module/checklist` apenas através de portas explícitas.

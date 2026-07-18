@@ -6,17 +6,12 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
         format_sql: true
-    defer-datasource-initialization: true
-  sql:
-    init:
-      mode: always
-      schema-locations: classpath:schema-postgresql.sql
 
 checklist:
   security:

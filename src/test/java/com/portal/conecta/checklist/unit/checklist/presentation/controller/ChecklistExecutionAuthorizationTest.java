@@ -724,18 +724,17 @@ class ChecklistExecutionAuthorizationTest {
     }
 
     // ================= listar execucoes (sem checagem de perfil) =================
-    // NOTA: ListChecklistExecutionsUseCase.execute(Pageable) nao lanca AccessDeniedException
-    // para nenhum perfil — ele apenas filtra os resultados (findAll para gestores,
-    // findByClassIdIn para os demais, pagina vazia se o usuario nao tem turmas). Nao ha
-    // 403 possivel aqui; documentamos o 200 para deixar claro que a ausencia de bloqueio
-    // e intencional/atual, nao um buraco de cobertura de teste.
+    // NOTA: ListChecklistExecutionsUseCase.execute(filter, Pageable) nao lanca AccessDeniedException
+    // para nenhum perfil — ele apenas filtra os resultados via Specification (turma do usuario
+    // para perfis operacionais, sem restricao para gestores, pagina vazia se o usuario nao tem
+    // turmas). Nao ha 403 possivel aqui; documentamos o 200 para deixar claro que a ausencia de
+    // bloqueio e intencional/atual, nao um buraco de cobertura de teste.
 
     @Test
     void qualquerAutenticadoListaExecucoes() throws Exception {
         when(templateRepository.findAll()).thenReturn(List.of());
-        when(executionRepository.findAll(any(org.springframework.data.domain.Pageable.class)))
+        when(executionRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of()));
-        when(executionRepository.findByClassIdIn(any(), any())).thenReturn(new PageImpl<>(List.of()));
 
         mockMvc().perform(authed(get("/api/checklist-executions"), senai())).andExpect(status().isOk());
         mockMvc().perform(authed(get("/api/checklist-executions"), student())).andExpect(status().isOk());

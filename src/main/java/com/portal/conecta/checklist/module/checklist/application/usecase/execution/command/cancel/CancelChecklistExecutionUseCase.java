@@ -15,9 +15,11 @@ import java.util.UUID;
 /**
  * Caso de uso responsável pelo cancelamento de uma execução de checklist.
  * <p>
- * Este serviço garante que apenas checklists que já foram enviados (SUBMITTED)
- * possam ser cancelados e valida se o usuário solicitante possui os privilégios
- * necessários para realizar a operação.
+ * Aceita cancelar execuções em {@code DRAFT} ou {@code SUBMITTED}. Cancelar um
+ * DRAFT é o único jeito de descartar um rascunho criado por engano (turma
+ * errada, tentativa duplicada) — sem isso, ele fica travado para sempre e
+ * bloqueia a criação de um novo checklist para a mesma turma/sala/período/
+ * tipo/dia, já que o índice único ignora apenas status {@code CANCELED}.
  * </p>
  */
 @Service
@@ -50,7 +52,7 @@ public class CancelChecklistExecutionUseCase {
      * @return a entidade {@link ChecklistExecution} atualizada e persistida com o novo status.
      * @throws EntityNotFoundException  se a execução do checklist não for encontrada.
      * @throws AccessDeniedException    se o usuário atual não tiver permissão para cancelar esta execução.
-     * @throws IllegalArgumentException se o checklist não estiver no status {@code SUBMITTED}.
+     * @throws IllegalArgumentException se o checklist já estiver {@code CANCELED}.
      */
     @Transactional
     public ChecklistExecution execute(UUID executionId) {
@@ -63,8 +65,9 @@ public class CancelChecklistExecutionUseCase {
             throw new AccessDeniedException("Usuario nao tem permissao para cancelar esta execucao de checklist.");
         }
 
-        if (execution.getStatus() != ChecklistExecutionStatus.SUBMITTED) {
-            throw new IllegalArgumentException("Somente checklist enviados podem ser cancelados");
+        if (execution.getStatus() != ChecklistExecutionStatus.SUBMITTED
+                && execution.getStatus() != ChecklistExecutionStatus.DRAFT) {
+            throw new IllegalArgumentException("Somente checklist em rascunho ou enviados podem ser cancelados");
         }
 
         execution.setStatus(ChecklistExecutionStatus.CANCELED);

@@ -8,6 +8,7 @@ import com.portal.conecta.checklist.module.checklist.application.usecase.executi
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ListChecklistExecutionsUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.draft.SaveDraftAnswersUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
@@ -40,6 +41,7 @@ class ChecklistExecutionControllerTest {
 
     private final CreateChecklistExecutionUseCase createUseCase = mock(CreateChecklistExecutionUseCase.class);
     private final SubmitChecklistExecutionUseCase submitUseCase = mock(SubmitChecklistExecutionUseCase.class);
+    private final SaveDraftAnswersUseCase saveDraftAnswersUseCase = mock(SaveDraftAnswersUseCase.class);
     private final CancelChecklistExecutionUseCase cancelUseCase = mock(CancelChecklistExecutionUseCase.class);
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase = mock(ListChecklistHistoryByClassUseCase.class);
     private final ListChecklistExecutionsUseCase listExecutionsUseCase = mock(ListChecklistExecutionsUseCase.class);
@@ -49,6 +51,7 @@ class ChecklistExecutionControllerTest {
     private final ChecklistExecutionController controller = new ChecklistExecutionController(
             createUseCase,
             submitUseCase,
+            saveDraftAnswersUseCase,
             cancelUseCase,
             listHistoryByClassUseCase,
             listExecutionsUseCase,

@@ -144,4 +144,14 @@ public class ChecklistExecution {
     @Enumerated(EnumType.STRING)
     @Column(name = "shift", nullable = false, length = 20)
     private Shift shift;
+
+    /**
+     * Controle de concorrencia otimista. Protege contra escritas concorrentes
+     * (ex: autosave de dois dispositivos no mesmo rascunho) — a segunda escrita
+     * com versao desatualizada falha com {@code OptimisticLockingFailureException},
+     * mapeada para 409 pelo handler global.
+     */
+    @Version
+    @Column(name = "version")
+    private Long version;
 }

@@ -7,7 +7,9 @@ import com.portal.conecta.checklist.module.checklist.application.usecase.executi
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.FindChecklistExecutionByIdUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.draft.SaveDraftAnswersUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistCategory;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.request.ChecklistExecutionDraftAnswersDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.request.ChecklistExecutionDraftCreateDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.request.ChecklistExecutionSubmitDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.response.ChecklistExecutionHistoryDTO;
@@ -44,6 +46,7 @@ public class ChecklistExecutionController {
 
     private final CreateChecklistExecutionUseCase createUseCase;
     private final SubmitChecklistExecutionUseCase submitUseCase;
+    private final SaveDraftAnswersUseCase saveDraftAnswersUseCase;
     private final CancelChecklistExecutionUseCase cancelUseCase;
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase;
     private final ListChecklistExecutionsUseCase listExecutionsUseCase;
@@ -158,8 +161,58 @@ public class ChecklistExecutionController {
     }
 
     @Operation(
+            summary = "Salvar rascunho parcial (autosave)",
+            description = "Salva respostas parciais de uma execução em DRAFT, sem exigir completude. Não altera o status nem gera pendências — isso só acontece no envio final."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Respostas parciais salvas com sucesso",
+                    content = @Content(schema = @Schema(implementation = ChecklistExecutionResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Resposta enviada para item inexistente no template, ou JSON malformado",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Não autenticado — token JWT ausente ou inválido",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Sem permissão para salvar respostas nesta execução",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Execução não encontrada para o ID informado",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Execução não está no status DRAFT, ou foi alterada por outro usuário (optimistic locking)",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno inesperado no servidor",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            )
+    })
+    @PatchMapping("/{executionId}/draft")
+    public ResponseEntity<ChecklistExecutionResponseDTO> saveDraftAnswers(
+            @Parameter(description = "UUID da execução em rascunho", required = true)
+            @PathVariable UUID executionId,
+            @RequestBody @Valid ChecklistExecutionDraftAnswersDTO request
+    ) {
+        return ResponseEntity.ok(mapper.toResponse(saveDraftAnswersUseCase.execute(executionId, request.toCommand())));
+    }
+
+    @Operation(
             summary = "Cancelar execução",
-            description = "Cancela uma execução enviada (SUBMITTED), alterando seu status para CANCELED. Execuções em rascunho (DRAFT) não podem ser canceladas por este endpoint."
+            description = "Cancela uma execução em DRAFT ou SUBMITTED, alterando seu status para CANCELED. É o único jeito de descartar um rascunho criado por engano."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -169,7 +222,7 @@ public class ChecklistExecutionController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Formato inválido para o executionId ou execução fora do status SUBMITTED",
+                    description = "Formato inválido para o executionId ou execução já está CANCELED",
                     content = @Content(schema = @Schema(implementation = ApiError.class))
             ),
             @ApiResponse(

@@ -1,12 +1,14 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.conecta.checklist.module.checklist.application.port.out.issue.IssueCreationPort;
 import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
 import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionDataMapper;
 import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionScoringService;
 import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistIssueService;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ConformityAnswerValue;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
 import com.portal.conecta.checklist.module.checklist.application.port.out.persistence.ChecklistExecutionRepositoryPort;
 import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistItem;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -33,6 +36,7 @@ public class UpdateChecklistExecutionAnswersUseCase {
     private final RequestContextProvider contextProvider;
     private final ChecklistExecutionScoringService scoringService;
     private final ChecklistIssueService issueService;
+    private final IssueCreationPort issueCreationPort;
     private final ObjectMapper objectMapper;
     private final ChecklistExecutionAnswerValidationService answerValidationService;
 
@@ -59,6 +63,8 @@ public class UpdateChecklistExecutionAnswersUseCase {
 
         Map<String, ChecklistItem> itemsByKey = answerValidationService.validate(schema, command.answers());
 
+        rejectChangesToLockedItems(executionId, execution, command);
+
         issueService.createIssuesForNonCompliantAnswers(execution, command.answers(), itemsByKey);
         execution.setAnswersJson(executionMapper.toAnswersJson(command));
         execution.setComplianceScore(scoringService.calculateComplianceScore(command.answers()));
@@ -66,6 +72,34 @@ public class UpdateChecklistExecutionAnswersUseCase {
         return repository.save(execution);
     }
 
+    /**
+     * Impede alterar o valor de conformidade de um item cuja pendencia (issue)
+     * ainda nao foi validada — evita que a resposta seja revertida por baixo
+     * sem que o gestor confirme a correcao. Editar a observacao do mesmo item,
+     * mantendo o valor, continua permitido.
+     */
+    private void rejectChangesToLockedItems(
+            UUID executionId,
+            ChecklistExecution execution,
+            SubmitChecklistExecutionCommand command
+    ) {
+        Set<String> lockedItemKeys = issueCreationPort.lockedItemKeys(executionId);
+        if (lockedItemKeys.isEmpty()) {
+            return;
+        }
 
+        Map<String, ConformityAnswerValue> currentValues = executionMapper.currentValuesByItemKey(execution);
 
+        for (var answer : command.answers()) {
+            if (!lockedItemKeys.contains(answer.itemKey())) {
+                continue;
+            }
+
+            if (currentValues.get(answer.itemKey()) != answer.value()) {
+                throw new IllegalStateException(
+                        "Item '" + answer.itemKey() + "' possui pendencia nao validada; nao e possivel alterar o valor ate a validacao."
+                );
+            }
+        }
+    }
 }

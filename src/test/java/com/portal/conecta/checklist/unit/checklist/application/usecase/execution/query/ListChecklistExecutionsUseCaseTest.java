@@ -17,12 +17,14 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
@@ -75,17 +77,32 @@ class ListChecklistExecutionsUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve retornar pagina vazia sem interagir com o banco se o usuario comum nao tiver turmas")
-    void deveRetornarVazioAoListarSemFiltrosEUsuarioSemTurmas() {
+    @DisplayName("deve negar acesso sem interagir com o banco se o usuario nao tiver nenhum vinculo de turma")
+    void deveNegarAcessoAoListarSeUsuarioSemTurmas() {
         Pageable pageable = PageRequest.of(0, 20);
         RequestContext context = new RequestContext(UUID.randomUUID(), TypeUser.STUDENT, List.of());
 
         when(contextProvider.getRequestContext()).thenReturn(context);
 
         ChecklistExecutionFilter filter = new ChecklistExecutionFilter(null, null, null, null, null);
-        Page<ChecklistExecution> actualPage = useCase.execute(filter, pageable);
 
-        assertTrue(actualPage.isEmpty());
+        assertThrows(AccessDeniedException.class, () -> useCase.execute(filter, pageable));
+        verifyNoInteractions(repositoryPort);
+    }
+
+    @Test
+    @DisplayName("deve negar acesso ao aluno que nao e representante nem professor em nenhuma turma")
+    void deveNegarAcessoAoAlunoQueNaoERepresentante() {
+        Pageable pageable = PageRequest.of(0, 20);
+        UUID classId = UUID.randomUUID();
+        ContextClass contextClass = new ContextClass(classId, ClassRole.STUDENT);
+        RequestContext context = new RequestContext(UUID.randomUUID(), TypeUser.STUDENT, List.of(contextClass));
+
+        when(contextProvider.getRequestContext()).thenReturn(context);
+
+        ChecklistExecutionFilter filter = new ChecklistExecutionFilter(null, null, null, null, null);
+
+        assertThrows(AccessDeniedException.class, () -> useCase.execute(filter, pageable));
         verifyNoInteractions(repositoryPort);
     }
 

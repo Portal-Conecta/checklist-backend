@@ -352,17 +352,20 @@ class ChecklistExecutionAuthorizationTest {
     }
 
     @Test
-    void adminNaoCriaDraft() throws Exception {
+    void adminCriaDraftDeQualquerTurmaSemVinculo() throws Exception {
+        // ADMIN e excecao em canOperateChecklistExecutionForClass: opera qualquer turma,
+        // mesmo sem vinculo de professor/representante.
         UUID templateId = UUID.randomUUID();
         UUID roomId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
         ChecklistTemplate template = activeTemplateWithSchema(templateId, roomId);
         stubClassAndRoom(roomId, classId);
         when(templateRepository.findById(templateId)).thenReturn(Optional.of(template));
+        when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc().perform(authed(post("/api/checklist-executions/drafts"), admin())
                         .contentType(APPLICATION_JSON).content(draftCreateBody(templateId, roomId, classId)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isCreated());
     }
 
     // ================= submeter =================
@@ -401,6 +404,24 @@ class ChecklistExecutionAuthorizationTest {
         when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc().perform(authed(post("/api/checklist-executions/" + executionId + "/submit"), teacherOf(classId))
+                        .contentType(APPLICATION_JSON).content(submitBody()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void adminSubmeteExecucaoDeQualquerTurmaSemVinculo() throws Exception {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        UUID executionId = UUID.randomUUID();
+        ChecklistTemplate template = activeTemplateWithSchema(templateId, roomId);
+        ChecklistExecution execution = draftExecution(executionId, template, classId, UUID.randomUUID());
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(submissionWindowRepository.findByClassIdAndChecklistType(any(), any())).thenReturn(Optional.empty());
+        when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        mockMvc().perform(authed(post("/api/checklist-executions/" + executionId + "/submit"), admin())
                         .contentType(APPLICATION_JSON).content(submitBody()))
                 .andExpect(status().isOk());
     }
@@ -864,21 +885,24 @@ class ChecklistExecutionAuthorizationTest {
                 .andExpect(status().isOk());
     }
 
-    // ================= listar execucoes (sem checagem de perfil) =================
-    // NOTA: ListChecklistExecutionsUseCase.execute(filter, Pageable) nao lanca AccessDeniedException
-    // para nenhum perfil — ele apenas filtra os resultados via Specification (turma do usuario
-    // para perfis operacionais, sem restricao para gestores, pagina vazia se o usuario nao tem
-    // turmas). Nao ha 403 possivel aqui; documentamos o 200 para deixar claro que a ausencia de
-    // bloqueio e intencional/atual, nao um buraco de cobertura de teste.
+    // ================= listar execucoes =================
+    // ListChecklistExecutionsUseCase.execute(filter, Pageable) agora exige
+    // RequestContext.canAccessChecklistModule() logo de cara — gestores (SENAI/WEG/ADMIN)
+    // e operacionais com vinculo real de professor/representante recebem 200 (filtrado por
+    // turma quando aplicavel); quem nao tem nenhum vinculo qualificado recebe 403.
 
     @Test
-    void qualquerAutenticadoListaExecucoes() throws Exception {
-        when(templateRepository.findAll()).thenReturn(List.of());
+    void gestorETeacherListamExecucoes() throws Exception {
         when(executionRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of()));
 
         mockMvc().perform(authed(get("/api/checklist-executions"), senai())).andExpect(status().isOk());
-        mockMvc().perform(authed(get("/api/checklist-executions"), student())).andExpect(status().isOk());
         mockMvc().perform(authed(get("/api/checklist-executions"), admin())).andExpect(status().isOk());
+        mockMvc().perform(authed(get("/api/checklist-executions"), teacherOf(UUID.randomUUID()))).andExpect(status().isOk());
+    }
+
+    @Test
+    void alunoSemVinculoDeRepresentanteNaoListaExecucoes() throws Exception {
+        mockMvc().perform(authed(get("/api/checklist-executions"), student())).andExpect(status().isForbidden());
     }
 }

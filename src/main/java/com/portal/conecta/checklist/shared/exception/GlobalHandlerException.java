@@ -176,7 +176,7 @@ public class GlobalHandlerException {
      */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.FORBIDDEN, "Usuario sem permissao para executar esta operacao.", request);
+        return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 
     /**

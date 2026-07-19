@@ -11,8 +11,11 @@ import java.util.UUID;
  *
  * <p>{@link TypeUser#ADMIN} tem o mesmo poder gerencial de {@link TypeUser#SENAI}
  * e {@link TypeUser#WEG} (templates, dashboard, issues, cancelamento e consulta
- * de qualquer turma). Nao opera fluxo de rascunho/submissao como representante
- * ou professor — isso permanece restrito a perfis operacionais com vinculo de turma.</p>
+ * de qualquer turma), e adicionalmente pode operar o fluxo de rascunho/submissao
+ * de execucao de qualquer turma, sem precisar de vinculo de professor ou
+ * representante — perfil administrativo irrestrito. {@link TypeUser#SENAI} e
+ * {@link TypeUser#WEG} continuam restritos ao fluxo gerencial e nao operam
+ * rascunho/submissao.</p>
  */
 public record RequestContext(
         UUID userId,
@@ -73,9 +76,15 @@ public record RequestContext(
 
     /**
      * Operacao de execucao (criar rascunho / submeter) exige perfil operacional
-     * com vinculo na turma. Gestores (SENAI/WEG/ADMIN) nao passam por este caminho.
+     * com vinculo na turma (professor ou representante). {@link TypeUser#ADMIN}
+     * e excecao: opera qualquer turma, sem precisar de vinculo. SENAI/WEG nao
+     * passam por este caminho.
      */
     public boolean canOperateChecklistExecutionForClass(UUID classId) {
+        if (userType == TypeUser.ADMIN) {
+            return true;
+        }
+
         if (classId == null) {
             return false;
         }

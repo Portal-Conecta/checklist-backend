@@ -184,14 +184,14 @@ class GlobalHandlerExceptionTest {
     }
 
     @Test
-    @DisplayName("Deve retornar 403 para acesso negado")
+    @DisplayName("Deve retornar 403 para acesso negado com a mensagem especifica da excecao")
     void testHandleAccessDenied() {
-        AccessDeniedException ex = new AccessDeniedException("Access Denied");
+        AccessDeniedException ex = new AccessDeniedException("Apenas SENAI e WEG podem configurar janelas de envio.");
 
         ResponseEntity<ApiError> response = handler.handleAccessDenied(ex, request);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        assertEquals("Usuario sem permissao para executar esta operacao.", response.getBody().message());
+        assertEquals("Apenas SENAI e WEG podem configurar janelas de envio.", response.getBody().message());
     }
 
     @Test

@@ -113,7 +113,7 @@ class RequestContextTest {
     }
 
     @Test
-    void managementProfilesCannotOperateExecutionEvenWithClassRole() {
+    void senaiAndWegCannotOperateExecutionEvenWithClassRole() {
         UUID classId = UUID.randomUUID();
         RequestContext senai = new RequestContext(
                 UUID.randomUUID(),
@@ -125,11 +125,6 @@ class RequestContextTest {
                 TypeUser.WEG,
                 List.of(new ContextClass(classId, ClassRole.REPRESENTATIVE))
         );
-        RequestContext admin = new RequestContext(
-                UUID.randomUUID(),
-                TypeUser.ADMIN,
-                List.of(new ContextClass(classId, ClassRole.TEACHER))
-        );
 
         assertThat(senai.canCreateChecklistExecutionForClass(classId)).isFalse();
         assertThat(senai.canOperateChecklistExecutionForClass(classId)).isFalse();
@@ -138,10 +133,20 @@ class RequestContextTest {
         assertThat(weg.canCreateChecklistExecutionForClass(classId)).isFalse();
         assertThat(weg.canOperateChecklistExecutionForClass(classId)).isFalse();
         assertThat(weg.canSubmitChecklistExecutionForClass(classId)).isFalse();
+    }
 
-        assertThat(admin.canCreateChecklistExecutionForClass(classId)).isFalse();
-        assertThat(admin.canOperateChecklistExecutionForClass(classId)).isFalse();
-        assertThat(admin.canSubmitChecklistExecutionForClass(classId)).isFalse();
+    @Test
+    void adminCanOperateExecutionOfAnyClassWithoutLink() {
+        UUID classId = UUID.randomUUID();
+        RequestContext admin = new RequestContext(
+                UUID.randomUUID(),
+                TypeUser.ADMIN,
+                List.of()
+        );
+
+        assertThat(admin.canCreateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(admin.canOperateChecklistExecutionForClass(classId)).isTrue();
+        assertThat(admin.canSubmitChecklistExecutionForClass(classId)).isTrue();
 
         assertThat(admin.canCancelChecklistExecution(classId)).isTrue();
         assertThat(admin.canAccessChecklistModule()).isTrue();
@@ -153,7 +158,7 @@ class RequestContextTest {
 
         assertThat(admin.canAccessChecklistModule()).isTrue();
         assertThat(admin.canManageChecklistTemplates()).isTrue();
-        assertThat(admin.canOperateChecklistExecutionForClass(UUID.randomUUID())).isFalse();
-        assertThat(admin.canOperateChecklistExecutionForClass(null)).isFalse();
+        assertThat(admin.canOperateChecklistExecutionForClass(UUID.randomUUID())).isTrue();
+        assertThat(admin.canOperateChecklistExecutionForClass(null)).isTrue();
     }
 }

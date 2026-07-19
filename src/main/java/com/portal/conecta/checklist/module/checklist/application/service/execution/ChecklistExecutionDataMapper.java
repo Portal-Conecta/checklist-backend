@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -60,6 +61,18 @@ public class ChecklistExecutionDataMapper {
                 new AnswersData(answers, summarize(answers)),
                 MAP_TYPE
         );
+    }
+
+    /**
+     * Le o valor de conformidade atualmente salvo para cada item, a partir do
+     * {@code answersJson} ja persistido na execucao. Usado pra comparar contra
+     * uma nova resposta e detectar se um item travado (com issue nao validada)
+     * esta tendo o valor de conformidade alterado.
+     */
+    public Map<String, ConformityAnswerValue> currentValuesByItemKey(ChecklistExecution execution) {
+        AnswersData data = objectMapper.convertValue(execution.getAnswersJson(), AnswersData.class);
+        return data.answers().stream()
+                .collect(Collectors.toMap(AnswerData::itemKey, AnswerData::value));
     }
 
     private Map<String, Object> emptyAnswersJson() {

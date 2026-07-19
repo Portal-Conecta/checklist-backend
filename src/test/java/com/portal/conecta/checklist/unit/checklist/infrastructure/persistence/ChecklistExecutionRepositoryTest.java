@@ -1,21 +1,33 @@
 package com.portal.conecta.checklist.unit.checklist.infrastructure.persistence;
 
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistCategory;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Shift;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
 import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
+import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.unit.shared.context.AbstractRepositoryTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -26,11 +38,60 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ChecklistExecutionRepositoryTest extends AbstractRepositoryTest {
 
     private static final Pattern NAMED_PARAMETER = Pattern.compile("(?<!:):([A-Za-z][A-Za-z0-9_]*)");
+
+    @Autowired
+    private ChecklistExecutionRepository executionRepository;
+
+    @Autowired
+    private ChecklistTemplateRepository templateRepository;
+
+    @Test
+    @DisplayName("segunda escrita com versao desatualizada deve falhar com OptimisticLockingFailureException")
+    void devefalharSegundaEscritaConcorrenteComVersaoDesatualizada() {
+        ChecklistTemplate template = templateRepository.saveAndFlush(ChecklistTemplate.builder()
+                .templateGroupId(UUID.randomUUID())
+                .roomId(UUID.randomUUID())
+                .title("Sala 205")
+                .description("Checklist de entrada")
+                .category(ChecklistCategory.ELETRONICOS)
+                .version(1)
+                .status(ChecklistTemplateStatus.ACTIVE)
+                .active(true)
+                .schemaJson(Map.of("sections", List.of()))
+                .build());
+
+        ChecklistExecution execution = executionRepository.saveAndFlush(ChecklistExecution.builder()
+                .checklistTemplate(template)
+                .roomId(template.getRoomId())
+                .classId(UUID.randomUUID())
+                .userId(UUID.randomUUID())
+                .shift(Shift.FULL_AM_PM)
+                .period(Period.MORNING)
+                .checklistType(ChecklistType.ARRIVAL)
+                .category(template.getCategory())
+                .status(ChecklistExecutionStatus.DRAFT)
+                .answersJson(Map.of("answers", List.of()))
+                .startedAt(LocalDateTime.now())
+                .build());
+        UUID executionId = execution.getId();
+
+        ChecklistExecution firstCopy = executionRepository.findById(executionId).orElseThrow();
+        ChecklistExecution secondCopy = executionRepository.findById(executionId).orElseThrow();
+        assertEquals(firstCopy.getVersion(), secondCopy.getVersion());
+
+        firstCopy.setComplianceScore(new BigDecimal("100.00"));
+        executionRepository.saveAndFlush(firstCopy);
+
+        secondCopy.setComplianceScore(new BigDecimal("0.00"));
+        assertThrows(OptimisticLockingFailureException.class,
+                () -> executionRepository.saveAndFlush(secondCopy));
+    }
 
     @Test
     @DisplayName("deve ser um repository Spring Data JPA")

@@ -25,7 +25,28 @@ public class ChecklistExecutionAnswerValidationService {
         Map<String, ChecklistItem> itemsByKey = itemsByKey(schema);
         Map<String, UpdateChecklistAnswerCommand> answersByItemKey = answersByItemKey(answers);
 
-        validateAnswers(itemsByKey, answersByItemKey);
+        validateAnswers(itemsByKey, answersByItemKey, true);
+
+        return itemsByKey;
+    }
+
+    /**
+     * Valida respostas parciais de um rascunho (autosave), sem exigir completude.
+     *
+     * <p>So bloqueia resposta pra item inexistente no template. Nao exige item
+     * obrigatorio respondido nem observacao em item nao conforme — o usuario pode
+     * marcar NON_COMPLIANT e so digitar a observacao alguns segundos depois, e o
+     * autosave nao pode falhar nesse meio-tempo. Essas duas regras so valem no
+     * envio final ({@link #validate}).</p>
+     */
+    public Map<String, ChecklistItem> validatePartial(
+            ChecklistSchema schema,
+            List<UpdateChecklistAnswerCommand> answers
+    ) {
+        Map<String, ChecklistItem> itemsByKey = itemsByKey(schema);
+        Map<String, UpdateChecklistAnswerCommand> answersByItemKey = answersByItemKey(answers);
+
+        validateAnswers(itemsByKey, answersByItemKey, false);
 
         return itemsByKey;
     }
@@ -57,12 +78,17 @@ public class ChecklistExecutionAnswerValidationService {
 
     private void validateAnswers(
             Map<String, ChecklistItem> itemsByKey,
-            Map<String, UpdateChecklistAnswerCommand> answersByItemKey
+            Map<String, UpdateChecklistAnswerCommand> answersByItemKey,
+            boolean requireCompleteness
     ) {
         for (String answerItemKey : answersByItemKey.keySet()) {
             if (!itemsByKey.containsKey(answerItemKey)) {
                 throw new IllegalArgumentException("Resposta enviada para item inexistente no template: " + answerItemKey);
             }
+        }
+
+        if (!requireCompleteness) {
+            return;
         }
 
         for (ChecklistItem item : itemsByKey.values()) {

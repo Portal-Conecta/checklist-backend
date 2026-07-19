@@ -238,6 +238,13 @@ class ChecklistExecutionAuthorizationTest {
     }
 
     @Test
+    void semTokenRetorna401NoSaveDraft() throws Exception {
+        mockMvc().perform(patch("/api/checklist-executions/" + UUID.randomUUID() + "/draft")
+                        .contentType(APPLICATION_JSON).content(submitBody()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void semTokenRetorna401NoListAll() throws Exception {
         mockMvc().perform(get("/api/checklist-executions")).andExpect(status().isUnauthorized());
     }
@@ -430,6 +437,111 @@ class ChecklistExecutionAuthorizationTest {
                 .andExpect(status().isForbidden());
     }
 
+    // ================= salvar rascunho (autosave) =================
+
+    @Test
+    void representativeSalvaRascunhoDaPropriaExecucao() throws Exception {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID executionId = UUID.randomUUID();
+        ChecklistTemplate template = activeTemplateWithSchema(templateId, roomId);
+        ChecklistExecution execution = draftExecution(executionId, template, classId, userId);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/draft"), representativeOf(userId, classId))
+                        .contentType(APPLICATION_JSON).content(submitBody()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void teacherDaPropriaTurmaSalvaRascunhoDeOutroUsuario() throws Exception {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        UUID executionId = UUID.randomUUID();
+        ChecklistTemplate template = activeTemplateWithSchema(templateId, roomId);
+        ChecklistExecution execution = draftExecution(executionId, template, classId, UUID.randomUUID());
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/draft"), teacherOf(classId))
+                        .contentType(APPLICATION_JSON).content(submitBody()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void teacherDeOutraTurmaNaoSalvaRascunho() throws Exception {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        UUID otherClassId = UUID.randomUUID();
+        UUID executionId = UUID.randomUUID();
+        ChecklistTemplate template = activeTemplateWithSchema(templateId, roomId);
+        ChecklistExecution execution = draftExecution(executionId, template, classId, UUID.randomUUID());
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+
+        mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/draft"), teacherOf(otherClassId))
+                        .contentType(APPLICATION_JSON).content(submitBody()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void studentNaoSalvaRascunho() throws Exception {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        UUID executionId = UUID.randomUUID();
+        ChecklistTemplate template = activeTemplateWithSchema(templateId, roomId);
+        ChecklistExecution execution = draftExecution(executionId, template, classId, UUID.randomUUID());
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+
+        mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/draft"), student())
+                        .contentType(APPLICATION_JSON).content(submitBody()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void senaiNaoSalvaRascunhoAlheio() throws Exception {
+        // Mesma regra de canOperateChecklistExecutionForClass do create/submit: perfil de
+        // gestao (SENAI/WEG/ADMIN) nao opera o fluxo de rascunho, so quem tem vinculo de turma.
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        UUID executionId = UUID.randomUUID();
+        ChecklistTemplate template = activeTemplateWithSchema(templateId, roomId);
+        ChecklistExecution execution = draftExecution(executionId, template, classId, UUID.randomUUID());
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+
+        mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/draft"), senai())
+                        .contentType(APPLICATION_JSON).content(submitBody()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void naoSalvaRascunhoQuandoExecucaoJaFoiSubmetida() throws Exception {
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID executionId = UUID.randomUUID();
+        ChecklistTemplate template = activeTemplateWithSchema(templateId, roomId);
+        ChecklistExecution execution = submittedExecution(executionId, template, classId, userId);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+
+        mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/draft"), representativeOf(userId, classId))
+                        .contentType(APPLICATION_JSON).content(submitBody()))
+                .andExpect(status().isConflict());
+    }
+
     // ================= cancelar =================
     // REVISAR COM O TIME (ADR-005): a matriz do ADR-005 diz que SENAI/WEG deveriam
     // receber 403 ao cancelar. O codigo atual (RequestContext.canCancelChecklistExecution)
@@ -501,6 +613,25 @@ class ChecklistExecutionAuthorizationTest {
         when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/cancel"), representativeOf(colleagueId, classId)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void representativeCancelaExecucaoEmDraft() throws Exception {
+        // DRAFT tambem pode ser cancelado (nao so SUBMITTED) -- e o unico jeito de descartar
+        // um rascunho criado por engano, ja que o indice unico so ignora status CANCELED.
+        UUID templateId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID executionId = UUID.randomUUID();
+        ChecklistTemplate template = activeTemplateWithSchema(templateId, roomId);
+        ChecklistExecution execution = draftExecution(executionId, template, classId, userId);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(executionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        mockMvc().perform(authed(patch("/api/checklist-executions/" + executionId + "/cancel"), representativeOf(userId, classId)))
                 .andExpect(status().isOk());
     }
 

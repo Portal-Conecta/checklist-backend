@@ -38,6 +38,14 @@ public class IssueCreationAdapter implements IssueCreationPort {
     }
 
     @Override
+    public Set<String> lockedItemKeys(UUID executionId) {
+        return issueRepository.findAllByExecutionId(executionId).stream()
+                .filter(issue -> issue.getStatus() != IssueStatus.VALIDATED && issue.getStatus() != IssueStatus.CANCELED)
+                .map(ChecklistIssue::getItemKey)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public void createNonComplianceIssue(CreateNonComplianceIssueCommand command) {
         Instant dueAt = Instant.now().plusSeconds(ISSUE_DUE_DAYS * 24L * 60L * 60L);
 

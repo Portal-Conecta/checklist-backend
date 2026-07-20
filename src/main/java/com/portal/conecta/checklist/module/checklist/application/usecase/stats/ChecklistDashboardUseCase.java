@@ -1,25 +1,20 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.stats;
 
 import com.portal.conecta.checklist.module.checklist.application.dto.stats.DashboardStatsResponseDTO;
-import com.portal.conecta.checklist.module.checklist.application.port.out.issue.IssueStatsPort;
-import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ChecklistExecutionStatsUseCase;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.exception.InvalidRequestException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 
 /**
- * Caso de uso composto do dashboard. NAO executa nenhuma query propria: apenas
- * orquestra os use cases de agregacao granulares (execucoes e issues) e monta a
- * resposta unica do painel.
+ * Caso de uso composto do dashboard. Orquestra autorizacao, validacao de
+ * intervalo e a carga (cacheada) dos graficos fixos.
  *
- * <p>O resultado e cacheado (ver {@link Cacheable}) por uma janela curta, de modo
- * que multiplos acessos/pollings dentro dessa janela custem uma unica rodada de
- * agregacoes no banco, e nao uma por requisicao.</p>
+ * <p>Autorizacao roda SEMPRE antes do cache — ver {@link ChecklistDashboardLoader}.
+ * Perfis permitidos: SENAI, WEG e ADMIN ({@code RequestContext#canViewDashboard}).</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -28,39 +23,24 @@ public class ChecklistDashboardUseCase {
     /** Janela padrao das series temporais quando o cliente nao informa datas. */
     private static final int DEFAULT_RANGE_DAYS = 30;
 
-    private final ChecklistExecutionStatsUseCase executionStats;
-    private final IssueStatsPort issueStats;
+    private final ChecklistDashboardLoader loader;
     private final RequestContextProvider contextProvider;
 
     /**
      * Monta o dashboard para o intervalo informado. Datas ausentes assumem os
      * ultimos {@value #DEFAULT_RANGE_DAYS} dias.
-     *
-     * <p>Cache: chave = {@code from + '_' + to} (valores crus do cliente). Como o
-     * TTL e curto (configurado no CacheManager), a janela de "ultimos 30 dias"
-     * com datas nulas fica no maximo defasada pelo TTL — trade-off aceitavel.
-     * Excecoes nao sao cacheadas (comportamento padrao do Spring Cache).</p>
      */
-    @Cacheable(cacheNames = "checklist-dashboard", key = "#from + '_' + #to")
     public DashboardStatsResponseDTO execute(LocalDate from, LocalDate to) {
-        // Autorizacao: o dashboard e restrito a gestao (SENAI/WEG) — ver ADR-0017.
         if (!contextProvider.getRequestContext().canViewDashboard()) {
-            throw new AccessDeniedException("Apenas a gestao (SENAI/WEG) pode acessar o dashboard.");
+            throw new AccessDeniedException(
+                    "Apenas a gestao (SENAI/WEG/ADMIN) pode acessar o dashboard.");
         }
 
         LocalDate resolvedTo = (to == null) ? LocalDate.now() : to;
         LocalDate resolvedFrom = (from == null) ? resolvedTo.minusDays(DEFAULT_RANGE_DAYS) : from;
         validateRange(resolvedFrom, resolvedTo);
 
-        return new DashboardStatsResponseDTO(
-                new DashboardStatsResponseDTO.Periodo(resolvedFrom, resolvedTo),
-                executionStats.countByDay(resolvedFrom, resolvedTo),
-                executionStats.countByStatus(),
-                executionStats.completionRate(),
-                issueStats.countByStatus(),
-                issueStats.countByPriority(),
-                issueStats.countByDay(resolvedFrom, resolvedTo)
-        );
+        return loader.load(resolvedFrom, resolvedTo);
     }
 
     private void validateRange(LocalDate from, LocalDate to) {

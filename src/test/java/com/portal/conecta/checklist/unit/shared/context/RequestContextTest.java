@@ -113,6 +113,17 @@ class RequestContextTest {
     }
 
     @Test
+    void operationalProfilesCannotViewDashboard() {
+        RequestContext student = new RequestContext(UUID.randomUUID(), TypeUser.STUDENT);
+        RequestContext representative = new RequestContext(UUID.randomUUID(), TypeUser.REPRESENTATIVE);
+        RequestContext teacher = new RequestContext(UUID.randomUUID(), TypeUser.TEACHER);
+
+        assertThat(student.canViewDashboard()).isFalse();
+        assertThat(representative.canViewDashboard()).isFalse();
+        assertThat(teacher.canViewDashboard()).isFalse();
+    }
+
+    @Test
     void senaiAndWegCannotOperateExecutionEvenWithClassRole() {
         UUID classId = UUID.randomUUID();
         RequestContext senai = new RequestContext(

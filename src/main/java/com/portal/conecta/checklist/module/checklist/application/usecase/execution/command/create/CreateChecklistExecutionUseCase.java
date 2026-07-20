@@ -1,7 +1,6 @@
 package com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.create;
 
 import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionDataMapper;
-import com.portal.conecta.checklist.module.checklist.application.service.window.SubmissionWindowValidator;
 import com.portal.conecta.checklist.module.checklist.domain.service.PeriodResolver;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
@@ -40,7 +39,6 @@ public class CreateChecklistExecutionUseCase {
     private final HubRoomProvider hubRoomProvider;
     private final HubClassProvider hubClassProvider;
     private final HubCourseProvider hubCourseProvider;
-    private final SubmissionWindowValidator submissionWindowValidator;
 
     @Value("${checklist.timezone:America/Sao_Paulo}")
     private String timezone;
@@ -76,7 +74,9 @@ public class CreateChecklistExecutionUseCase {
         Shift shift   = classReference.getShift();
         Period period = PeriodResolver.resolve(shift, command.checklistType());
 
-        submissionWindowValidator.validate(command.classId(), command.checklistType());
+        // A janela de submissao NAO e validada aqui de proposito: o rascunho e
+        // estado de trabalho e pode ser iniciado a qualquer hora. So o envio
+        // (SubmitChecklistExecutionUseCase) exige a janela aberta.
 
         var now        = LocalDateTime.now(ZoneId.of(timezone));
         var startOfDay = now.toLocalDate().atStartOfDay();

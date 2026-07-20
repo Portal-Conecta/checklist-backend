@@ -2,7 +2,6 @@ package com.portal.conecta.checklist.unit.checklist.application.usecase.executio
 
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.create.CreateChecklistExecutionCommand;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.create.CreateChecklistExecutionUseCase;
-import com.portal.conecta.checklist.module.checklist.application.service.window.SubmissionWindowValidator;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
@@ -51,7 +50,6 @@ class CreateChecklistExecutionUseCaseTest {
     private final HubRoomProvider hubRoomProvider                 = mock(HubRoomProvider.class);
     private final HubClassProvider hubClassProvider               = mock(HubClassProvider.class);
     private final HubCourseProvider hubCourseProvider             = mock(HubCourseProvider.class);
-    private final SubmissionWindowValidator submissionWindowValidator = mock(SubmissionWindowValidator.class);
 
     private CreateChecklistExecutionUseCase useCase;
 
@@ -64,8 +62,7 @@ class CreateChecklistExecutionUseCaseTest {
                 contextProvider,
                 hubRoomProvider,
                 hubClassProvider,
-                hubCourseProvider,
-                submissionWindowValidator
+                hubCourseProvider
         );
         ReflectionTestUtils.setField(useCase, "timezone", "America/Sao_Paulo");
     }

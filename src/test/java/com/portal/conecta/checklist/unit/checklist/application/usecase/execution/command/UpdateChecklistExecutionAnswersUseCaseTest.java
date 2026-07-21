@@ -5,6 +5,7 @@ import com.portal.conecta.checklist.module.checklist.application.port.out.issue.
 import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
 import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionScoringService;
 import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistIssueService;
+import com.portal.conecta.checklist.module.checklist.application.service.window.SubmissionWindowValidator;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
@@ -72,6 +73,9 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
 
     @Mock
     private ChecklistExecutionAnswerValidationService answerValidationService;
+
+    @Mock
+    private SubmissionWindowValidator submissionWindowValidator;
 
     @InjectMocks
     private UpdateChecklistExecutionAnswersUseCase updateChecklistExecutionAnswersUseCase;

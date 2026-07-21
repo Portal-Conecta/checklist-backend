@@ -6,6 +6,7 @@ import com.portal.conecta.checklist.module.checklist.application.service.executi
 import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionDataMapper;
 import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionScoringService;
 import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistIssueService;
+import com.portal.conecta.checklist.module.checklist.application.service.window.SubmissionWindowValidator;
 import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ConformityAnswerValue;
@@ -39,6 +40,7 @@ public class UpdateChecklistExecutionAnswersUseCase {
     private final IssueCreationPort issueCreationPort;
     private final ObjectMapper objectMapper;
     private final ChecklistExecutionAnswerValidationService answerValidationService;
+    private final SubmissionWindowValidator submissionWindowValidator;
 
     @Transactional
     public ChecklistExecution execute(UUID executionId, SubmitChecklistExecutionCommand command) {
@@ -55,6 +57,8 @@ public class UpdateChecklistExecutionAnswersUseCase {
         if (execution.getStatus() != ChecklistExecutionStatus.SUBMITTED) {
             throw new IllegalStateException("Somente checklists que foram enviados podem ser editados.");
         }
+
+        submissionWindowValidator.validate(execution.getClassId(), execution.getChecklistType());
 
         ChecklistSchema schema = objectMapper.convertValue(
                 execution.getChecklistTemplate().getSchemaJson(),

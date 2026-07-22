@@ -30,7 +30,8 @@ public abstract class AbstractRepositoryTest {
             .withDatabaseName("checklist_test")
             .withUsername("test")
             .withPassword("test")
-            .withSharedMemorySize(268435456L);
+            .withSharedMemorySize(268435456L)
+            .withLogConsumer(frame -> System.out.print("[postgres] " + frame.getUtf8String()));
     }
 }
 

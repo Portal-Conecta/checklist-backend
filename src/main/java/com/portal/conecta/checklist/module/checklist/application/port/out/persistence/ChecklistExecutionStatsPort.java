@@ -64,4 +64,22 @@ public interface ChecklistExecutionStatsPort {
      * Heatmap: contagem de execuções por turno e dia da semana.
      */
     List<StatsEntryDTO> heatmapShiftByDayOfWeek();
+
+    /**
+     * Contagem de execuções submetidas por turno, agrupadas em 3 faixas de
+     * {@code compliance_score} (ok &gt;= 80, atencao 50-79.99, critico &lt; 50).
+     * O {@code label} tem o formato {@code SHIFT|BUCKET}. Execuções sem
+     * {@code compliance_score} calculado (não submetidas) são ignoradas.
+     */
+    List<StatsEntryDTO> complianceByShift();
+
+    /**
+     * Média de {@code compliance_score} por semana, para execuções submetidas
+     * no intervalo {@code [from, to]}. O {@code label} é a data (ISO,
+     * YYYY-MM-DD) do início de cada semana (segunda-feira).
+     *
+     * @param from início do intervalo (inclusive)
+     * @param to   fim do intervalo (inclusive)
+     */
+    List<StatsEntryDTO> complianceTrendByWeek(LocalDate from, LocalDate to);
 }

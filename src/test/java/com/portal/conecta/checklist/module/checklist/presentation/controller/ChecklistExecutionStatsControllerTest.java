@@ -111,6 +111,19 @@ class ChecklistExecutionStatsControllerTest {
     }
 
     @Test
+    @DisplayName("aggregate groupBy=shift+compliance deve retornar 200 com dados do usecase")
+    void aggregateByShiftComplianceDeveRetornar200() {
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("FULL_AM_PM|ok", 5L));
+        when(statsUseCase.complianceByShift()).thenReturn(expected);
+
+        ResponseEntity<List<StatsEntryDTO>> result = controller.aggregate("shift+compliance", null, null);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(expected, result.getBody());
+        verify(statsUseCase).complianceByShift();
+    }
+
+    @Test
     @DisplayName("aggregate com groupBy inválido deve lançar IllegalArgumentException")
     void aggregateComGroupByInvalidoDeveLancarExcecao() {
         assertThrows(InvalidRequestException.class,
@@ -173,5 +186,20 @@ class ChecklistExecutionStatsControllerTest {
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(expected, result.getBody());
         verify(statsUseCase).heatmap();
+    }
+
+    @Test
+    @DisplayName("complianceTrend deve repassar from/to ao usecase")
+    void complianceTrendDeveRepassarFiltros() {
+        LocalDate from = LocalDate.of(2026, 6, 1);
+        LocalDate to = LocalDate.of(2026, 6, 30);
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("2026-06-01", 87.5));
+        when(statsUseCase.complianceTrendByWeek(from, to)).thenReturn(expected);
+
+        ResponseEntity<List<StatsEntryDTO>> result = controller.complianceTrend(from, to);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(expected, result.getBody());
+        verify(statsUseCase).complianceTrendByWeek(from, to);
     }
 }

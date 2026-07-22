@@ -38,7 +38,13 @@ public record DashboardStatsResponseDTO(
         List<StatsEntryDTO> issuesPorPrioridade,
 
         @Schema(description = "Nao-conformidades (issues) por dia no periodo")
-        List<StatsEntryDTO> issuesPorDia
+        List<StatsEntryDTO> issuesPorDia,
+
+        @Schema(description = "Execucoes submetidas por turno e faixa de compliance (label = SHIFT|ok|atencao|critico)")
+        List<StatsEntryDTO> performancePorTurno,
+
+        @Schema(description = "Media de compliance_score por semana no periodo (label = data ISO de inicio da semana)")
+        List<StatsEntryDTO> tendenciaConformidade
 ) {
 
     @Schema(description = "Intervalo de datas efetivamente usado nas agregacoes temporais")

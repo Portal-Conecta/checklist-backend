@@ -32,7 +32,9 @@ public class ChecklistDashboardLoader {
                 executionStats.completionRate(),
                 issueStats.countByStatus(),
                 issueStats.countByPriority(),
-                issueStats.countByDay(from, to)
+                issueStats.countByDay(from, to),
+                executionStats.complianceByShift(),
+                executionStats.complianceTrendByWeek(from, to)
         );
     }
 }

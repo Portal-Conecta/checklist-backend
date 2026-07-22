@@ -73,9 +73,29 @@ class ChecklistExecutionStatsRepositoryTest {
     }
 
     @Test
-    @DisplayName("deve declarar m�todo heatmapShiftByDayOfWeek sem par�metros")
+    @DisplayName("deve declarar metodo heatmapShiftByDayOfWeek sem parametros")
     void deveDeclararHeatmapShiftByDayOfWeek() throws NoSuchMethodException {
         Method method = ChecklistExecutionStatsPort.class.getMethod("heatmapShiftByDayOfWeek");
+        assertAll(
+                () -> assertNotNull(method),
+                () -> assertTrue(List.class.isAssignableFrom(method.getReturnType()))
+        );
+    }
+
+    @Test
+    @DisplayName("deve declarar metodo complianceByShift sem parametros")
+    void deveDeclararComplianceByShift() throws NoSuchMethodException {
+        Method method = ChecklistExecutionStatsPort.class.getMethod("complianceByShift");
+        assertAll(
+                () -> assertNotNull(method),
+                () -> assertTrue(List.class.isAssignableFrom(method.getReturnType()))
+        );
+    }
+
+    @Test
+    @DisplayName("deve declarar metodo complianceTrendByWeek com parametros LocalDate")
+    void deveDeclararComplianceTrendByWeek() throws NoSuchMethodException {
+        Method method = ChecklistExecutionStatsPort.class.getMethod("complianceTrendByWeek", LocalDate.class, LocalDate.class);
         assertAll(
                 () -> assertNotNull(method),
                 () -> assertTrue(List.class.isAssignableFrom(method.getReturnType()))

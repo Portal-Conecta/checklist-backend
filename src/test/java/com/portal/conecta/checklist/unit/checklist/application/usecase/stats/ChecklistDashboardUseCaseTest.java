@@ -50,7 +50,9 @@ class ChecklistDashboardUseCaseTest {
                 List.of(new StatsEntryDTO("submitted", 8)),
                 List.of(new StatsEntryDTO("OPEN", 4)),
                 List.of(new StatsEntryDTO("HIGH", 2)),
-                List.of(new StatsEntryDTO("2026-06-02", 1))
+                List.of(new StatsEntryDTO("2026-06-02", 1)),
+                List.of(new StatsEntryDTO("FULL_AM_PM|ok", 5)),
+                List.of(new StatsEntryDTO("2026-06-01", 87.5))
         );
         when(loader.load(from, to)).thenReturn(payload);
 
@@ -70,7 +72,7 @@ class ChecklistDashboardUseCaseTest {
         LocalDate from = hoje.minusDays(30);
         when(loader.load(from, hoje)).thenReturn(new DashboardStatsResponseDTO(
                 new DashboardStatsResponseDTO.Periodo(from, hoje),
-                List.of(), List.of(), List.of(), List.of(), List.of(), List.of()
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of()
         ));
 
         useCase.execute(null, null);

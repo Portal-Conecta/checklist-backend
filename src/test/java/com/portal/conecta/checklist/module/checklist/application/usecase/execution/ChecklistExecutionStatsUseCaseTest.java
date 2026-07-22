@@ -85,4 +85,43 @@ class ChecklistExecutionStatsUseCaseTest {
         assertEquals(expected, result);
         verify(statsPort).countByStatus();
     }
+
+    @Test
+    @DisplayName("complianceByShift deve delegar ao port diretamente")
+    void complianceByShiftDeveDelegarAoPort() {
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("FULL_AM_PM|ok", 5L));
+        when(statsPort.complianceByShift()).thenReturn(expected);
+
+        List<StatsEntryDTO> result = useCase.complianceByShift();
+
+        assertEquals(expected, result);
+        verify(statsPort).complianceByShift();
+    }
+
+    @Test
+    @DisplayName("complianceTrendByWeek com datas nulas deve usar padrão de 30 dias atrás até hoje")
+    void complianceTrendByWeekComDatasNulasDeveUsarPadrao() {
+        when(statsPort.complianceTrendByWeek(any(), any())).thenReturn(List.of());
+
+        useCase.complianceTrendByWeek(null, null);
+
+        verify(statsPort).complianceTrendByWeek(
+            LocalDate.now().minusDays(30),
+            LocalDate.now()
+        );
+    }
+
+    @Test
+    @DisplayName("complianceTrendByWeek com datas explícitas deve repassar ao port sem alteração")
+    void complianceTrendByWeekComDatasExplicitasDeveRepassar() {
+        LocalDate from = LocalDate.of(2026, 6, 1);
+        LocalDate to = LocalDate.of(2026, 6, 30);
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("2026-06-01", 87.5));
+        when(statsPort.complianceTrendByWeek(from, to)).thenReturn(expected);
+
+        List<StatsEntryDTO> result = useCase.complianceTrendByWeek(from, to);
+
+        assertEquals(expected, result);
+        verify(statsPort).complianceTrendByWeek(from, to);
+    }
 }

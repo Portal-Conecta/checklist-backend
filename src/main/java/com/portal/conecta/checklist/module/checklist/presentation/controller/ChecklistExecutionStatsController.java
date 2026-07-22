@@ -52,6 +52,7 @@ public class ChecklistExecutionStatsController {
                     - `shift` — por turno
                     - `period` — por período
                     - `day+status` — série temporal por dia **e** status (label = `YYYY-MM-DD|STATUS`)
+                    - `shift+compliance` — execuções submetidas por turno e faixa de compliance (label = `SHIFT|ok|atencao|critico`)
                     """
     )
     @ApiResponses(value = {
@@ -82,8 +83,9 @@ public class ChecklistExecutionStatsController {
             case "shift"      -> statsUseCase.countByShift();
             case "period"     -> statsUseCase.countByPeriod();
             case "day+status" -> statsUseCase.countByDayAndStatus(from, to);
+            case "shift+compliance" -> statsUseCase.complianceByShift();
             default -> throw new InvalidRequestException(
-                    "groupBy inválido: '" + groupBy + "'. Valores aceitos: day, status, type, shift, period, day+status"
+                    "groupBy inválido: '" + groupBy + "'. Valores aceitos: day, status, type, shift, period, day+status, shift+compliance"
             );
         };
         return ResponseEntity.ok(result);
@@ -154,6 +156,27 @@ public class ChecklistExecutionStatsController {
     @GetMapping("/heatmap")
     public ResponseEntity<List<StatsEntryDTO>> heatmap() {
         return ResponseEntity.ok(statsUseCase.heatmap());
+    }
+
+    @Operation(
+            summary = "Tendência de compliance por semana",
+            description = "Retorna a média de compliance_score por semana, para execuções submetidas no intervalo."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Tendência calculada com sucesso",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = StatsEntryDTO.class)))),
+            @ApiResponse(responseCode = "401", description = "Não autenticado",
+                    content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
+    @GetMapping("/compliance-trend")
+    public ResponseEntity<List<StatsEntryDTO>> complianceTrend(
+            @Parameter(description = "Início do intervalo (YYYY-MM-DD); padrão: 30 dias atrás")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+
+            @Parameter(description = "Fim do intervalo (YYYY-MM-DD); padrão: hoje")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+    ) {
+        return ResponseEntity.ok(statsUseCase.complianceTrendByWeek(from, to));
     }
 
     /**

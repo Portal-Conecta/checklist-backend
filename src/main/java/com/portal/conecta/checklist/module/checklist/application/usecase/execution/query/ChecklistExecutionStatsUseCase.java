@@ -98,6 +98,24 @@ public class ChecklistExecutionStatsUseCase {
         return statsPort.heatmapShiftByDayOfWeek();
     }
 
+    /** Contagem de execuções submetidas por turno, em faixas de compliance (ok/atencao/critico). */
+    public List<StatsEntryDTO> complianceByShift() {
+        return statsPort.complianceByShift();
+    }
+
+    /**
+     * Média de compliance por semana, no intervalo informado.
+     *
+     * @param from início do intervalo; padrão: 30 dias atrás
+     * @param to   fim do intervalo; padrão: hoje
+     */
+    public List<StatsEntryDTO> complianceTrendByWeek(LocalDate from, LocalDate to) {
+        validateDateRange(from, to);
+        LocalDate resolvedFrom = from != null ? from : LocalDate.now().minusDays(30);
+        LocalDate resolvedTo   = to   != null ? to   : LocalDate.now();
+        return statsPort.complianceTrendByWeek(resolvedFrom, resolvedTo);
+    }
+
     // ────────────────────────────────────────────────────────────────────────
     // Validação auxiliar (defesa em profundidade)
     // ────────────────────────────────────────────────────────────────────────

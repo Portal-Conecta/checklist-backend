@@ -207,6 +207,53 @@ public class ChecklistExecutionStatsRepository implements ChecklistExecutionStat
                 .toList();
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<StatsEntryDTO> complianceByShift() {
+        String sql = """
+                SELECT shift || '|' ||
+                       CASE WHEN compliance_score >= 80 THEN 'ok'
+                            WHEN compliance_score >= 50 THEN 'atencao'
+                            ELSE 'critico' END AS label,
+                       COUNT(*)                AS value
+                FROM checklist_execution
+                WHERE status = 'SUBMITTED' AND compliance_score IS NOT NULL
+                GROUP BY shift,
+                       CASE WHEN compliance_score >= 80 THEN 'ok'
+                            WHEN compliance_score >= 50 THEN 'atencao'
+                            ELSE 'critico' END
+                ORDER BY shift
+                """;
+        List<Object[]> rows = em.createNativeQuery(sql).getResultList();
+        return rows.stream()
+                .map(r -> new StatsEntryDTO((String) r[0], toLong(r[1])))
+                .toList();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<StatsEntryDTO> complianceTrendByWeek(LocalDate from, LocalDate to) {
+        String sql = """
+                SELECT CAST(DATE_TRUNC('week', submitted_at) AS date)::text AS label,
+                       AVG(compliance_score)                                AS value
+                FROM checklist_execution
+                WHERE status = 'SUBMITTED'
+                  AND submitted_at IS NOT NULL
+                  AND compliance_score IS NOT NULL
+                  AND submitted_at >= CAST(:from AS date)
+                  AND submitted_at <  CAST(:to AS date) + INTERVAL '1 day'
+                GROUP BY DATE_TRUNC('week', submitted_at)
+                ORDER BY DATE_TRUNC('week', submitted_at)
+                """;
+        List<Object[]> rows = em.createNativeQuery(sql)
+                .setParameter("from", from.toString())
+                .setParameter("to", to.toString())
+                .getResultList();
+        return rows.stream()
+                .map(r -> new StatsEntryDTO((String) r[0], toDouble(r[1])))
+                .toList();
+    }
+
     // ─── helpers ────────────────────────────────────────────────────────────
 
     private static long toLong(Object value) {

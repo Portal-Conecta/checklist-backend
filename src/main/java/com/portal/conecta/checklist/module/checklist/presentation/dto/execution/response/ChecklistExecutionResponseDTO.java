@@ -4,6 +4,7 @@ import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistCateg
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
 import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
 import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.shared.RoomResponseDTO;
 import com.portal.conecta.checklist.module.issues.presentation.dto.response.ChecklistIssueResponseDTO;
 
 import java.math.BigDecimal;
@@ -35,5 +36,6 @@ public record ChecklistExecutionResponseDTO(
         ChecklistExecutionSummaryDTO summary,
         Instant startedAt,
         Instant submittedAt,
-        List<ChecklistIssueResponseDTO> issues
+        List<ChecklistIssueResponseDTO> issues,
+        RoomResponseDTO room
 ) {}

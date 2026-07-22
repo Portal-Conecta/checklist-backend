@@ -99,8 +99,20 @@ public class ChecklistExecutionMapper {
                 answers.summary(),
                 toInstant(execution.getStartedAt()),
                 toInstant(execution.getSubmittedAt()),
-                issuesQueryPort.findByExecutionId(execution.getId())
+                issuesQueryPort.findByExecutionId(execution.getId()),
+                resolveRoom(execution.getRoomId())
         );
+    }
+
+    private RoomResponseDTO resolveRoom(UUID roomId) {
+        try {
+            return hubRoomProvider.findById(roomId)
+                    .map(room -> new RoomResponseDTO(room.getRoomId(), room.getNumber(), room.getTypeRoom(), room.getStatus()))
+                    .orElse(null);
+        } catch (Exception e) {
+            log.warn("Falha ao buscar sala no Hub para execução: {}", e.getMessage());
+            return null;
+        }
     }
 
     public ChecklistAnswersDTO toAnswersDTO(Map<String, Object> answersJson) {

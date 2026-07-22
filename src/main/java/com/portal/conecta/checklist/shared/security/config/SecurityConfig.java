@@ -24,9 +24,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * <ul>
  *   <li>Política stateless (sem sessão HTTP).</li>
  *   <li>CSRF, form login, HTTP basic e logout desabilitados.</li>
- *   <li>Rotas públicas: {@code GET /actuator/health} e {@code GET /actuator/info}.
+ *   <li>Rotas públicas: {@code GET /actuator/health} (incluindo os probes
+ *       {@code /actuator/health/**}), {@code GET /actuator/info} e
+ *       {@code GET /actuator/prometheus}. O endpoint de métricas é exposto sem
+ *       autenticação para o scraper (Alloy/Prometheus) na rede interna, seguindo
+ *       o mesmo contrato dos demais serviços do portal.
  *       Swagger liberado condicionalmente via {@code checklist.security.swagger-public=true}.</li>
- *   <li>As demais rotas exigem autenticação.</li>
+ *   <li>As demais rotas exigem autenticação via JWT.</li>
  *   <li>{@link HubJwtAuthenticationFilter} inserido antes do filtro padrão do Spring Security.</li>
  *   <li>Respostas padronizadas para {@code 401 Unauthorized} e {@code 403 Forbidden}
  *       via {@link SecurityErrorResponseWriter}.</li>
@@ -63,13 +67,20 @@ public class SecurityConfig {
             "/v3/api-docs/**"
     };
 
+    private static final String[] PUBLIC_ACTUATOR_PATHS = {
+            "/actuator/health",
+            "/actuator/health/**",
+            "/actuator/info",
+            "/actuator/prometheus"
+    };
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .logout(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf.disable())
+                .formLogin(formLogin -> formLogin.disable())
+                .httpBasic(httpBasic -> httpBasic.disable())
+                .logout(logout -> logout.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) ->
@@ -88,7 +99,7 @@ public class SecurityConfig {
                                 ))
                 )
                 .authorizeHttpRequests(authorize -> {
-                    authorize.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll();
+                    authorize.requestMatchers(HttpMethod.GET, PUBLIC_ACTUATOR_PATHS).permitAll();
 
                     if (swaggerPublic) {
                         authorize.requestMatchers(SWAGGER_PATHS).permitAll();

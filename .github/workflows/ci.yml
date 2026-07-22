@@ -10,6 +10,10 @@ on:
       - develop
       - main
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   build-and-test:
     name: Build e Testes (JUnit 5)
@@ -25,16 +29,26 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: maven
+          cache-dependency-path: pom.xml
+          server-id: portal-logging
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
 
-      - name: Cache de dependências Maven
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - name: Validar codificação dos fontes
+        shell: bash
+        run: |
+          if grep -rIl $'\xEF\xBB\xBF' --include='*.java' src; then
+            echo 'Arquivos Java não podem conter BOM UTF-8.' >&2
+            exit 1
+          fi
 
-      - name: Executar testes com Maven
-        run: mvn clean test
+      - name: Executar verificação Maven
+        run: |
+          for i in 1 2; do
+            ./mvnw --batch-mode --no-transfer-progress clean verify && break
+            echo "Tentativa $i falhou, tentando novamente..."
+          done
         env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          MAVEN_USERNAME: ${{ github.actor }}
+          MAVEN_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

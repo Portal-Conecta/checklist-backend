@@ -1,8 +1,10 @@
 package com.portal.conecta.checklist.shared.integration.hub.adapter.classes;
 
-import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubClassProvider;
-import com.portal.conecta.checklist.modules.checklist.domain.valueobject.ClassReference;
-import com.portal.conecta.checklist.modules.checklist.domain.valueobject.CourseReference;
+import com.portal.conecta.checklist.module.checklist.application.port.out.integration.HubClassProvider;
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.ClassReference;
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.CourseReference;
+import com.portal.conecta.checklist.shared.integration.hub.client.classes.HubBulkClassRequest;
+import com.portal.conecta.checklist.shared.integration.hub.client.classes.HubBulkClassResponse;
 import com.portal.conecta.checklist.shared.integration.hub.client.classes.HubClassClient;
 import com.portal.conecta.checklist.shared.integration.hub.client.classes.HubClassResponse;
 import com.portal.conecta.checklist.shared.integration.hub.exception.HubIntegrationException;
@@ -10,6 +12,8 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,6 +42,31 @@ public class HttpHubClassProvider implements HubClassProvider {
             return response == null ? Optional.empty() : Optional.of(toReference(response, classId));
         } catch (FeignException.NotFound exception) {
             return Optional.empty();
+        } catch (FeignException exception) {
+            throw new HubIntegrationException("Servico de turmas do Hub indisponivel.", exception);
+        }
+    }
+
+    @Override
+    public List<ClassReference> findByIds(List<UUID> classIds) {
+        if (classIds == null || classIds.isEmpty()) {
+            return List.of();
+        }
+        List<UUID> uniqueIds = classIds.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        if (uniqueIds.isEmpty()) {
+            return List.of();
+        }
+        try {
+            HubBulkClassResponse response = hubClassClient.findBulk(new HubBulkClassRequest(uniqueIds));
+            if (response == null || response.items() == null) {
+                return List.of();
+            }
+            return response.items().stream()
+                    .map(item -> toReference(item, item.id()))
+                    .toList();
         } catch (FeignException exception) {
             throw new HubIntegrationException("Servico de turmas do Hub indisponivel.", exception);
         }

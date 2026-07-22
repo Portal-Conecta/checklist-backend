@@ -1,279 +1,413 @@
 # Checklist API
 
-Checklist API is a Spring Boot service for the Portal Conecta ecosystem. It is responsible for checklist templates, checklist executions, answers, compliance calculation, and issues generated from non-compliant items.
+Serviço Spring Boot do ecossistema **Portal Conecta**, responsável por checklists
+de vistoria de salas: templates versionados, execuções (rascunho e envio),
+respostas, janelas de envio, cálculo de conformidade e *issues* geradas a partir
+de itens não conformes.
 
-The service must keep its own business rules and data ownership. The Hub remains responsible for central data such as users, classes, courses, rooms, authentication, and global permissions.
+O serviço mantém suas próprias regras de negócio e é dono apenas dos dados de
+checklist. O **Hub** (core-backend) continua responsável pelos dados centrais —
+usuários, turmas, cursos, salas, autenticação e permissões globais. A Checklist
+API nunca acessa o banco do Hub diretamente: consome-o via contratos HTTP.
 
-## Tech Stack
+---
 
-- Java 21
-- Spring Boot 4.0.6
-- Maven
-- PostgreSQL
-- Docker and Docker Compose
-- Spring Web
-- Spring Validation
-- Spring Security
-- Spring Data JPA
-- Spring Actuator
-- OpenFeign
-- Micrometer / Observability
-- Springdoc OpenAPI
-- JUnit and Mockito
-- JJWT `0.12.6`
+## Sumário
 
-## Architecture
+- [Stack técnica](#stack-técnica)
+- [Arquitetura](#arquitetura)
+- [Domínio e conceitos](#domínio-e-conceitos)
+- [Endpoints da API](#endpoints-da-api)
+- [Regras de acesso](#regras-de-acesso)
+- [Setup local](#setup-local)
+- [Perfis e seed de desenvolvimento](#perfis-e-seed-de-desenvolvimento)
+- [Migrations (Flyway)](#migrations-flyway)
+- [Observabilidade](#observabilidade)
+- [Documentação da API (Swagger/OpenAPI)](#documentação-da-api-swaggeropenapi)
+- [Testes](#testes)
+- [Integração com o Hub](#integração-com-o-hub)
+- [Fluxo ponta a ponta](#fluxo-ponta-a-ponta)
+- [Ownership de dados](#ownership-de-dados)
+- [Diretrizes de desenvolvimento](#diretrizes-de-desenvolvimento)
+- [Documentação do projeto](#documentação-do-projeto)
 
-The project follows a modular layered architecture. Business capabilities are
-grouped by module, while dependencies flow from presentation and infrastructure
-toward application and domain contracts.
+---
+
+## Stack técnica
+
+| Categoria | Tecnologia |
+|---|---|
+| Linguagem | Java 21 |
+| Framework | Spring Boot 4.0.6 |
+| Build | Maven (via Maven Wrapper) |
+| Banco | PostgreSQL 15 |
+| Migrations | Flyway (`spring-boot-starter-flyway` + `flyway-database-postgresql`) |
+| Web | Spring Web MVC + Spring Validation |
+| Segurança | Spring Security + JJWT `0.12.x` (validação de token HS256) |
+| Persistência | Spring Data JPA / Hibernate (JSONB para schema/respostas) |
+| Integração | Spring Cloud OpenFeign (contratos HTTP com o Hub) |
+| Mensageria | Spring AMQP / RabbitMQ (opcional, para notificações — ver `RABBITMQ_ENABLED`) |
+| Observabilidade | Spring Actuator, Micrometer, Prometheus, tracing OTLP, logs JSON com MDC |
+| Documentação | Springdoc OpenAPI (Swagger UI) |
+| Testes | JUnit 5, Mockito, Spring Boot Test, Testcontainers |
+| Log corporativo | `com.portal.conecta:portal-logging` (GitHub Packages, privado) |
+| Containerização | Docker e Docker Compose |
+
+> A dependência **`portal-logging`** é privada (GitHub Packages). Builds locais
+> fora do Docker (`mvn`/IDE) exigem `MAVEN_USERNAME` e `MAVEN_PASSWORD` no
+> ambiente — ver [Variáveis de ambiente](#variáveis-de-ambiente).
+
+---
+
+## Arquitetura
+
+Arquitetura **modular em camadas**. As capacidades são agrupadas por módulo de
+negócio; as dependências fluem da apresentação/infraestrutura em direção aos
+contratos de aplicação e domínio.
 
 ```text
 src/main/java/com/portal/conecta/checklist
-|- Application.java
-|- modules
-|  |- checklist
-|     |- application
-|     |  |- port/out
-|     |  |- service
-|     |  |- usecase
-|     |- domain
-|     |  |- enums
-|     |  |- exception
-|     |  |- model
-|     |  |- schema
-|     |  |- service
-|     |  |- valueobject
-|     |- infrastructure
-|     |- issues
-|     |- presentation
-|- shared
-   |- context
-   |- exception
-   |- integration
-   |- security
+├── Application.java
+├── module
+│   ├── checklist              # templates, execuções, janelas, conformidade, stats
+│   │   ├── application         # use cases, comandos/queries, portas (ports/out)
+│   │   ├── domain              # enums, model, schema (JSONB), value objects, regras
+│   │   ├── infrastructure      # persistência (JPA) e integrações concretas
+│   │   └── presentation        # controllers, DTOs, mappers
+│   └── issues                 # módulo de negócio independente (máquina de estados)
+└── shared                     # transversais
+    ├── config                  # OpenAPI, beans, seed de dev
+    ├── context                 # contexto da requisição (usuário autenticado)
+    ├── exception               # tratamento global de erros (ApiError)
+    ├── integration             # clientes/adapters do Hub (OpenFeign / RestClient)
+    ├── messaging               # mensageria (notificações via RabbitMQ)
+    └── security                # validação de token e autorização
 ```
 
-See [ADR-0001](docs/adr/0001-modular-layered-architecture.md) for the
-architectural boundaries and dependency rules.
+Regras de fronteira e dependência: ver [ADR-0001 — Arquitetura modular](docs/adr/0001-arquitetura-modular.md)
+e [ADR-0020 — Issues como módulo de negócio independente](docs/adr/0020-issues-como-modulo-de-negocio-independente.md).
 
-### Modules
+### Módulos
 
-`checklist`
+- **`checklist`** — templates (criação, edição, ativação, versionamento imutável),
+  execuções (rascunho, autosave, envio, cancelamento, histórico), respostas,
+  janelas de envio por turno/tipo, cálculo de conformidade e endpoints agregados
+  de estatística/dashboard.
+- **`issues`** — *issues* geradas a partir de itens não conformes, com máquina de
+  estados completa (iniciar, resolver, validar, reabrir, retomar, cancelar).
+- **`shared`** — código transversal: segurança, contexto de requisição, tratamento
+  global de exceções, integração com o Hub, mensageria e configuração.
 
-Handles checklist templates, checklist executions, drafts, submitted checklists, answers, validation, and compliance calculation.
+---
 
-`issue`
+## Domínio e conceitos
 
-Handles issues generated from non-compliant checklist items, including status, priority, assignee, resolution, and reopening rules when required.
+| Conceito | Descrição |
+|---|---|
+| **Template** | Modelo de checklist de uma sala. Guarda o schema (seções/itens) em JSONB. É **versionado e imutável**: editar gera nova versão; só um template pode estar `ACTIVE` por sala. |
+| **ChecklistType** | Momento operacional do checklist: `ARRIVAL` (chegada) e `POST_BREAK` (pós-intervalo). |
+| **ChecklistCategory** | Recorte do checklist por tipo de item/patrimônio da sala: `ELETRONICOS`, `MOVEIS`, `ILUMINACAO`, `CLIMATIZACAO`, `INFRAESTRUTURA`, `HIGIENE`, `GERAL`. |
+| **Shift** | Turno da turma: `FULL_AM_PM`, `FULL_PM_NT`. |
+| **Execução** | Preenchimento de um template. Passa por `DRAFT` (com autosave incremental) até `SUBMITTED`; pode ser cancelada. Só o autor envia. |
+| **Resposta** | Valor por item: `COMPLIANT` (não exige observação) ou `NON_COMPLIANT` (exige observação e gera *issue*). |
+| **Janela de envio** | *Submission window* por turma + `ChecklistType`, definindo horário de abertura (`openAt`) e duração (`durationMinutes`). O envio é validado contra a janela aberta. |
+| **Conformidade** | Percentual calculado a partir das respostas do checklist enviado. |
+| **Issue** | Ocorrência de item não conforme, com ciclo de vida próprio (ver máquina de estados). |
 
-`shared`
+Referências: [ADR-0002 (tipos)](docs/adr/0002-redefinicao-tipos-checklist.md) ·
+[ADR-0004 (janela por turno)](docs/adr/0004-janela-de-envio-por-shift.md) ·
+[ADR-0011 (JSONB)](docs/adr/0011-persistencia-jsonb-schema-respostas.md) ·
+[ADR-0012 (versionamento)](docs/adr/0012-versionamento-imutabilidade-template.md) ·
+[ADR-0013 (conformidade/issues)](docs/adr/0013-conformidade-e-geracao-de-issues.md) ·
+[ADR-0014 (máquina de estados da issue)](docs/adr/0014-maquina-estados-issue.md).
 
-Contains cross-cutting code used by the service, such as security configuration, request context, global exception handling, and general configuration.
+---
 
-## Access Rules
+## Endpoints da API
 
-The service follows the Hub token contract. Global user access comes from `userType`, and class-specific access is read from `classes[].role`:
+Base local: `http://localhost:8083`. Todos os endpoints de negócio exigem o
+token do Hub (`Authorization: Bearer <token>`).
 
-- `STUDENT`
-- `REPRESENTATIVE`
-- `TEACHER`
-- `SENAI`
-- `WEG`
-- `ADMIN`
+### Templates — `/api/checklist-templates`
 
-Initial Checklist rules:
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/` | Cria template (SENAI/WEG). |
+| `GET` | `/?roomId=&status=` | Lista templates, com filtro por sala e status (`ACTIVE`, …). |
+| `GET` | `/{templateId}` | Detalha um template. |
+| `PATCH` | `/{templateId}` | Edita (gera nova versão conforme regra de imutabilidade). |
+| `PATCH` | `/{templateId}/activate` | Ativa o template (torna-o o ativo da sala). |
+| `POST` | `/{templateId}/new-version` | Cria nova versão a partir de um template. |
+| `GET` | `/items/search?query=` | Busca itens por texto. |
+| `GET` | `/items/search?category=` | Busca itens por categoria. |
 
-- `REPRESENTATIVE` can view and create checklists for their own class.
-- `TEACHER` can view and create checklists for linked classes.
-- `SENAI` can view dashboards and edit completed checklists within SENAI scope.
-- `WEG` can view dashboards and edit completed checklists within WEG scope.
-- `STUDENT` without representative class role has no operational Checklist access.
-- `ADMIN` has Hub administration permissions, but no operational Checklist access by default.
+### Execuções — `/api/checklist-executions`
 
-## Local Setup
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/drafts` | Cria rascunho de execução. |
+| `PATCH` | `/{executionId}/answers` | Autosave incremental de respostas do rascunho. |
+| `PATCH` | `/{executionId}/draft` | Atualiza o rascunho. |
+| `POST` | `/{executionId}/submit` | Envia o checklist (valida obrigatórios, janela e conformidade). |
+| `PATCH` | `/{executionId}/cancel` | Cancela a execução. |
+| `GET` | `/{executionId}` | Detalha uma execução. |
+| `GET` | `/history/class/{classId}` | Histórico de execuções da turma (com filtros). |
 
-### Requirements
+### Janelas de envio — `/api/submission-windows`
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/classes/{classId}` | Consulta as janelas de uma turma. |
+| `PUT` | `/classes/{classId}/{checklistType}` | Cria/atualiza a janela (`openAt`, `durationMinutes`) — SENAI/WEG. |
+
+### Issues — `/api/checklist-issues`
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/execution/{executionId}` | Lista as issues de uma execução. |
+| `PATCH` | `/{issueId}/start` | Inicia o tratamento. |
+| `PATCH` | `/{issueId}/resolve` | Marca como resolvida. |
+| `PATCH` | `/{issueId}/validate` | Valida a resolução (SENAI/WEG). |
+| `PATCH` | `/{issueId}/reopen` | Reabre (SENAI/WEG). |
+| `PATCH` | `/{issueId}/restart-progress` | Retoma o progresso. |
+| `PATCH` | `/{issueId}/cancel` | Cancela a issue. |
+
+### Estatísticas e dashboard
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/api/checklist-stats/dashboard` | Dashboard composto (com cache), restrito à gestão. |
+| `GET` | `/api/checklist-executions/stats/*` | `completion-rate`, `avg-fill-time`, `with-issues-rate`, `heatmap`, `compliance-trend`. |
+| `GET` | `/api/checklist-issues/stats/*` | `resolution-split`, `resolution-rate`, `avg-resolution-time`, `overdue`, `per-execution`. |
+| `GET` | `/api/submission-windows/stats/avg-duration` | Duração média das janelas. |
+| `GET` | `/api/checklist-templates/stats/*` | Agregações de templates. |
+
+Ver [ADR-0016 (agregações)](docs/adr/0016-endpoints-agregacao-stats.md) e
+[ADR-0017 (dashboard composto com cache)](docs/adr/0017-dashboard-composto-cache.md).
+
+---
+
+## Regras de acesso
+
+O serviço segue o contrato de token do Hub. O acesso global vem de `userType`; o
+acesso por turma vem de `classes[].role`.
+
+Perfis: `STUDENT`, `REPRESENTATIVE`, `TEACHER`, `SENAI`, `WEG`, `ADMIN`.
+
+| Perfil | Acesso ao Checklist |
+|---|---|
+| `REPRESENTATIVE` | Cria/visualiza execuções **da própria turma**. |
+| `TEACHER` | Cria/visualiza execuções das turmas vinculadas. |
+| `SENAI` | Gerencia templates, janelas e issues; vê dashboards; edita checklists concluídos (escopo SENAI). |
+| `WEG` | Paridade com SENAI para validar/reabrir issues, gerenciar templates, dashboards e edição (escopo WEG). |
+| `STUDENT` | Sem acesso operacional (sem papel de representante). |
+| `ADMIN` | Administração no Hub; **sem acesso operacional** ao Checklist por padrão. |
+
+Perfis sem permissão recebem **`403 Forbidden`** (e não `200`). Ver
+[ADR-0006 (autorização local)](docs/adr/0006-autorizacao-local-checklist.md).
+
+---
+
+## Setup local
+
+### Requisitos
 
 - Java 21
-- Maven or Maven Wrapper
-- Docker and Docker Compose
-- PostgreSQL, if not using Docker Compose
+- Docker e Docker Compose (o Postgres local sobe automaticamente no perfil padrão)
+- Maven Wrapper (`./mvnw`) — já incluso no repositório
 
-### Environment Variables
+### Variáveis de ambiente
 
-Suggested local variables:
+Copie `.env.example` para `.env` na raiz e preencha os valores. O arquivo é
+carregado antes do Spring Boot; variáveis já definidas no SO/linha de comando têm
+prioridade. O `.env` real é ignorado pelo Git.
 
 ```env
+# Build local (mvn/IDE fora do Docker): acesso ao GitHub Packages (portal-logging)
+MAVEN_USERNAME=<seu-usuario-github>
+MAVEN_PASSWORD=<PAT classic com escopo read:packages>
+
 SPRING_PROFILES_ACTIVE=local
 SERVER_PORT=8083
+
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=5433                 # host 5433 -> container 5432, evita conflito com Postgres local
 DB_NAME=checklist_db
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-JWT_SECRET=your_base64_hs256_secret
+DB_USER=checklist_user
+DB_PASSWORD=checklist_password
+
+# Obrigatório: mesmo segredo Base64 HS256 do Hub local. Nunca versione.
+JWT_SECRET=<base64-hs256>
 HUB_API_URL=http://localhost:8080
+
+# Mensageria (opcional)
+RABBITMQ_ENABLED=true
+RABBITMQ_HOST=localhost
+RABBITMQ_PORT=5672
+RABBITMQ_USERNAME=guest
+RABBITMQ_PASSWORD=guest
 ```
 
-`JWT_SECRET` must use the same Base64-encoded HS256 secret configured for Checklist token validation. For local development, generate a temporary value and keep it only in `.env` or in your shell environment.
+> **`MAVEN_USERNAME`/`MAVEN_PASSWORD`** são lidos por `.mvn/settings.xml` para
+> autenticar no GitHub Packages e baixar `com.portal.conecta:portal-logging`. Sem
+> eles, `mvn test`/`mvn install` falham na resolução de dependências.
+>
+> **`JWT_SECRET`** precisa ser idêntico ao do Hub local. Exemplo para gerar um
+> segredo Base64 de 32 bytes (PowerShell):
+> ```powershell
+> [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+> ```
+>
+> Em ambientes implantados, configure valores sensíveis (`JWT_SECRET`,
+> `DB_PASSWORD`, `DB_USER`) como **GitHub Environment Secrets**, nunca versionados.
 
-PowerShell example to generate a local 32-byte Base64 secret:
+`DB_USER`/`DB_PASSWORD` do `.env.example` são credenciais exclusivas do container
+local e descartável — não valem para ambientes compartilhados ou de produção.
 
-```powershell
-[Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
-```
-
-You can also create a local `.env` file at the project root. The application loads this file before Spring Boot starts, and values already defined in the operating system or command line keep priority.
-
-Use `.env.example` as the local template. The real `.env` file is ignored by Git.
-
-For deployed environments, configure sensitive values as GitHub Environment Secrets, not as repository variables or committed files:
-
-- `JWT_SECRET`
-- `DB_PASSWORD`
-- `DB_USER`, if the database username is sensitive in your environment
-
-### Primeira Execucao
+### Primeira execução
 
 1. Instale e abra o Docker Desktop.
-2. Copie `.env.example` para `.env` e configure `JWT_SECRET` com o segredo Base64 HS256 do Hub local. Esse valor e obrigatorio e nunca deve ser versionado.
-3. Inicie a API pelo IntelliJ ou Maven. No profile `local`, o Spring Boot inicia automaticamente o PostgreSQL definido no `docker-compose.yml` e aguarda o health check.
-
-Windows:
-
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-Na primeira execucao, a imagem do PostgreSQL sera baixada. As proximas reutilizam o container e o volume de dados existentes. A aplicacao nao encerra o banco ao finalizar.
-
-A porta padrao do PostgreSQL local e `5433`, evitando conflito com uma instalacao ja existente na maquina. Altere `DB_PORT` no `.env` somente se essa porta tambem estiver indisponivel.
-
-`DB_USER` e `DB_PASSWORD` presentes no `.env.example` sao credenciais exclusivas do container local e descartavel do PostgreSQL. Elas nao sao validas para ambientes compartilhados ou de producao.
-
-### Gerenciar Infraestrutura Local Manualmente
-
-Normalmente, nenhum comando manual do Docker e necessario. Use os comandos abaixo apenas para inspecionar ou gerenciar diretamente a infraestrutura local.
-
-```bash
-docker compose up -d postgres
-```
-
-Check the container status:
-
-```bash
-docker compose ps
-```
-
-Stop the local database:
-
-```bash
-docker compose down
-```
-
-Remove the local database volume:
-
-```bash
-docker compose down -v
-```
-
-Para iniciar o Grafana como ferramenta local opcional de observabilidade:
-
-```bash
-docker compose --profile observability up -d
-```
-
-### Run the API
+2. Copie `.env.example` para `.env` e configure `JWT_SECRET` (e `MAVEN_*` se for
+   buildar fora do Docker).
+3. Suba o Hub (core-backend) — necessário para autenticação e dados centrais.
+4. Rode a API. No perfil padrão (`local`), o Spring Boot sobe o PostgreSQL do
+   `docker-compose.yml` e aguarda o health check.
 
 Linux/macOS:
-
 ```bash
 ./mvnw spring-boot:run
 ```
 
 Windows:
-
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-If Maven Wrapper is not available:
+Com um perfil específico:
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+Na primeira execução a imagem do PostgreSQL é baixada; as próximas reutilizam o
+container e o volume. A aplicação não encerra o banco ao finalizar.
+
+### Infraestrutura local manualmente
+
+Normalmente nenhum comando manual do Docker é necessário. Use apenas para
+inspecionar/gerenciar:
 
 ```bash
-mvn spring-boot:run
+docker compose up -d postgres      # sobe só o Postgres
+docker compose ps                  # status dos containers
+docker compose down                # para o banco
+docker compose down -v             # remove o volume (zera os dados)
+docker compose --profile observability up -d   # Grafana local (opcional)
 ```
 
-Using a specific profile:
+---
+
+## Perfis e seed de desenvolvimento
+
+| Perfil | Uso |
+|---|---|
+| `local` | Padrão (`spring.profiles.default`). Desenvolvimento na máquina, Postgres via Compose. |
+| `dev` | Ambiente de desenvolvimento compartilhado; habilita o **seed de dev** e `flyway.baseline-on-migrate` opcional. |
+| `prod` | Produção. |
+| `test` | Testes automatizados (Flyway habilitado, `ddl-auto: none`, Testcontainers). |
+
+### Seed de dev (`@Profile("dev")`)
+
+`ChecklistDevSeedInitializer` popula, via API HTTP, os dados mínimos para um
+checklist ponta a ponta:
+
+- **Templates**: um template `ACTIVE` por sala do Hub. A **sala 214** fica de
+  propósito sem template, para testar o estado "sala sem checklist".
+- **Janelas de envio** (`ARRIVAL`, 00:00–23:59) para as turmas **`MI78`, `MI77`,
+  `MT78`**. A turma **`MT77`** fica de propósito sem janela, para testar o estado
+  "sem janela configurada".
+
+Os nomes de turma seguem a convenção do Hub (`códigoDoCurso + número`) e precisam
+existir no seed do core-backend (`DevDataInitializer`). O seeder autentica como o
+admin de dev (`admin@portal.test`). Falhas (Hub fora do ar, admin ausente) são
+logadas como aviso e não impedem a subida do serviço. É idempotente.
+
+---
+
+## Migrations (Flyway)
+
+O schema é versionado por Flyway em `src/main/resources/db/migration`:
+
+| Versão | Conteúdo |
+|---|---|
+| `V1` | Estrutura inicial do checklist |
+| `V2` | `version` em `checklist_issue` |
+| `V3` | Índices de estatística |
+| `V4` | `submitted_by`/`canceled_by` em `checklist_execution` |
+| `V5` | `category` em template e execução |
+| `V6` | Remove `item_title_snapshot` de `checklist_issue` |
+| `V7` | Índices únicos e *check* de status |
+| `V8` | `version` em `checklist_execution` |
+
+Em `dev`, `FLYWAY_BASELINE_ON_MIGRATE` permite baseline sobre bancos já existentes.
+
+---
+
+## Observabilidade
+
+- **Health**: `GET http://localhost:8083/actuator/health` (não exige token).
+- **Métricas Prometheus**: `GET http://localhost:8083/actuator/prometheus` (JVM, HTTP, latência).
+- **Tracing OTLP**: opcional, via `MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT`.
+- **Logs estruturados**: JSON (logstash) com MDC, campos `service`/`environment`.
+- **Grafana local**: `docker compose --profile observability up -d`.
+
+Ver [ADR-0018 (observabilidade Prometheus)](docs/adr/0018-observabilidade-prometheus.md).
+
+---
+
+## Documentação da API (Swagger/OpenAPI)
+
+- Swagger UI: `http://localhost:8083/swagger-ui.html`
+- OpenAPI JSON: `http://localhost:8083/v3/api-docs`
+
+As operações usam `bearerAuth` (token do Hub) no OpenAPI. Por padrão o Swagger não
+é público (`checklist.security.swagger-public: false`).
+
+---
+
+## Testes
 
 ```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=local
+./mvnw test
 ```
 
-## API Documentation
+Os testes de repositório usam **Testcontainers** (PostgreSQL real) com Flyway.
+Lembre-se de exportar `MAVEN_USERNAME`/`MAVEN_PASSWORD` para resolver a lib
+privada `portal-logging`.
 
-Swagger UI should be available at:
+Cobertura esperada: regras de envio de checklist, validação de respostas
+obrigatórias, cálculo de conformidade, geração de issues, regras de acesso por
+perfil e validação de controllers.
 
-```text
-http://localhost:8083/swagger-ui.html
-```
+---
 
-OpenAPI JSON should be available at:
+## Integração com o Hub
 
-```text
-http://localhost:8083/v3/api-docs
-```
+Autenticação e dados centrais ficam no Hub. A Checklist API valida o token da
+plataforma antes de qualquer ação protegida e, quando precisa de dados do Hub,
+chama-o por contratos HTTP (camada de infraestrutura). **Nunca** acessa as
+tabelas do Hub diretamente. Ver
+[ADR-0007 (integração ports/adapters)](docs/adr/0007-integracao-hub-ports-adapters.md).
 
-## Health Check and Metrics
+### Autenticação por token do Hub
 
-Actuator health endpoint:
-
-```text
-http://localhost:8083/actuator/health
-```
-
-Prometheus metrics endpoint (JVM metrics, HTTP requests, and latency):
-
-```text
-http://localhost:8083/actuator/prometheus
-```
-
-## Testing
-
-Run all tests:
-
-```bash
-mvn test
-```
-
-Minimum expected test coverage for the first version:
-
-- business rules for checklist submission;
-- required-answer validation;
-- compliance calculation;
-- issue creation from non-compliant items;
-- access rules for main profiles;
-- controller validation for important requests.
-
-## Integration With Hub
-
-Authentication is centralized in the Hub. Checklist API must validate the platform token before executing protected actions.
-
-When Checklist API needs Hub data, it should call Hub through HTTP contracts, preferably from the infrastructure layer using OpenFeign.
-
-The Checklist service must not directly access Hub database tables.
-
-### Hub Token Authentication
-
-Protected endpoints expect the Hub token in the request header:
+Endpoints protegidos esperam:
 
 ```text
 Authorization: Bearer <hub-token>
 ```
 
-The Checklist API does not receive `userId` in request bodies or paths to identify the actor. The authenticated user is always resolved from the Hub token.
-
-Expected token claims:
+O ator é sempre resolvido a partir do token — a API não recebe `userId` em corpo
+ou path. Claims esperadas:
 
 ```json
 {
@@ -281,342 +415,83 @@ Expected token claims:
   "sub": "11111111-1111-1111-1111-111111111111",
   "userType": "REPRESENTATIVE",
   "classes": [
-    {
-      "classId": "22222222-2222-2222-2222-222222222222",
-      "role": "REPRESENTATIVE"
-    }
+    { "classId": "22222222-2222-2222-2222-222222222222", "role": "REPRESENTATIVE" }
   ],
   "iat": 1710000000,
   "exp": 1710003600
 }
 ```
 
-Current persistence uses UUIDs for users and classes, so `sub` and `classes[].classId` must be UUID strings. The Checklist API validates the token locally with the shared Base64 HS256 secret and then applies module authorization rules from the authenticated context.
-
-The Hub currently uses two names for class role data depending on the contract surface:
-
-- JWT access token: `classes[].role`;
-- `/me/courses` response: `classes[].classRole`.
-
-The current Hub token generator does not emit `permissionVersion`. If the Hub later adds that claim or an authorization-check endpoint, that flow should be introduced as a new integration decision instead of being assumed by this service.
-
-### Testing With Postman
-
-The Checklist API uses only data returned by the Hub. Start the Hub before the
-Checklist API and use identifiers that exist in the Hub database.
-
-#### What Is Being Tested
-
-JWT is the token format used by the Hub. It has three parts:
-
-```text
-header.payload.signature
-```
-
-The payload is the JSON with `sub`, `userType`, `classes`, `iat`, and `exp`, but Postman must send the full signed token, not the raw JSON.
-
-Checklist API validates:
-
-- JWT signature using HS256 and `JWT_SECRET`;
-- expiration date from `exp`;
-- required claims: `jti`, `sub`, `userType`, `iat`, `exp`;
-- `sub` as a valid user UUID;
-- `classes[].classId` as valid class UUIDs;
-- `classes[].role` as `STUDENT`, `TEACHER`, or `REPRESENTATIVE`;
-- authenticated user context through `HubMeProvider` using the Hub `/me/courses` contract;
-- room/class existence through Hub providers when the endpoint needs it.
-
-#### Run API With The Hub
-
-Start PostgreSQL and the Hub, then run the Checklist API:
-
-```powershell
-docker compose up -d
-```
-
-```powershell
-$env:SPRING_PROFILES_ACTIVE="local"
-$env:SERVER_PORT="8083"
-$env:JWT_SECRET="<BASE64_HS256_SECRET>"
-$env:HUB_API_URL="http://localhost:8080"
-mvn spring-boot:run
-```
-
-Health check and metrics do not require a token:
-
-```text
-GET http://localhost:8083/actuator/health
-GET http://localhost:8083/actuator/prometheus
-```
-
-#### Create A Postman Environment
-
-Create an environment called `Checklist Local` with:
-
-```text
-BASE_URL=http://localhost:8083
-HUB_URL=http://localhost:8080
-ROOM_ID=<room UUID returned by the Hub>
-TEACHER_CLASS_ID=<class UUID linked to the authenticated user>
-```
-
-#### Configure Authorization
-
-In the Postman collection, open `Authorization`:
-
-```text
-Type: Bearer Token
-Token: {{hubToken}}
-```
-
-Authenticate through the Hub login endpoint and save the returned access token
-in the `hubToken` environment variable. The Checklist API does not issue tokens
-and does not maintain a fallback user list.
-
-The token sent to Postman must be the full signed JWT in this format:
-
-```text
-header.payload.signature
-```
-
-Do not paste only the JSON payload as the token.
-
-#### First Request: Validate Authentication
-
-```text
-GET {{BASE_URL}}/api/checklist-templates
-Authorization: Bearer {{hubToken}}
-```
-
-Expected result with the example token:
-
-```text
-200 OK
-```
-
-If the token is missing:
-
-```text
-401 Unauthorized
-```
-
-If the token is expired, unsigned, signed with the wrong secret, or has invalid claims:
-
-```text
-401 Unauthorized
-```
-
-If the token is valid but the user does not have permission for the action:
-
-```text
-403 Forbidden
-```
-
-#### Create A Template
-
-Template management is allowed for `SENAI` or `WEG`. Use a token issued by the
-Hub for a user with one of these types.
-
-Request:
-
-```text
-POST {{BASE_URL}}/api/checklist-templates
-Authorization: Bearer {{hubToken}}
-Content-Type: application/json
-```
-
-Body:
-
-```json
-{
-  "roomId": "{{ROOM_ID}}",
-  "title": "Checklist Padrao",
-  "description": "Template para teste local",
-  "schemaJson": {
-    "sections": [
-      {
-        "key": "estrutura",
-        "title": "Estrutura",
-        "order": 1,
-        "items": [
-          {
-            "key": "quadro",
-            "title": "Quadro em bom estado?",
-            "description": "Verificar quadro",
-            "required": true,
-            "order": 1
-          },
-          {
-            "key": "iluminacao",
-            "title": "Iluminacao adequada?",
-            "description": "Verificar luzes",
-            "required": true,
-            "order": 2
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Save the returned `id` manually as a Postman environment variable:
-
-```text
-TEMPLATE_ID=<id returned by API>
-```
-
-#### Activate The Template
-
-Request:
-
-```text
-PATCH {{BASE_URL}}/api/checklist-templates/{{TEMPLATE_ID}}/activate
-Authorization: Bearer {{hubToken}}
-```
-
-Expected result:
-
-```text
-200 OK
-```
-
-#### Create A Checklist Draft
-
-Use a Hub token whose authenticated user has `TEACHER` or `REPRESENTATIVE` in
-`TEACHER_CLASS_ID`.
-
-Request:
-
-```text
-POST {{BASE_URL}}/api/checklist-executions/drafts
-Authorization: Bearer {{hubToken}}
-Content-Type: application/json
-```
-
-Body:
-
-```json
-{
-  "templateId": "{{TEMPLATE_ID}}",
-  "roomId": "{{ROOM_ID}}",
-  "classId": "{{TEACHER_CLASS_ID}}",
-  "checklistType": "ARRIVAL"
-}
-```
-
-Save the returned `id` manually as:
-
-```text
-EXECUTION_ID=<id returned by API>
-```
-
-#### Submit The Checklist
-
-Request:
-
-```text
-POST {{BASE_URL}}/api/checklist-executions/{{EXECUTION_ID}}/submit
-Authorization: Bearer {{hubToken}}
-Content-Type: application/json
-```
-
-Body:
-
-```json
-{
-  "answers": [
-    {
-      "itemKey": "quadro",
-      "value": "COMPLIANT",
-      "observation": null,
-      "answeredAt": "2026-05-27T12:00:00Z"
-    },
-    {
-      "itemKey": "iluminacao",
-      "value": "NON_COMPLIANT",
-      "observation": "Lampada queimada",
-      "answeredAt": "2026-05-27T12:01:00Z"
-    }
-  ]
-}
-```
-
-Rules validated here:
-
-- only `DRAFT` checklists can be submitted;
-- all required items must be answered;
-- `COMPLIANT` does not require observation;
-- `NON_COMPLIANT` requires observation;
-- `NON_COMPLIANT` generates an issue;
-- only the user that created the execution can submit it.
-
-#### Common Problems
-
-`401 Token do Hub invalido ou expirado.`
-
-- Token was pasted as raw JSON instead of JWT.
-- `JWT_SECRET` in Postman is different from the API.
-- `exp` is in the past.
-- `sub`, `jti`, or `classes[].classId` is not a UUID.
-- The Hub rejects the authenticated user or the token cannot access `/me/courses`.
-
-`403 Acesso negado.`
-
-- Token is valid, but `userType` or `classes[].role` does not allow the action.
-- Example: `STUDENT` without `TEACHER` or `REPRESENTATIVE` class role trying to create a checklist draft.
-- Example: `STUDENT` trying to create or activate checklist templates.
-
-`404` or `Sala/Turma nao encontrada no Hub.`
-
-- `ROOM_ID` does not exist in the Hub.
-- `classId` does not exist in the Hub or is not linked to the authenticated user.
-
-Duplicate checklist error.
-
-- The API does not allow duplicated checklist for the same class, room, period, day, and type.
-- To test again, change `checklistType`, class, or reset the local database.
-
-Initial authorization rules implemented:
-
-- A class representative can create checklist executions only for their own class.
-- A linked teacher can create checklist executions for linked classes.
-- `SENAI` and `WEG` can manage templates, view dashboards, and edit completed checklists.
-
-## Database Ownership
-
-Checklist API owns only Checklist data, such as:
-
-- checklist templates;
-- checklist executions;
-- checklist answers;
-- checklist issues;
-- compliance-related fields.
-
-Central entities such as users, classes, courses, rooms, and global roles belong to the Hub.
-
-## Development Guidelines
-
-- Keep controllers thin.
-- Keep business rules out of DTOs and controllers.
-- Put use cases in the application layer.
-- Keep domain code independent from Spring, JPA, HTTP, and Feign when possible.
-- Put external HTTP clients in `infrastructure/client`.
-- Use OpenAPI annotations to keep contracts clear.
-- Use validation annotations for request DTOs.
-- Use clear error responses through the global exception handler.
-- Avoid adding dependencies before there is a real need.
-
-## Team Responsibilities
-
-- Daniel: project setup, architecture, security, authorization, integration, dashboard, and completed-checklist edit rules.
-- Kael: domain model, persistence, checklist business rules, issues, and core tests.
-- Murilo: DTOs, controllers, validation, OpenAPI documentation, request examples, and technical README updates.
-
-## Pending Decisions
-
-- Whether `SENAI` and `WEG` can create checklist executions.
-- Who can create, edit, activate, and disable checklist templates.
-- How SENAI and WEG scopes will be resolved.
-- Whether issues will have a full workflow in the MVP.
-- Whether the project will use Flyway, Liquibase, or simple SQL scripts for schema control.
+A API valida localmente: assinatura HS256 com `JWT_SECRET`, `exp`, claims
+obrigatórias (`jti`, `sub`, `userType`, `iat`, `exp`), `sub` e
+`classes[].classId` como UUID, e o papel de turma. O contexto do usuário é
+resolvido pelo contrato `/me/courses` do Hub. Ver
+[ADR-0005 (autenticação token Hub)](docs/adr/0005-autenticacao-token-hub.md).
+
+> O Hub usa nomes diferentes para o papel de turma conforme a superfície: no JWT é
+> `classes[].role`; em `/me/courses` é `classes[].classRole`. O gerador de token
+> atual não emite `permissionVersion` — se vier no futuro, deve ser tratado como
+> nova decisão de integração.
+
+---
+
+## Fluxo ponta a ponta
+
+Suba o **Hub** e depois a **Checklist API** (use identificadores que existem no
+Hub). Sequência típica de um checklist:
+
+1. **Autenticar no Hub** e obter o access token (JWT completo `header.payload.signature`).
+2. **(SENAI/WEG)** `POST /api/checklist-templates` → criar template da sala e
+   `PATCH /api/checklist-templates/{id}/activate` → ativar.
+3. **(SENAI/WEG)** `PUT /api/submission-windows/classes/{classId}/ARRIVAL` →
+   configurar a janela de envio (`openAt`, `durationMinutes`).
+4. **(TEACHER/REPRESENTATIVE)** `POST /api/checklist-executions/drafts` → criar
+   rascunho; `PATCH /{id}/answers` → autosave; `POST /{id}/submit` → enviar.
+5. Itens `NON_COMPLIANT` geram **issues**, tratáveis em `/api/checklist-issues`.
+
+Regras validadas no envio: só `DRAFT` pode ser enviado; todos os itens
+obrigatórios respondidos; `NON_COMPLIANT` exige observação e gera issue; janela de
+envio precisa estar aberta; template precisa estar ativo; só o autor envia; não há
+checklist duplicado para a mesma turma/sala/período/dia/tipo.
+
+Erros comuns:
+
+- **`401`** — token como JSON cru em vez de JWT; `JWT_SECRET` divergente do Hub;
+  `exp` no passado; `sub`/`jti`/`classId` não-UUID.
+- **`403`** — token válido mas perfil sem permissão (ex.: `STUDENT` sem papel de
+  representante, `ADMIN` tentando operar checklist).
+- **`404` / "Sala/Turma não encontrada no Hub"** — `roomId`/`classId` inexistente
+  no Hub ou não vinculado ao usuário.
+
+---
+
+## Ownership de dados
+
+A Checklist API é dona **apenas** de dados de checklist: templates, execuções,
+respostas, issues, janelas de envio e campos de conformidade. Entidades centrais
+(usuários, turmas, cursos, salas, papéis globais) pertencem ao **Hub**.
+
+---
+
+## Diretrizes de desenvolvimento
+
+- Controllers finos; regra de negócio fora de DTOs e controllers.
+- Casos de uso na camada de aplicação.
+- Domínio independente de Spring, JPA, HTTP e Feign sempre que possível.
+- Clientes HTTP externos na infraestrutura (`shared/integration`).
+- Anotações OpenAPI para contratos claros; validação nos DTOs de request.
+- Erros padronizados pelo handler global (`ApiError` — ver
+  [ADR-0008](docs/adr/0008-contrato-de-erro-apierror.md)).
+- Evite novas dependências sem necessidade real.
+
+Convenções de commit, branch e PR: ver [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+## Documentação do projeto
+
+- [Índice de documentação](docs/README.md)
+- [Visão geral de arquitetura](docs/arquitetura/visao-geral.md)
+- [Fluxo operacional do domínio](docs/dominio/fluxo-operacional.md)
+- [Riscos](docs/riscos.md) · [Changelog](docs/CHANGELOG.md)
+- [Índice de ADRs](docs/adr/README.md) — decisões arquiteturais 0001–0020

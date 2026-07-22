@@ -52,6 +52,7 @@ class ActivateChecklistTemplateUseCaseTest {
         when(templateRepository.findByTemplateGroupIdAndStatus(groupId, ChecklistTemplateStatus.ACTIVE))
                 .thenReturn(List.of(active));
         when(templateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(templateRepository.saveAndFlushTemplate(any())).thenAnswer(inv -> inv.getArgument(0));
 
         ChecklistTemplate result = useCase.execute(templateId);
 
@@ -59,7 +60,10 @@ class ActivateChecklistTemplateUseCaseTest {
         assertTrue(result.isActive());
         assertEquals(ChecklistTemplateStatus.INACTIVE, active.getStatus());
         assertFalse(active.isActive());
-        verify(templateRepository, times(2)).save(any());
+        // desativação da versão anterior usa saveAndFlushTemplate (flush imediato, evita
+        // violar o índice único parcial); só a nova versão ativada usa save().
+        verify(templateRepository, times(1)).save(any());
+        verify(templateRepository, times(1)).saveAndFlushTemplate(any());
     }
 
     @Test

@@ -97,4 +97,9 @@ public interface ChecklistTemplateRepository
             ChecklistTemplateStatus status,
             ChecklistCategory category
     );
+
+    @Override
+    default ChecklistTemplate saveAndFlushTemplate(ChecklistTemplate template) {
+        return saveAndFlush(template);
+    }
 }

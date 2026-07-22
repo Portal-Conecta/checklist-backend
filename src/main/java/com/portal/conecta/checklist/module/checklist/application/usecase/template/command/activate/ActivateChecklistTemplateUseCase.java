@@ -93,7 +93,11 @@ public class ActivateChecklistTemplateUseCase {
                 .forEach(active -> {
                     active.setStatus(ChecklistTemplateStatus.INACTIVE);
                     active.setActive(false);
-                    templateRepository.save(active);
+                    // flush imediato: garante que a desativação chegue ao banco antes da
+                    // ativação da nova versão (índice único parcial permite só 1 ACTIVE
+                    // por grupo — sem isso, o Hibernate pode emitir as duas UPDATEs fora
+                    // de ordem e violar a constraint mesmo o estado final sendo válido).
+                    templateRepository.saveAndFlushTemplate(active);
                 });
     }
 }

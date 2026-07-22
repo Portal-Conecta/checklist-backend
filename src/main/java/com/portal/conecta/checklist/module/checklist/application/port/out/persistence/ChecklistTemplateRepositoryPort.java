@@ -25,4 +25,14 @@ public interface ChecklistTemplateRepositoryPort extends ListCrudRepository<Chec
             UUID templateGroupId,
             ChecklistTemplateStatus status
     );
+
+    /**
+     * Salva e força o flush imediato — necessário para garantir que a
+     * desativação de uma versão anterior chegue ao banco antes da ativação da
+     * nova, respeitando o índice único parcial `uidx_one_active_per_group`
+     * (só uma versão ACTIVE por grupo por vez). Nome distinto de
+     * `JpaRepository#saveAndFlush` de propósito — mesma assinatura erased
+     * causaria ambiguidade de overload na implementação concreta.
+     */
+    ChecklistTemplate saveAndFlushTemplate(ChecklistTemplate template);
 }

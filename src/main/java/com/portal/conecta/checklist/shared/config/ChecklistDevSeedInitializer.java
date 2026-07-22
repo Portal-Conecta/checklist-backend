@@ -28,7 +28,7 @@ import java.util.UUID;
  * chamar os casos de uso diretamente -- eles exigem um contexto de requisicao
  * autenticado que nao existe durante o startup.</p>
  *
- * <p>Deixa a turma ADSIS2 de proposito sem janela, para o estado "sem janela
+ * <p>Deixa a turma MT77 de proposito sem janela, para o estado "sem janela
  * configurada" continuar testavel sem precisar desfazer nada manualmente.
  * Pelo mesmo motivo, deixa a sala 214 de proposito sem template ATIVO, para
  * o estado "sala sem checklist" tambem continuar testavel. Templates sao
@@ -48,7 +48,17 @@ public class ChecklistDevSeedInitializer {
     private static final String DEV_ADMIN_EMAIL = "admin@portal.test";
     private static final String DEV_ADMIN_PASSWORD = "123456";
 
-    private static final List<String> CLASS_NAMES_TO_SEED = List.of("MIDS1", "ADSIS1", "MIDS2");
+    /**
+     * Turmas que recebem janela de envio (ARRIVAL). Os nomes seguem a convencao do
+     * core ({@code codigoDoCurso + numero}): MI78/MI77 sao as turmas do curso de
+     * Desenvolvimento de Sistemas (MI) com alunos e representantes reais no seed do
+     * core; MT78 e uma turma do curso de Eletrotecnica (MT) usada para cobrir mais
+     * de um curso. Precisam existir no seed do core-backend ({@code DevDataInitializer}).
+     */
+    private static final List<String> CLASS_NAMES_TO_SEED = List.of("MI78", "MI77", "MT78");
+
+    /** Turma deixada de proposito sem janela de envio, para testar o estado "sem janela configurada". */
+    private static final String CLASS_NAME_WITHOUT_WINDOW = "MT77";
 
     /** Sala deixada de proposito sem template ATIVO, para testar o estado "sala sem checklist". */
     private static final int ROOM_NUMBER_WITHOUT_TEMPLATE = 214;
@@ -207,8 +217,9 @@ public class ChecklistDevSeedInitializer {
 
         log.info(
             "[DEV SEED] Janelas de envio do checklist semeadas (ARRIVAL, 00:00-23:59): {}. "
-                + "ADSIS2 fica sem janela de proposito, para testar o estado \"sem janela configurada\".",
-            CLASS_NAMES_TO_SEED
+                + "Turma {} fica sem janela de proposito, para testar o estado \"sem janela configurada\".",
+            CLASS_NAMES_TO_SEED,
+            CLASS_NAME_WITHOUT_WINDOW
         );
     }
 

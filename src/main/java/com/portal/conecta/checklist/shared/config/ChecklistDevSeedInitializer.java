@@ -18,13 +18,13 @@ import java.util.UUID;
 
 /**
  * Popula os dados de dev necessarios pra realizar um checklist de ponta a
- * ponta, no perfil {@code dev}: um template ATIVO por sala do Hub e janelas
- * de envio (submission windows) pras turmas de teste.
+ * ponta, no perfil {@code dev}: um template ATIVO por sala fixa do seed do
+ * Hub e janelas de envio (submission windows) pras turmas de teste.
  *
  * <p>O checklist-backend nao possui turmas nem salas em seu proprio banco
  * (sao do Hub), entao este seeder autentica como o admin de dev ja semeado
- * pelo {@code core-backend} e usa a API HTTP (Hub pra listar salas/turmas, o
- * proprio servico via loopback pra criar templates e janelas) em vez de
+ * pelo {@code core-backend} e usa a API HTTP (o proprio servico via loopback
+ * pra criar templates e janelas) em vez de
  * chamar os casos de uso diretamente -- eles exigem um contexto de requisicao
  * autenticado que nao existe durante o startup.</p>
  *
@@ -49,13 +49,33 @@ public class ChecklistDevSeedInitializer {
     private static final String DEV_ADMIN_PASSWORD = "123456";
 
     /**
-     * Turmas que recebem janela de envio (ARRIVAL). Os nomes seguem a convencao do
-     * core ({@code codigoDoCurso + numero}): MI78/MI77 sao as turmas do curso de
-     * Desenvolvimento de Sistemas (MI) com alunos e representantes reais no seed do
-     * core; MT78 e uma turma do curso de Eletrotecnica (MT) usada para cobrir mais
-     * de um curso. Precisam existir no seed do core-backend ({@code DevDataInitializer}).
+     * Referencias do seed de desenvolvimento do Hub. Nao derive estes IDs da
+     * resposta HTTP: um banco local antigo pode conter a mesma sala/turma com
+     * outro UUID e criar referencias invalidas no Checklist.
      */
-    private static final List<String> CLASS_NAMES_TO_SEED = List.of("MI78", "MI77", "MT78");
+    private static final List<DevRoomSeed> DEV_ROOMS = List.of(
+        new DevRoomSeed("00000000-0000-0000-0000-000000000101", 101, "LABORATORY"),
+        new DevRoomSeed("00000000-0000-0000-0000-000000000102", 102, "LABORATORY"),
+        new DevRoomSeed("00000000-0000-0000-0000-000000000103", 103, "LABORATORY"),
+        new DevRoomSeed("00000000-0000-0000-0000-000000000109", 109, "LABORATORY"),
+        new DevRoomSeed("00000000-0000-0000-0000-000000000110", 110, "LABORATORY"),
+        new DevRoomSeed("00000000-0000-0000-0000-000000000201", 201, "CLASSROOM"),
+        new DevRoomSeed("00000000-0000-0000-0000-000000000202", 202, "CLASSROOM"),
+        new DevRoomSeed("00000000-0000-0000-0000-000000000203", 203, "CLASSROOM"),
+        new DevRoomSeed("00000000-0000-0000-0000-000000000204", 204, "CLASSROOM"),
+        new DevRoomSeed("00000000-0000-0000-0000-000000000205", 205, "CLASSROOM"),
+        new DevRoomSeed("00000000-0000-0000-0000-000000000206", 206, "CLASSROOM"),
+        new DevRoomSeed("00000000-0000-0000-0000-000000000207", 207, "CLASSROOM"),
+        new DevRoomSeed("00000000-0000-0000-0000-000000000212", 212, "CLASSROOM"),
+        new DevRoomSeed("00000000-0000-0000-0000-000000000213", 213, "CLASSROOM")
+    );
+
+    /** Turmas com janela ARRIVAL; IDs alinhados ao {@code DevDataInitializer} do core-backend. */
+    private static final List<DevClassSeed> CLASSES_WITH_ARRIVAL_WINDOW = List.of(
+        new DevClassSeed("00000000-0000-0000-0000-000000000101", "MI78"),
+        new DevClassSeed("00000000-0000-0000-0000-000000000102", "MI77"),
+        new DevClassSeed("00000000-0000-0000-0000-000000000103", "MT78")
+    );
 
     /** Turma deixada de proposito sem janela de envio, para testar o estado "sem janela configurada". */
     private static final String CLASS_NAME_WITHOUT_WINDOW = "MT77";
@@ -80,27 +100,16 @@ public class ChecklistDevSeedInitializer {
                 return;
             }
 
-            seedTemplates(hubClient, selfClient, token);
-            seedSubmissionWindows(hubClient, selfClient, token);
+            seedTemplates(selfClient, token);
+            seedSubmissionWindows(selfClient, token);
         };
     }
 
     // --- Templates de checklist (um ATIVO por sala do Hub) ---
 
-    private void seedTemplates(RestClient hubClient, RestClient selfClient, String token) {
-        List<HubRoomSummary> rooms;
-        try {
-            rooms = listRooms(hubClient, token);
-        } catch (Exception exception) {
-            log.warn("[DEV SEED] Nao foi possivel listar salas do Hub para semear templates de checklist: {}", exception.getMessage());
-            return;
-        }
-
+    private void seedTemplates(RestClient selfClient, String token) {
         int seeded = 0;
-        for (HubRoomSummary room : rooms) {
-            if (room.number() != null && room.number() == ROOM_NUMBER_WITHOUT_TEMPLATE) {
-                continue;
-            }
+        for (DevRoomSeed room : DEV_ROOMS) {
             if (hasActiveTemplate(selfClient, token, room.id())) {
                 continue;
             }
@@ -109,22 +118,12 @@ public class ChecklistDevSeedInitializer {
         }
 
         log.info(
-            "[DEV SEED] Templates de checklist verificados para {} sala(s) do Hub ({} nova(s) criada(s) e ativada(s)). "
+            "[DEV SEED] Templates de checklist verificados para {} sala(s) fixa(s) do Hub ({} nova(s) criada(s) e ativada(s)). "
                 + "Sala {} fica sem template de proposito, para testar o estado \"sala sem checklist\".",
-            rooms.size(),
+            DEV_ROOMS.size(),
             seeded,
             ROOM_NUMBER_WITHOUT_TEMPLATE
         );
-    }
-
-    private List<HubRoomSummary> listRooms(RestClient client, String token) {
-        HubRoomSummary[] response = client.get()
-            .uri("/rooms")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-            .retrieve()
-            .body(HubRoomSummary[].class);
-
-        return response == null ? List.of() : List.of(response);
     }
 
     private boolean hasActiveTemplate(RestClient client, String token, UUID roomId) {
@@ -146,7 +145,7 @@ public class ChecklistDevSeedInitializer {
     }
 
     @SuppressWarnings("unchecked")
-    private void seedTemplateForRoom(RestClient client, String token, HubRoomSummary room) {
+    private void seedTemplateForRoom(RestClient client, String token, DevRoomSeed room) {
         try {
             String category = "LABORATORY".equals(room.typeRoom()) ? "ELETRONICOS" : "GERAL";
             String title = "Checklist padrao - Sala " + room.number();
@@ -196,44 +195,18 @@ public class ChecklistDevSeedInitializer {
         );
     }
 
-    private void seedSubmissionWindows(RestClient hubClient, RestClient selfClient, String token) {
-        List<HubClassSummary> classes;
-        try {
-            classes = listActiveClasses(hubClient, token);
-        } catch (Exception exception) {
-            log.warn("[DEV SEED] Nao foi possivel listar turmas do Hub para semear janelas de envio: {}", exception.getMessage());
-            return;
-        }
-
-        for (String className : CLASS_NAMES_TO_SEED) {
-            classes.stream()
-                .filter(candidate -> candidate.name().equalsIgnoreCase(className))
-                .findFirst()
-                .ifPresentOrElse(
-                    cls -> upsertArrivalWindow(selfClient, token, cls),
-                    () -> log.warn("[DEV SEED] Turma {} nao encontrada no Hub; janela de envio nao semeada.", className)
-                );
-        }
+    private void seedSubmissionWindows(RestClient selfClient, String token) {
+        CLASSES_WITH_ARRIVAL_WINDOW.forEach(cls -> upsertArrivalWindow(selfClient, token, cls));
 
         log.info(
             "[DEV SEED] Janelas de envio do checklist semeadas (ARRIVAL, 00:00-23:59): {}. "
                 + "Turma {} fica sem janela de proposito, para testar o estado \"sem janela configurada\".",
-            CLASS_NAMES_TO_SEED,
+            CLASSES_WITH_ARRIVAL_WINDOW.stream().map(DevClassSeed::name).toList(),
             CLASS_NAME_WITHOUT_WINDOW
         );
     }
 
-    private List<HubClassSummary> listActiveClasses(RestClient client, String token) {
-        HubListClassesResponse response = client.get()
-            .uri("/classes?page=0&size=100")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-            .retrieve()
-            .body(HubListClassesResponse.class);
-
-        return response == null || response.items() == null ? List.of() : response.items();
-    }
-
-    private void upsertArrivalWindow(RestClient client, String token, HubClassSummary cls) {
+    private void upsertArrivalWindow(RestClient client, String token, DevClassSeed cls) {
         try {
             client.put()
                 .uri("/api/submission-windows/classes/{classId}/ARRIVAL", cls.id())
@@ -264,15 +237,18 @@ public class ChecklistDevSeedInitializer {
         return token;
     }
 
-    private record HubRoomSummary(UUID id, Integer number, String typeRoom) {
-    }
-
     private record TemplateSummary(UUID id) {
     }
 
-    private record HubClassSummary(UUID id, String name) {
+    private record DevRoomSeed(UUID id, int number, String typeRoom) {
+        private DevRoomSeed(String id, int number, String typeRoom) {
+            this(UUID.fromString(id), number, typeRoom);
+        }
     }
 
-    private record HubListClassesResponse(List<HubClassSummary> items) {
+    private record DevClassSeed(UUID id, String name) {
+        private DevClassSeed(String id, String name) {
+            this(UUID.fromString(id), name);
+        }
     }
 }

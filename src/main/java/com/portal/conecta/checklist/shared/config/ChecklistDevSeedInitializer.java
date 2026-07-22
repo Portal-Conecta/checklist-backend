@@ -30,7 +30,9 @@ import java.util.UUID;
  *
  * <p>Deixa a turma ADSIS2 de proposito sem janela, para o estado "sem janela
  * configurada" continuar testavel sem precisar desfazer nada manualmente.
- * Templates sao idempotentes (pula a sala se ja existir template ATIVO).
+ * Pelo mesmo motivo, deixa a sala 214 de proposito sem template ATIVO, para
+ * o estado "sala sem checklist" tambem continuar testavel. Templates sao
+ * idempotentes (pula a sala se ja existir template ATIVO).
  * Falhas aqui (Hub fora do ar, admin nao encontrado) sao logadas como aviso e
  * nao impedem a subida do servico -- e conveniencia de dev, nao requisito.</p>
  *
@@ -47,6 +49,9 @@ public class ChecklistDevSeedInitializer {
     private static final String DEV_ADMIN_PASSWORD = "123456";
 
     private static final List<String> CLASS_NAMES_TO_SEED = List.of("MIDS1", "ADSIS1", "MIDS2");
+
+    /** Sala deixada de proposito sem template ATIVO, para testar o estado "sala sem checklist". */
+    private static final int ROOM_NUMBER_WITHOUT_TEMPLATE = 214;
 
     @Bean
     public CommandLineRunner seedChecklistDevData(
@@ -83,6 +88,9 @@ public class ChecklistDevSeedInitializer {
 
         int seeded = 0;
         for (HubRoomSummary room : rooms) {
+            if (room.number() != null && room.number() == ROOM_NUMBER_WITHOUT_TEMPLATE) {
+                continue;
+            }
             if (hasActiveTemplate(selfClient, token, room.id())) {
                 continue;
             }
@@ -91,9 +99,11 @@ public class ChecklistDevSeedInitializer {
         }
 
         log.info(
-            "[DEV SEED] Templates de checklist verificados para {} sala(s) do Hub ({} nova(s) criada(s) e ativada(s)).",
+            "[DEV SEED] Templates de checklist verificados para {} sala(s) do Hub ({} nova(s) criada(s) e ativada(s)). "
+                + "Sala {} fica sem template de proposito, para testar o estado \"sala sem checklist\".",
             rooms.size(),
-            seeded
+            seeded,
+            ROOM_NUMBER_WITHOUT_TEMPLATE
         );
     }
 

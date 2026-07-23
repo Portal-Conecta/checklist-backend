@@ -15,6 +15,7 @@ import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.
 import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.response.ChecklistExecutionResponseDTO;
 import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.response.ChecklistExecutionSummaryDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +36,9 @@ public class ChecklistExecutionMapper {
     private final HubRoomProvider hubRoomProvider;
     private final HubClassProvider hubClassProvider;
 
+    @Value("${checklist.timezone:America/Sao_Paulo}")
+    private String timezone;
+
     public ChecklistExecutionMapper(ObjectMapper objectMapper, ExecutionIssuesQueryPort issuesQueryPort,
                                     HubRoomProvider hubRoomProvider, HubClassProvider hubClassProvider) {
         this.objectMapper = objectMapper;
@@ -49,14 +53,14 @@ public class ChecklistExecutionMapper {
         }
 
         List<UUID> roomIds = executions.getContent().stream()
-                .map(execution -> execution.getRoomId())
-                .toList();
+            .map(execution -> execution.getRoomId())
+            .toList();
 
         Map<UUID, RoomReference> roomMap = Map.of();
         try {
             List<RoomReference> rooms = hubRoomProvider.findByIds(roomIds);
             roomMap = rooms.stream()
-                    .collect(Collectors.toMap(room -> room.getRoomId(), room -> room, (r1, r2) -> r1));
+                .collect(Collectors.toMap(room -> room.getRoomId(), room -> room, (r1, r2) -> r1));
         } catch (Exception e) {
             log.warn("Falha ao buscar salas no Hub para histórico de execuções: {}", e.getMessage());
         }
@@ -64,8 +68,8 @@ public class ChecklistExecutionMapper {
         Map<UUID, ClassReference> classMap = Map.of();
         try {
             classMap = hubClassProvider.findById(classId)
-                    .map(classRef -> Map.of(classId, classRef))
-                    .orElse(Map.of());
+                .map(classRef -> Map.of(classId, classRef))
+                .orElse(Map.of());
         } catch (Exception e) {
             log.warn("Falha ao buscar turmas no Hub para histórico de execuções: {}", e.getMessage());
         }
@@ -82,33 +86,33 @@ public class ChecklistExecutionMapper {
         ChecklistAnswersDTO answers = toAnswersDTO(execution.getAnswersJson());
 
         return new ChecklistExecutionResponseDTO(
-                execution.getId(),
-                template == null ? null : template.getId(),
-                template == null ? null : template.getVersion(),
-                execution.getRoomId(),
-                execution.getClassId(),
-                execution.getUserId(),
-                execution.getSubmittedBy(),
-                execution.getCanceledBy(),
-                execution.getPeriod(),
-                execution.getChecklistType(),
-                execution.getCategory(),
-                execution.getStatus(),
-                execution.getComplianceScore(),
-                answers,
-                answers.summary(),
-                toInstant(execution.getStartedAt()),
-                toInstant(execution.getSubmittedAt()),
-                issuesQueryPort.findByExecutionId(execution.getId()),
-                resolveRoom(execution.getRoomId())
+            execution.getId(),
+            template == null ? null : template.getId(),
+            template == null ? null : template.getVersion(),
+            execution.getRoomId(),
+            execution.getClassId(),
+            execution.getUserId(),
+            execution.getSubmittedBy(),
+            execution.getCanceledBy(),
+            execution.getPeriod(),
+            execution.getChecklistType(),
+            execution.getCategory(),
+            execution.getStatus(),
+            execution.getComplianceScore(),
+            answers,
+            answers.summary(),
+            toInstant(execution.getStartedAt()),
+            toInstant(execution.getSubmittedAt()),
+            issuesQueryPort.findByExecutionId(execution.getId()),
+            resolveRoom(execution.getRoomId())
         );
     }
 
     private RoomResponseDTO resolveRoom(UUID roomId) {
         try {
             return hubRoomProvider.findById(roomId)
-                    .map(room -> new RoomResponseDTO(room.getRoomId(), room.getNumber(), room.getTypeRoom(), room.getStatus()))
-                    .orElse(null);
+                .map(room -> new RoomResponseDTO(room.getRoomId(), room.getNumber(), room.getTypeRoom(), room.getStatus()))
+                .orElse(null);
         } catch (Exception e) {
             log.warn("Falha ao buscar sala no Hub para execução: {}", e.getMessage());
             return null;
@@ -138,44 +142,44 @@ public class ChecklistExecutionMapper {
         RoomResponseDTO roomDTO = null;
         if (room != null) {
             roomDTO = new RoomResponseDTO(
-                    room.getRoomId(),
-                    room.getNumber(),
-                    room.getTypeRoom(),
-                    room.getStatus()
+                room.getRoomId(),
+                room.getNumber(),
+                room.getTypeRoom(),
+                room.getStatus()
             );
         }
 
         ClassResponseDTO classDTO = null;
         if (classRef != null) {
             classDTO = new ClassResponseDTO(
-                    classRef.getClassId(),
-                    classRef.getName(),
-                    classRef.getNumber(),
-                    classRef.getShift(),
-                    classRef.getCourseReference() != null ? classRef.getCourseReference().getCourseId() : null,
-                    classRef.getCreatedAt()
+                classRef.getClassId(),
+                classRef.getName(),
+                classRef.getNumber(),
+                classRef.getShift(),
+                classRef.getCourseReference() != null ? classRef.getCourseReference().getCourseId() : null,
+                classRef.getCreatedAt()
             );
         }
 
         return new ChecklistExecutionHistoryDTO(
-                execution.getId(),
-                template == null ? null : template.getId(),
-                template == null ? null : template.getVersion(),
-                execution.getRoomId(),
-                execution.getClassId(),
-                execution.getUserId(),
-                execution.getSubmittedBy(),
-                execution.getCanceledBy(),
-                execution.getPeriod(),
-                execution.getChecklistType(),
-                execution.getCategory(),
-                execution.getStatus(),
-                execution.getComplianceScore(),
-                toInstant(execution.getStartedAt()),
-                toInstant(execution.getSubmittedAt()),
-                answers.summary(),
-                roomDTO,
-                classDTO
+            execution.getId(),
+            template == null ? null : template.getId(),
+            template == null ? null : template.getVersion(),
+            execution.getRoomId(),
+            execution.getClassId(),
+            execution.getUserId(),
+            execution.getSubmittedBy(),
+            execution.getCanceledBy(),
+            execution.getPeriod(),
+            execution.getChecklistType(),
+            execution.getCategory(),
+            execution.getStatus(),
+            execution.getComplianceScore(),
+            toInstant(execution.getStartedAt()),
+            toInstant(execution.getSubmittedAt()),
+            answers.summary(),
+            roomDTO,
+            classDTO
         );
     }
 
@@ -188,9 +192,9 @@ public class ChecklistExecutionMapper {
             return Page.empty();
         }
         return executions.map(execution -> toHistoryResponse(
-                execution,
-                roomMap != null ? roomMap.get(execution.getRoomId()) : null,
-                classMap != null ? classMap.get(execution.getClassId()) : null
+            execution,
+            roomMap != null ? roomMap.get(execution.getRoomId()) : null,
+            classMap != null ? classMap.get(execution.getClassId()) : null
         ));
     }
 
@@ -203,24 +207,24 @@ public class ChecklistExecutionMapper {
             return List.of();
         }
         return executions.stream()
-                .map(execution -> toHistoryResponse(
-                        execution,
-                        roomMap != null ? roomMap.get(execution.getRoomId()) : null,
-                        classMap != null ? classMap.get(execution.getClassId()) : null
-                ))
-                .toList();
+            .map(execution -> toHistoryResponse(
+                execution,
+                roomMap != null ? roomMap.get(execution.getRoomId()) : null,
+                classMap != null ? classMap.get(execution.getClassId()) : null
+            ))
+            .toList();
     }
 
     private ChecklistAnswersDTO emptyAnswers() {
         return new ChecklistAnswersDTO(
-                List.of(),
-                new ChecklistExecutionSummaryDTO(0, 0, 0, 0)
+            List.of(),
+            new ChecklistExecutionSummaryDTO(0, 0, 0, 0)
         );
     }
 
     private Instant toInstant(LocalDateTime dateTime) {
         return dateTime == null
-                ? null
-                : dateTime.atZone(ZoneId.systemDefault()).toInstant();
+            ? null
+            : dateTime.atZone(ZoneId.of(timezone)).toInstant();
     }
 }

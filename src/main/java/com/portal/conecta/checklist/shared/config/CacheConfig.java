@@ -22,7 +22,7 @@ import java.time.Duration;
 @EnableCaching
 public class CacheConfig {
 
-    private static final int TTL_SECONDS = 60;
+    private static final int TTL_SECONDS = 5;
     private static final int MAX_ENTRIES = 500;
 
     public static final String DASHBOARD_CACHE = "checklist-dashboard";

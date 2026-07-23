@@ -1,0 +1,127 @@
+package com.portal.conecta.checklist.module.checklist.application.usecase.execution;
+
+import com.portal.conecta.checklist.module.checklist.application.port.out.persistence.ChecklistExecutionStatsPort;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ChecklistExecutionStatsUseCase;
+import com.portal.conecta.checklist.shared.stats.StatsEntryDTO;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+class ChecklistExecutionStatsUseCaseTest {
+
+    private final ChecklistExecutionStatsPort statsPort = mock(ChecklistExecutionStatsPort.class);
+    private final ChecklistExecutionStatsUseCase useCase = new ChecklistExecutionStatsUseCase(statsPort);
+
+    @Test
+    @DisplayName("countByDay com datas nulas deve usar padrão de 30 dias atrás até hoje")
+    void countByDayComDatasNulasDeveUsarPadrao() {
+        when(statsPort.countByDay(any(), any())).thenReturn(List.of());
+
+        useCase.countByDay(null, null);
+
+        verify(statsPort).countByDay(
+            LocalDate.now().minusDays(30),
+            LocalDate.now()
+        );
+    }
+
+    @Test
+    @DisplayName("countByDay com datas explícitas deve repassar ao port sem alteração")
+    void countByDayComDatasExplicitasDeveRepassar() {
+        LocalDate from = LocalDate.of(2026, 6, 1);
+        LocalDate to = LocalDate.of(2026, 6, 30);
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("2026-06-01", 5L));
+        when(statsPort.countByDay(from, to)).thenReturn(expected);
+
+        List<StatsEntryDTO> result = useCase.countByDay(from, to);
+
+        assertEquals(expected, result);
+        verify(statsPort).countByDay(from, to);
+    }
+
+    @Test
+    @DisplayName("completionRate deve delegar ao port e retornar o resultado")
+    void completionRateDeveDelegarAoPort() {
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("completed", 128L));
+        when(statsPort.completionRate()).thenReturn(expected);
+
+        List<StatsEntryDTO> result = useCase.completionRate();
+
+        assertNotNull(result);
+        assertEquals(expected, result);
+        verify(statsPort).completionRate();
+    }
+
+    @Test
+    @DisplayName("withIssuesRate deve delegar ao port e retornar o resultado")
+    void withIssuesRateDeveDelegarAoPort() {
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("with_issues", 52L));
+        when(statsPort.withIssuesRate()).thenReturn(expected);
+
+        List<StatsEntryDTO> result = useCase.withIssuesRate();
+
+        assertNotNull(result);
+        assertEquals(expected, result);
+        verify(statsPort).withIssuesRate();
+    }
+
+    @Test
+    @DisplayName("countByStatus deve delegar ao port diretamente")
+    void countByStatusDeveDelegarAoPort() {
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("SUBMITTED", 100L));
+        when(statsPort.countByStatus()).thenReturn(expected);
+
+        List<StatsEntryDTO> result = useCase.countByStatus();
+
+        assertEquals(expected, result);
+        verify(statsPort).countByStatus();
+    }
+
+    @Test
+    @DisplayName("complianceByShift deve delegar ao port diretamente")
+    void complianceByShiftDeveDelegarAoPort() {
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("FULL_AM_PM|ok", 5L));
+        when(statsPort.complianceByShift()).thenReturn(expected);
+
+        List<StatsEntryDTO> result = useCase.complianceByShift();
+
+        assertEquals(expected, result);
+        verify(statsPort).complianceByShift();
+    }
+
+    @Test
+    @DisplayName("complianceTrendByWeek com datas nulas deve usar padrão de 30 dias atrás até hoje")
+    void complianceTrendByWeekComDatasNulasDeveUsarPadrao() {
+        when(statsPort.complianceTrendByWeek(any(), any())).thenReturn(List.of());
+
+        useCase.complianceTrendByWeek(null, null);
+
+        verify(statsPort).complianceTrendByWeek(
+            LocalDate.now().minusDays(30),
+            LocalDate.now()
+        );
+    }
+
+    @Test
+    @DisplayName("complianceTrendByWeek com datas explícitas deve repassar ao port sem alteração")
+    void complianceTrendByWeekComDatasExplicitasDeveRepassar() {
+        LocalDate from = LocalDate.of(2026, 6, 1);
+        LocalDate to = LocalDate.of(2026, 6, 30);
+        List<StatsEntryDTO> expected = List.of(new StatsEntryDTO("2026-06-01", 87.5));
+        when(statsPort.complianceTrendByWeek(from, to)).thenReturn(expected);
+
+        List<StatsEntryDTO> result = useCase.complianceTrendByWeek(from, to);
+
+        assertEquals(expected, result);
+        verify(statsPort).complianceTrendByWeek(from, to);
+    }
+}

@@ -1,9 +1,9 @@
 package com.portal.conecta.checklist.unit.checklist.domain.service;
 
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.Period;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.Shift;
-import com.portal.conecta.checklist.modules.checklist.domain.service.PeriodResolver;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Period;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Shift;
+import com.portal.conecta.checklist.module.checklist.domain.service.PeriodResolver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

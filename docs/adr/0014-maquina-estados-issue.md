@@ -66,7 +66,7 @@ Concorrência é tratada com **optimistic locking** via `@Version` (coluna `vers
 
 ## Referências
 
-- `modules/checklist/issues/domain/model/ChecklistIssue.java` (transições + `@Version`)
-- `modules/checklist/issues/domain/exception/InvalidIssueTransitionException.java`
+- `module/issues/domain/model/ChecklistIssue.java` (transições + `@Version`)
+- `module/issues/domain/exception/InvalidIssueTransitionException.java`
 - Migration `V2__add_version_to_checklist_issue.sql`
 - PR #208 (`feature/#151-maquina-estados-completa-checklistIssue`)

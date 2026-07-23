@@ -1,6 +1,6 @@
 package com.portal.conecta.checklist.shared.integration.hub.client.classes;
 
-import com.portal.conecta.checklist.modules.checklist.domain.enums.Shift;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Shift;
 
 import java.time.Instant;
 import java.util.UUID;

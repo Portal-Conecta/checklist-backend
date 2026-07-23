@@ -1,8 +1,8 @@
 package com.portal.conecta.checklist.shared.integration.hub.adapter.classes;
 
-import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubClassProvider;
-import com.portal.conecta.checklist.modules.checklist.domain.valueobject.ClassReference;
-import com.portal.conecta.checklist.modules.checklist.domain.valueobject.CourseReference;
+import com.portal.conecta.checklist.module.checklist.application.port.out.integration.HubClassProvider;
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.ClassReference;
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.CourseReference;
 import com.portal.conecta.checklist.shared.integration.hub.client.classes.HubBulkClassRequest;
 import com.portal.conecta.checklist.shared.integration.hub.client.classes.HubBulkClassResponse;
 import com.portal.conecta.checklist.shared.integration.hub.client.classes.HubClassClient;

@@ -14,8 +14,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(properties = {
-        "spring.flyway.enabled=true",
-        "spring.jpa.hibernate.ddl-auto=none"
+    "spring.flyway.enabled=true",
+    "spring.jpa.hibernate.ddl-auto=none"
 })
 public abstract class AbstractRepositoryTest {
 
@@ -27,9 +27,12 @@ public abstract class AbstractRepositoryTest {
     @SuppressWarnings("resource")
     private static PostgreSQLContainer<?> createPostgresContainer() {
         return new PostgreSQLContainer<>("postgres:16-alpine")
-                .withDatabaseName("checklist_test")
-                .withUsername("test")
-                .withPassword("test");
+            .withDatabaseName("checklist_test")
+            .withUsername("test")
+            .withPassword("test")
+            .withSharedMemorySize(268435456L)
+            .withLogConsumer(frame -> System.out.print("[postgres] " + frame.getUtf8String()));
     }
-
 }
+
+

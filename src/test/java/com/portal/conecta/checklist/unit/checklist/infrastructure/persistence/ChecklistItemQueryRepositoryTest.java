@@ -1,11 +1,11 @@
 package com.portal.conecta.checklist.unit.checklist.infrastructure.persistence;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
-import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistItemQueryRepository;
-import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistTemplateRepository;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistItem;
+import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistItemQueryRepository;
+import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistTemplateRepository;
 import com.portal.conecta.checklist.unit.shared.context.AbstractRepositoryTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

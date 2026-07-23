@@ -1,17 +1,21 @@
 package com.portal.conecta.checklist.unit.checklist.application.usecase.execution.command;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
-import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionScoringService;
-import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistIssueService;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
-import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
-import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionDataMapper;
+import com.portal.conecta.checklist.module.checklist.application.port.out.issue.IssueCreationPort;
+import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
+import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionScoringService;
+import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistIssueService;
+import com.portal.conecta.checklist.module.checklist.application.service.window.SubmissionWindowValidator;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistAnswerCommand;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ConformityAnswerValue;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistSchema;
+import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionDataMapper;
 import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
@@ -26,9 +30,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -60,10 +66,16 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
     private ChecklistIssueService issueService;
 
     @Mock
+    private IssueCreationPort issueCreationPort;
+
+    @Mock
     private ObjectMapper objectMapper;
 
     @Mock
     private ChecklistExecutionAnswerValidationService answerValidationService;
+
+    @Mock
+    private SubmissionWindowValidator submissionWindowValidator;
 
     @InjectMocks
     private UpdateChecklistExecutionAnswersUseCase updateChecklistExecutionAnswersUseCase;
@@ -92,6 +104,7 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
         when(contextProvider.getRequestContext()).thenReturn(teacherContext(userId, classId));
         when(objectMapper.convertValue(any(), eq(ChecklistSchema.class))).thenReturn(schema);
         when(answerValidationService.validate(schema, request.answers())).thenReturn(Map.of());
+        when(issueCreationPort.lockedItemKeys(executionId)).thenReturn(Set.of());
         when(executionRepository.save(execution)).thenReturn(execution);
 
         ChecklistExecution resultado = updateChecklistExecutionAnswersUseCase.execute(executionId, request);
@@ -103,6 +116,149 @@ class UpdateChecklistExecutionAnswersUseCaseTest {
         verify(scoringService, times(1)).calculateComplianceScore(any());
         verify(executionMapper, times(1)).toAnswersJson(request);
         verify(issueService, times(1)).createIssuesForNonCompliantAnswers(any(), any(), any());
+        verify(executionRepository, times(1)).save(execution);
+    }
+
+    @Test
+    @DisplayName("deve rejeitar mudanca de valor de item com issue nao validada (travado)")
+    void deveRejeitarMudancaDeValorDeItemTravado() {
+        UUID executionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+
+        UpdateChecklistAnswerCommand novaResposta =
+                new UpdateChecklistAnswerCommand("quadro", ConformityAnswerValue.NON_COMPLIANT, "Quebrado", Instant.now());
+        SubmitChecklistExecutionCommand request = new SubmitChecklistExecutionCommand(List.of(novaResposta));
+
+        ChecklistExecution execution = new ChecklistExecution();
+        execution.setUserId(userId);
+        execution.setClassId(classId);
+        execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
+
+        ChecklistTemplate template = mock(ChecklistTemplate.class);
+        execution.setChecklistTemplate(template);
+
+        ChecklistSchema schema = mock(ChecklistSchema.class);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(teacherContext(userId, classId));
+        when(objectMapper.convertValue(any(), eq(ChecklistSchema.class))).thenReturn(schema);
+        when(answerValidationService.validate(schema, request.answers())).thenReturn(Map.of());
+        when(issueCreationPort.lockedItemKeys(executionId)).thenReturn(Set.of("quadro"));
+        when(executionMapper.currentValuesByItemKey(execution))
+                .thenReturn(Map.of("quadro", ConformityAnswerValue.COMPLIANT));
+
+        assertThrows(IllegalStateException.class,
+                () -> updateChecklistExecutionAnswersUseCase.execute(executionId, request));
+
+        verify(executionRepository, never()).save(any());
+        verify(issueService, never()).createIssuesForNonCompliantAnswers(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("deve permitir alterar apenas a observacao de item travado, mantendo o valor")
+    void devePermitirAlterarObservacaoDeItemTravadoMantendoValor() {
+        UUID executionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+
+        UpdateChecklistAnswerCommand mesmaResposta =
+                new UpdateChecklistAnswerCommand("quadro", ConformityAnswerValue.NON_COMPLIANT, "Observacao atualizada", Instant.now());
+        SubmitChecklistExecutionCommand request = new SubmitChecklistExecutionCommand(List.of(mesmaResposta));
+
+        ChecklistExecution execution = new ChecklistExecution();
+        execution.setUserId(userId);
+        execution.setClassId(classId);
+        execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
+
+        ChecklistTemplate template = mock(ChecklistTemplate.class);
+        execution.setChecklistTemplate(template);
+
+        ChecklistSchema schema = mock(ChecklistSchema.class);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(teacherContext(userId, classId));
+        when(objectMapper.convertValue(any(), eq(ChecklistSchema.class))).thenReturn(schema);
+        when(answerValidationService.validate(schema, request.answers())).thenReturn(Map.of());
+        when(issueCreationPort.lockedItemKeys(executionId)).thenReturn(Set.of("quadro"));
+        when(executionMapper.currentValuesByItemKey(execution))
+                .thenReturn(Map.of("quadro", ConformityAnswerValue.NON_COMPLIANT));
+        when(executionRepository.save(execution)).thenReturn(execution);
+
+        ChecklistExecution resultado = updateChecklistExecutionAnswersUseCase.execute(executionId, request);
+
+        assertNotNull(resultado);
+        verify(executionRepository, times(1)).save(execution);
+    }
+
+    @Test
+    @DisplayName("deve permitir alterar valor de item nao travado mesmo com outros itens travados")
+    void devePermitirAlterarValorDeItemNaoTravado() {
+        UUID executionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+
+        UpdateChecklistAnswerCommand resposta =
+                new UpdateChecklistAnswerCommand("iluminacao", ConformityAnswerValue.COMPLIANT, null, Instant.now());
+        SubmitChecklistExecutionCommand request = new SubmitChecklistExecutionCommand(List.of(resposta));
+
+        ChecklistExecution execution = new ChecklistExecution();
+        execution.setUserId(userId);
+        execution.setClassId(classId);
+        execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
+
+        ChecklistTemplate template = mock(ChecklistTemplate.class);
+        execution.setChecklistTemplate(template);
+
+        ChecklistSchema schema = mock(ChecklistSchema.class);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(teacherContext(userId, classId));
+        when(objectMapper.convertValue(any(), eq(ChecklistSchema.class))).thenReturn(schema);
+        when(answerValidationService.validate(schema, request.answers())).thenReturn(Map.of());
+        when(issueCreationPort.lockedItemKeys(executionId)).thenReturn(Set.of("quadro"));
+        when(executionMapper.currentValuesByItemKey(execution))
+                .thenReturn(Map.of("quadro", ConformityAnswerValue.NON_COMPLIANT));
+        when(executionRepository.save(execution)).thenReturn(execution);
+
+        ChecklistExecution resultado = updateChecklistExecutionAnswersUseCase.execute(executionId, request);
+
+        assertNotNull(resultado);
+        verify(executionRepository, times(1)).save(execution);
+    }
+
+    @Test
+    @DisplayName("deve permitir alterar valor de item apos issue ser validada (desbloqueado)")
+    void devePermitirAlterarValorDeItemAposIssueValidada() {
+        UUID executionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+
+        UpdateChecklistAnswerCommand resposta =
+                new UpdateChecklistAnswerCommand("quadro", ConformityAnswerValue.COMPLIANT, null, Instant.now());
+        SubmitChecklistExecutionCommand request = new SubmitChecklistExecutionCommand(List.of(resposta));
+
+        ChecklistExecution execution = new ChecklistExecution();
+        execution.setUserId(userId);
+        execution.setClassId(classId);
+        execution.setStatus(ChecklistExecutionStatus.SUBMITTED);
+
+        ChecklistTemplate template = mock(ChecklistTemplate.class);
+        execution.setChecklistTemplate(template);
+
+        ChecklistSchema schema = mock(ChecklistSchema.class);
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(teacherContext(userId, classId));
+        when(objectMapper.convertValue(any(), eq(ChecklistSchema.class))).thenReturn(schema);
+        when(answerValidationService.validate(schema, request.answers())).thenReturn(Map.of());
+        when(issueCreationPort.lockedItemKeys(executionId)).thenReturn(Set.of());
+        when(executionRepository.save(execution)).thenReturn(execution);
+
+        ChecklistExecution resultado = updateChecklistExecutionAnswersUseCase.execute(executionId, request);
+
+        assertNotNull(resultado);
+        verify(executionMapper, never()).currentValuesByItemKey(any());
         verify(executionRepository, times(1)).save(execution);
     }
 

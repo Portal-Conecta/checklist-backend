@@ -1,17 +1,17 @@
 package com.portal.conecta.checklist.unit.checklist.application.usecase.template.command;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
-import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.edit.UpdateChecklistTemplateCommand;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.edit.UpdateChecklistTemplateUseCase;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.AnswerType;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistItem;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSchema;
-import com.portal.conecta.checklist.modules.checklist.domain.schema.ChecklistSection;
-import com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference;
+import com.portal.conecta.checklist.module.checklist.application.port.out.integration.HubRoomProvider;
+import com.portal.conecta.checklist.module.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.command.edit.UpdateChecklistTemplateCommand;
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.command.edit.UpdateChecklistTemplateUseCase;
+import com.portal.conecta.checklist.module.checklist.domain.enums.AnswerType;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistItem;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistSchema;
+import com.portal.conecta.checklist.module.checklist.domain.schema.ChecklistSection;
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.RoomReference;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
@@ -150,16 +150,18 @@ class EditChecklistTemplateUseCaseTest {
         return new UpdateChecklistTemplateCommand(
                 "Novo titulo",
                 "Nova descricao",
+                null,
                 schema("secao-1", "item-1")
         );
     }
 
     private UpdateChecklistTemplateCommand commandOnlySchema() {
-        return new UpdateChecklistTemplateCommand(null, null, schema("secao-1", "item-1"));
+        return new UpdateChecklistTemplateCommand(null, null, null, schema("secao-1", "item-1"));
     }
 
     private UpdateChecklistTemplateCommand commandDuplicateKeys() {
         return new UpdateChecklistTemplateCommand(
+                null,
                 null,
                 null,
                 new ChecklistSchema(List.of(

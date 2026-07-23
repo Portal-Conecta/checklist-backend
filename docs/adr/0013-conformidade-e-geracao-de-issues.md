@@ -47,9 +47,9 @@ Em `ChecklistIssueService.createIssuesForNonCompliantAnswers`:
   - `status = OPEN`, `priority = MEDIUM`;
   - `dueAt = agora + 7 dias`;
   - `assignedUserReference = usuário da execução`;
-  - `itemTitleSnapshot` = título do item **no momento da submissão** (ver
-    [ADR-0012](0012-versionamento-imutabilidade-template.md));
-  - textos truncados aos limites das colunas (`title` 100, `description` 500, `itemTitleSnapshot` 150).
+  - `title` grava o título do item **no momento da submissão** (ver
+    [ADR-0012](0012-versionamento-imutabilidade-template.md)), com prefixo `"Pendencia: "`;
+  - textos truncados aos limites das colunas (`title` 100, `description` 500).
 - A `description` vem da **observação** da resposta — coerente com a regra de que `NON_COMPLIANT`
   exige observação (validada na submissão).
 
@@ -72,7 +72,7 @@ Em `ChecklistIssueService.createIssuesForNonCompliantAnswers`:
 
 - Cálculo determinístico e reutilizado entre submit e edição.
 - Não conformidade sempre gera ação rastreável, sem duplicar pendências.
-- Snapshot do título mantém a issue legível após evolução do template.
+- Snapshot do título em `title` mantém a issue legível após evolução do template.
 
 ### Pontos de atenção / negativas
 
@@ -84,8 +84,8 @@ Em `ChecklistIssueService.createIssuesForNonCompliantAnswers`:
 
 ## Referências
 
-- `modules/checklist/application/service/execution/ChecklistExecutionScoringService`
-- `modules/checklist/application/service/execution/ChecklistIssueService`
-- `modules/checklist/application/usecase/execution/command/submit/SubmitChecklistExecutionUseCase`
-- `modules/checklist/application/usecase/execution/command/update/UpdateChecklistExecutionAnswersUseCase`
-- `modules/checklist/issues/domain/model/ChecklistIssue`
+- `module/checklist/application/service/execution/ChecklistExecutionScoringService`
+- `module/checklist/application/service/execution/ChecklistIssueService`
+- `module/checklist/application/usecase/execution/command/submit/SubmitChecklistExecutionUseCase`
+- `module/checklist/application/usecase/execution/command/update/UpdateChecklistExecutionAnswersUseCase`
+- `module/issues/domain/model/ChecklistIssue`

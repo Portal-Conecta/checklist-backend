@@ -1,11 +1,11 @@
 package com.portal.conecta.checklist.unit.checklist.application.usecase.template.command;
 
-import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
-import com.portal.conecta.checklist.modules.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.template.command.create.CreateChecklistTemplateVersionUseCase;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistTemplateStatus;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
-import com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference;
+import com.portal.conecta.checklist.module.checklist.application.port.out.integration.HubRoomProvider;
+import com.portal.conecta.checklist.module.checklist.application.port.out.persistence.ChecklistTemplateRepositoryPort;
+import com.portal.conecta.checklist.module.checklist.application.usecase.template.command.create.CreateChecklistTemplateVersionUseCase;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistTemplateStatus;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.RoomReference;
 import com.portal.conecta.checklist.shared.context.RequestContext;
 import com.portal.conecta.checklist.shared.context.RequestContextProvider;
 import com.portal.conecta.checklist.shared.context.TypeUser;
@@ -52,6 +52,7 @@ class CreateChecklistTemplateVersionUseCaseTest {
         assertFalse(result.isActive());
         assertEquals(groupId, result.getTemplateGroupId());
         assertEquals(2, result.getVersion());
+        assertEquals(origin.getCategory(), result.getCategory());
         assertNull(result.getId());
         verify(templateRepository).save(any());
     }
@@ -116,6 +117,7 @@ class CreateChecklistTemplateVersionUseCaseTest {
                 .roomId(UUID.randomUUID())
                 .title("Template teste")
                 .description("Descricao teste")
+                .category(com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistCategory.GERAL)
                 .version(version)
                 .status(status)
                 .active(status == ChecklistTemplateStatus.ACTIVE)

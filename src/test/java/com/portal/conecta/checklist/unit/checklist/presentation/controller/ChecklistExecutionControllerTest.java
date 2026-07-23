@@ -1,22 +1,23 @@
 package com.portal.conecta.checklist.unit.checklist.presentation.controller;
 
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.cancel.CancelChecklistExecutionUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create.CreateChecklistExecutionCommand;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.create.CreateChecklistExecutionUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.FindChecklistExecutionByIdUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ListChecklistHistoryByClassUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.query.ListChecklistExecutionsUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
-import com.portal.conecta.checklist.modules.checklist.presentation.controller.ChecklistExecutionController;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request.ChecklistExecutionDraftCreateDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.request.ChecklistExecutionSubmitDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.response.ChecklistExecutionHistoryDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.dto.execution.response.ChecklistExecutionResponseDTO;
-import com.portal.conecta.checklist.modules.checklist.presentation.mapper.ChecklistExecutionMapper;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.cancel.CancelChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.create.CreateChecklistExecutionCommand;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.create.CreateChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.FindChecklistExecutionByIdUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ListChecklistHistoryByClassUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ListChecklistExecutionsUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.draft.SaveDraftAnswersUseCase;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistExecutionAnswersUseCase;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.module.checklist.presentation.controller.ChecklistExecutionController;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.request.ChecklistExecutionDraftCreateDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.request.ChecklistExecutionSubmitDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.response.ChecklistExecutionHistoryDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.dto.execution.response.ChecklistExecutionResponseDTO;
+import com.portal.conecta.checklist.module.checklist.presentation.mapper.ChecklistExecutionMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
@@ -33,11 +34,14 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 class ChecklistExecutionControllerTest {
 
     private final CreateChecklistExecutionUseCase createUseCase = mock(CreateChecklistExecutionUseCase.class);
     private final SubmitChecklistExecutionUseCase submitUseCase = mock(SubmitChecklistExecutionUseCase.class);
+    private final SaveDraftAnswersUseCase saveDraftAnswersUseCase = mock(SaveDraftAnswersUseCase.class);
     private final CancelChecklistExecutionUseCase cancelUseCase = mock(CancelChecklistExecutionUseCase.class);
     private final ListChecklistHistoryByClassUseCase listHistoryByClassUseCase = mock(ListChecklistHistoryByClassUseCase.class);
     private final ListChecklistExecutionsUseCase listExecutionsUseCase = mock(ListChecklistExecutionsUseCase.class);
@@ -47,6 +51,7 @@ class ChecklistExecutionControllerTest {
     private final ChecklistExecutionController controller = new ChecklistExecutionController(
             createUseCase,
             submitUseCase,
+            saveDraftAnswersUseCase,
             cancelUseCase,
             listHistoryByClassUseCase,
             listExecutionsUseCase,
@@ -59,7 +64,6 @@ class ChecklistExecutionControllerTest {
     @DisplayName("deve retornar created ao criar draft")
     void deveRetornarCreatedAoCriarDraft() {
         ChecklistExecutionDraftCreateDTO request = new ChecklistExecutionDraftCreateDTO(
-                UUID.randomUUID(),
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 ChecklistType.ARRIVAL
@@ -140,6 +144,32 @@ class ChecklistExecutionControllerTest {
     }
 
     @Test
+    @DisplayName("deve retornar paginacao de execucoes ao listar todas com filtros")
+    void deveRetornarPaginacaoAoListarTodas() {
+        UUID classId = UUID.randomUUID();
+        UUID roomId = UUID.randomUUID();
+        String from = "2023-10-01";
+        String to = "2023-10-10";
+        PageRequest pageable = PageRequest.of(0, 20);
+        
+        ChecklistExecution execution = mock(ChecklistExecution.class);
+        ChecklistExecutionResponseDTO responseDto = mock(ChecklistExecutionResponseDTO.class);
+        Page<ChecklistExecution> executions = new PageImpl<>(List.of(execution), pageable, 1);
+        
+        when(listExecutionsUseCase.execute(any(com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ChecklistExecutionFilter.class), eq(pageable))).thenReturn(executions);
+        when(mapper.toResponse(execution)).thenReturn(responseDto);
+
+        ResponseEntity<Page<ChecklistExecutionResponseDTO>> result = controller.listAll(classId, roomId, null, from, to, pageable);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(1, result.getBody().getContent().size());
+        assertSame(responseDto, result.getBody().getContent().get(0));
+        
+        verify(listExecutionsUseCase).execute(any(com.portal.conecta.checklist.module.checklist.application.usecase.execution.query.ChecklistExecutionFilter.class), eq(pageable));
+        verify(mapper).toResponse(execution);
+    }
+
+    @Test
     @DisplayName("deve retornar historico paginado por turma")
     void deveRetornarHistoricoPaginadoPorTurma() {
         UUID classId = UUID.randomUUID();
@@ -149,14 +179,14 @@ class ChecklistExecutionControllerTest {
         Page<ChecklistExecution> executions = new PageImpl<>(List.of(execution), pageable, 1);
         Page<ChecklistExecutionHistoryDTO> response = new PageImpl<>(List.of(history), pageable, 1);
 
-        when(listHistoryByClassUseCase.execute(classId, pageable)).thenReturn(executions);
+        when(listHistoryByClassUseCase.execute(classId, pageable, null)).thenReturn(executions);
         when(mapper.toPageHistoryWithEnrichment(executions, classId)).thenReturn(response);
 
-        ResponseEntity<Page<ChecklistExecutionHistoryDTO>> result = controller.listHistoryByClass(classId, pageable);
+        ResponseEntity<Page<ChecklistExecutionHistoryDTO>> result = controller.listHistoryByClass(classId, pageable, null);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
-        verify(listHistoryByClassUseCase).execute(classId, pageable);
+        verify(listHistoryByClassUseCase).execute(classId, pageable, null);
         verify(mapper).toPageHistoryWithEnrichment(executions, classId);
     }
 

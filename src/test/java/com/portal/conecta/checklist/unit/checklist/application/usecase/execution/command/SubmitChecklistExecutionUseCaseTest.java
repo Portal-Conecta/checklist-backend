@@ -1,22 +1,24 @@
 package com.portal.conecta.checklist.unit.checklist.application.usecase.execution.command;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
-import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionDataMapper;
-import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistExecutionScoringService;
-import com.portal.conecta.checklist.modules.checklist.application.service.execution.ChecklistIssueService;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.ChecklistNonComplianceEvent;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
-import com.portal.conecta.checklist.modules.checklist.application.service.window.SubmissionWindowValidator;
-import com.portal.conecta.checklist.modules.checklist.application.usecase.execution.command.update.UpdateChecklistAnswerCommand;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistExecutionStatus;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ChecklistType;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.Shift;
-import com.portal.conecta.checklist.modules.checklist.domain.enums.ConformityAnswerValue;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistExecution;
-import com.portal.conecta.checklist.modules.checklist.domain.model.ChecklistTemplate;
-import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
+import com.portal.conecta.checklist.module.checklist.application.port.out.issue.CreateNonComplianceIssueCommand;
+import com.portal.conecta.checklist.module.checklist.application.port.out.issue.IssueCreationPort;
+import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionAnswerValidationService;
+import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionDataMapper;
+import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistExecutionScoringService;
+import com.portal.conecta.checklist.module.checklist.application.service.execution.ChecklistIssueService;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.ChecklistNonComplianceEvent;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionCommand;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.submit.SubmitChecklistExecutionUseCase;
+import com.portal.conecta.checklist.module.checklist.application.service.window.SubmissionWindowValidator;
+import com.portal.conecta.checklist.module.checklist.application.usecase.execution.command.update.UpdateChecklistAnswerCommand;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistExecutionStatus;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ChecklistType;
+import com.portal.conecta.checklist.module.checklist.domain.enums.Shift;
+import com.portal.conecta.checklist.module.checklist.domain.enums.ConformityAnswerValue;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistExecution;
+import com.portal.conecta.checklist.module.checklist.domain.model.ChecklistTemplate;
+import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
 import com.portal.conecta.checklist.shared.context.ClassRole;
 import com.portal.conecta.checklist.shared.context.ContextClass;
 import com.portal.conecta.checklist.shared.context.RequestContext;
@@ -34,6 +36,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,6 +53,7 @@ class SubmitChecklistExecutionUseCaseTest {
     private final RequestContextProvider contextProvider              = mock(RequestContextProvider.class);
     private final SubmissionWindowValidator submissionWindowValidator = mock(SubmissionWindowValidator.class);
     private final ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
+    private final IssueCreationPort issueCreationPort                 = mock(IssueCreationPort.class);
     private final ObjectMapper objectMapper                           = new ObjectMapper().findAndRegisterModules();
     private final ChecklistExecutionDataMapper executionMapper = new ChecklistExecutionDataMapper(objectMapper);
 
@@ -57,13 +61,14 @@ class SubmitChecklistExecutionUseCaseTest {
 
     @BeforeEach
     void setUp() {
+        when(issueCreationPort.existingItemKeysForExecution(any())).thenReturn(Set.of());
         useCase = new SubmitChecklistExecutionUseCase(
                 executionRepository,
                 executionMapper,
                 objectMapper,
                 contextProvider,
                 submissionWindowValidator,
-                new ChecklistIssueService(),
+                new ChecklistIssueService(issueCreationPort),
                 new ChecklistExecutionScoringService(),
                 new ChecklistExecutionAnswerValidationService(),
                 applicationEventPublisher
@@ -91,8 +96,15 @@ class SubmitChecklistExecutionUseCaseTest {
 
         assertThat(result.getStatus()).isEqualTo(ChecklistExecutionStatus.SUBMITTED);
         assertThat(result.getSubmittedAt()).isNotNull();
+        assertThat(result.getSubmittedBy()).isEqualTo(userId);
+        assertThat(result.getCanceledBy()).isNull();
         assertThat(result.getComplianceScore()).isEqualByComparingTo(new BigDecimal("50.00"));
-        assertThat(result.getIssues()).hasSize(1);
+
+        ArgumentCaptor<CreateNonComplianceIssueCommand> issueCaptor = ArgumentCaptor.forClass(CreateNonComplianceIssueCommand.class);
+        verify(issueCreationPort).createNonComplianceIssue(issueCaptor.capture());
+        assertThat(issueCaptor.getValue().executionId()).isEqualTo(executionId);
+        assertThat(issueCaptor.getValue().itemKey()).isEqualTo("iluminacao");
+        assertThat(issueCaptor.getValue().observation()).isEqualTo("Lampada queimada");
 
         ArgumentCaptor<ChecklistNonComplianceEvent> eventCaptor = ArgumentCaptor.forClass(ChecklistNonComplianceEvent.class);
         verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
@@ -186,7 +198,32 @@ class SubmitChecklistExecutionUseCaseTest {
     }
 
     @Test
-    void shouldRejectSubmittingExecutionFromAnotherUser() {
+    void shouldAllowSubmittingExecutionCreatedByColleagueRepresentative() {
+        UUID executionId = UUID.randomUUID();
+        UUID creatorId = UUID.randomUUID();
+        UUID submitterId = UUID.randomUUID();
+        UUID classId = UUID.randomUUID();
+        ChecklistExecution execution = draftExecution(executionId, creatorId, classId);
+        SubmitChecklistExecutionCommand request = new SubmitChecklistExecutionCommand(List.of(
+                answer("quadro", ConformityAnswerValue.COMPLIANT, null),
+                answer("iluminacao", ConformityAnswerValue.COMPLIANT, null)
+        ));
+
+        when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+        when(contextProvider.getRequestContext()).thenReturn(currentUser(submitterId, classId));
+        when(executionRepository.save(execution)).thenReturn(execution);
+
+        ChecklistExecution result = useCase.execute(executionId, request);
+
+        assertThat(result.getStatus()).isEqualTo(ChecklistExecutionStatus.SUBMITTED);
+        assertThat(result.getUserId()).isEqualTo(creatorId);
+        assertThat(result.getSubmittedBy()).isEqualTo(submitterId);
+        assertThat(result.getCanceledBy()).isNull();
+        verify(executionRepository).save(execution);
+    }
+
+    @Test
+    void shouldRejectSubmittingExecutionFromUserWithoutClassLink() {
         UUID executionId = UUID.randomUUID();
         UUID classId = UUID.randomUUID();
         ChecklistExecution execution = draftExecution(executionId, UUID.randomUUID(), classId);
@@ -196,12 +233,13 @@ class SubmitChecklistExecutionUseCaseTest {
         ));
 
         when(executionRepository.findById(executionId)).thenReturn(Optional.of(execution));
-        when(contextProvider.getRequestContext()).thenReturn(currentUser(UUID.randomUUID(), classId));
+        when(contextProvider.getRequestContext()).thenReturn(currentUser(UUID.randomUUID(), UUID.randomUUID()));
 
         assertThrows(AccessDeniedException.class, () -> useCase.execute(executionId, request));
 
         verify(executionRepository, never()).save(execution);
         verify(applicationEventPublisher, never()).publishEvent(any());
+        assertThat(execution.getSubmittedBy()).isNull();
     }
 
     @Test

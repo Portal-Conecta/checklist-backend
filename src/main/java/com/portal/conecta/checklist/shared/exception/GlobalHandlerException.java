@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.shared.exception;
 
-import com.portal.conecta.checklist.modules.checklist.domain.exception.SubmissionWindowViolationException;
-import com.portal.conecta.checklist.modules.checklist.issues.domain.exception.InvalidIssueTransitionException;
+import com.portal.conecta.checklist.module.checklist.domain.exception.SubmissionWindowViolationException;
+import com.portal.conecta.checklist.module.issues.domain.exception.InvalidIssueTransitionException;
 import com.portal.conecta.checklist.shared.integration.hub.exception.HubIntegrationException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -176,7 +176,7 @@ public class GlobalHandlerException {
      */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.FORBIDDEN, "Usuario sem permissao para executar esta operacao.", request);
+        return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 
     /**

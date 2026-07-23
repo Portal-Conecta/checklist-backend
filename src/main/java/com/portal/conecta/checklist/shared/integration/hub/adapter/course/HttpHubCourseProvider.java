@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.shared.integration.hub.adapter.course;
 
-import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubCourseProvider;
-import com.portal.conecta.checklist.modules.checklist.domain.valueobject.CourseReference;
+import com.portal.conecta.checklist.module.checklist.application.port.out.integration.HubCourseProvider;
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.CourseReference;
 import com.portal.conecta.checklist.shared.integration.hub.client.course.HubCourseClient;
 import com.portal.conecta.checklist.shared.integration.hub.client.course.HubCourseResponse;
 import com.portal.conecta.checklist.shared.integration.hub.exception.HubIntegrationException;

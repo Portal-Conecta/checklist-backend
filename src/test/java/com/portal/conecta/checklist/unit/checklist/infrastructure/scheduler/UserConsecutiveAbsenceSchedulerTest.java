@@ -1,8 +1,8 @@
 package com.portal.conecta.checklist.unit.checklist.infrastructure.scheduler;
 
-import com.portal.conecta.checklist.modules.checklist.application.port.out.messaging.NotificationEventPublisher;
-import com.portal.conecta.checklist.modules.checklist.infrastructure.persistence.ChecklistExecutionRepository;
-import com.portal.conecta.checklist.modules.checklist.infrastructure.scheduler.UserConsecutiveAbsenceScheduler;
+import com.portal.conecta.checklist.module.checklist.application.port.out.messaging.NotificationEventPublisher;
+import com.portal.conecta.checklist.module.checklist.infrastructure.persistence.ChecklistExecutionRepository;
+import com.portal.conecta.checklist.module.checklist.infrastructure.scheduler.UserConsecutiveAbsenceScheduler;
 import com.portal.conecta.checklist.shared.messaging.event.NotificationEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

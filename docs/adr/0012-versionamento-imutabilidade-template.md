@@ -44,9 +44,11 @@ importa para o histórico.
 
 ### Snapshot em pendências
 
-- Ao gerar uma issue de item não conforme, grava-se `item_title_snapshot` — o título do item **no
-  momento da submissão** (ver [ADR-0013](0013-conformidade-e-geracao-de-issues.md)). Assim a pendência
-  permanece legível mesmo que o template mude depois.
+- Ao gerar uma issue de item não conforme, o título do item (truncado) é gravado diretamente em
+  `ChecklistIssue.title` no momento da submissão (ver [ADR-0013](0013-conformidade-e-geracao-de-issues.md)).
+  Assim a pendência permanece legível mesmo que o template mude depois.
+- **Atualização (#236):** a coluna dedicada `item_title_snapshot` foi removida por ser redundante com
+  `title`, que já carrega o título do item no momento da criação da issue.
 
 ---
 
@@ -79,7 +81,7 @@ importa para o histórico.
 
 ## Referências
 
-- `modules/checklist/domain/model/ChecklistTemplate` (`templateGroupId`, `version`, `status`, `active`)
-- `modules/checklist/application/usecase/template/command/create/CreateChecklistTemplateVersionUseCase`
-- `modules/checklist/domain/model/ChecklistExecution` (`checklistTemplate`)
-- `modules/checklist/issues/domain/model/ChecklistIssue` (`itemTitleSnapshot`)
+- `module/checklist/domain/model/ChecklistTemplate` (`templateGroupId`, `version`, `status`, `active`)
+- `module/checklist/application/usecase/template/command/create/CreateChecklistTemplateVersionUseCase`
+- `module/checklist/domain/model/ChecklistExecution` (`checklistTemplate`)
+- `module/issues/domain/model/ChecklistIssue` (`title`)

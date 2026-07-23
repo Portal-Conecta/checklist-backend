@@ -1,7 +1,7 @@
 package com.portal.conecta.checklist.shared.integration.hub.adapter.room;
 
-import com.portal.conecta.checklist.modules.checklist.application.port.out.integration.HubRoomProvider;
-import com.portal.conecta.checklist.modules.checklist.domain.valueobject.RoomReference;
+import com.portal.conecta.checklist.module.checklist.application.port.out.integration.HubRoomProvider;
+import com.portal.conecta.checklist.module.checklist.domain.valueobject.RoomReference;
 import com.portal.conecta.checklist.shared.integration.hub.client.room.HubBulkRoomRequest;
 import com.portal.conecta.checklist.shared.integration.hub.client.room.HubBulkRoomResponse;
 import com.portal.conecta.checklist.shared.integration.hub.client.room.HubRoomClient;

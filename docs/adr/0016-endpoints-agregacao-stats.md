@@ -62,7 +62,7 @@ método de query dedicado por métrica e um formato de saída genérico
 
 ## Referências
 
-- `modules/checklist/**/infrastructure/persistence/*StatsRepository.java` (queries nativas)
+- `module/checklist/**/infrastructure/persistence/*StatsRepository.java` (queries nativas)
 - `application/dto/stats/StatsEntryDTO.java`
 - Migration `V3__add_stats_indexes.sql`
 - PR #212 (`feature/#186-endpoints-de-agregacao`)
